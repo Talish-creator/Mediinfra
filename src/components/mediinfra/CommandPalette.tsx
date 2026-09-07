@@ -103,9 +103,17 @@ export function CommandPalette({
                 onSelect={() => runAndClose(() => navigate({ to: "/" }))}
                 className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium text-foreground hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-primary cursor-pointer transition-colors"
               >
+                <Globe className="size-4 text-primary" />
+                <span>{t("corporate.nav.home")} (Corporate)</span>
+                <span className="ms-auto text-xs text-muted-foreground font-mono">/</span>
+              </Command.Item>
+              <Command.Item
+                onSelect={() => runAndClose(() => navigate({ to: "/command" }))}
+                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium text-foreground hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-primary cursor-pointer transition-colors"
+              >
                 <LayoutDashboard className="size-4 text-primary" />
                 <span>{t("nav.commandCenter")}</span>
-                <span className="ms-auto text-xs text-muted-foreground font-mono">/</span>
+                <span className="ms-auto text-xs text-muted-foreground font-mono">/command</span>
               </Command.Item>
               <Command.Item
                 onSelect={() => runAndClose(() => navigate({ to: "/gates" }))}

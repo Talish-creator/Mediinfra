@@ -89,7 +89,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   const NAV: readonly NavItem[] = useMemo(
     () => [
-      { to: "/", label: t("nav.commandCenter"), icon: LayoutDashboard, badge: t("nav.live") },
+      { to: "/command", label: t("nav.commandCenter"), icon: LayoutDashboard, badge: t("nav.live") },
       { to: "/gates", label: t("nav.gates"), icon: ScanLine },
       { to: "/digital-twin", label: t("nav.digitalTwin"), icon: Boxes, badge: t("nav.threeD") },
       { to: "/work-orders", label: t("nav.workOrders"), icon: BadgeCheck },
@@ -125,7 +125,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       >
         {/* Brand Header */}
         <div className="flex h-16 items-center justify-between border-b border-[#0F172A]/[0.06] dark:border-white/[0.08] px-4">
-          <Link to="/" className="flex items-center gap-3 overflow-hidden">
+          <Link to="/command" className="flex items-center gap-3 overflow-hidden">
             <MediInfraLogo collapsed={collapsed} size={collapsed ? "md" : "md"} />
           </Link>
           {!collapsed && (
@@ -591,6 +591,13 @@ export function AppShell({ children }: { children: ReactNode }) {
                   >
                     <UserCog className="size-3.5" />
                     <span>{t("nav.profile")}</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => navigate({ to: "/" })}
+                    className="text-xs py-2 rounded-xl cursor-pointer font-medium flex items-center gap-2 text-slate-600 dark:text-slate-300"
+                  >
+                    <Globe className="size-3.5 text-blue-500" />
+                    <span>{t("corporate.nav.backToPublic")}</span>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuLabel className="text-[11px] font-semibold text-muted-foreground uppercase">

@@ -4,6 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
@@ -160,14 +161,30 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+
+  // Corporate public pages render with full-width corporate layout (no dashboard AppShell sidebar)
+  const isCorporateRoute =
+    pathname === "/" ||
+    pathname === "/login" ||
+    pathname === "/solutions" ||
+    pathname === "/industries" ||
+    pathname === "/platform" ||
+    pathname === "/resources" ||
+    pathname === "/about" ||
+    pathname === "/contact";
 
   return (
     <QueryClientProvider client={queryClient}>
       <MediInfraProvider>
-        <AppShell>
-          {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+        {isCorporateRoute ? (
           <Outlet />
-        </AppShell>
+        ) : (
+          <AppShell>
+            {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+            <Outlet />
+          </AppShell>
+        )}
         <Toaster position="top-right" richColors closeButton />
       </MediInfraProvider>
     </QueryClientProvider>
