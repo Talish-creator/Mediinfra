@@ -1,29 +1,68 @@
-# Welcome to your Lovable project
+# MediInfra — Hospital Infrastructure IoT & Safety Command Center
 
-This project was built with [Lovable](https://lovable.dev).
+MediInfra is a mission-critical Extra Low Voltage (ELV) digital twin and workforce intelligence platform engineered for healthcare campus construction, life-safety compliance, and operational facility monitoring.
 
-## Build with Lovable
+---
 
-Open your project in the [Lovable editor](https://lovable.dev) and keep building.
+## Key Capabilities
 
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: connect the project to GitHub and every change made in Lovable is committed straight to your repository.
-- **Full ownership**: this code is yours. Push to your repository and your changes sync back into Lovable, ready for your next prompt.
+- **Digital Twin Command Map**: Real-time multi-zone telemetry (ICU, Oncology, Trauma, SurgiCenter, HVAC Penthouse) with interactive sensor nodes and heatmaps.
+- **Biometric & RFID Gate Telemetry**: Access control logs, turnstile throughput analytics, credential verification, and automated lockout triggers.
+- **AI Safety & PPE Computer Vision**: Automated real-time PPE detection (Hard hats, Hi-Vis, Safety boots, Eye protection) with infraction scoring and anomaly alerts.
+- **Enterprise Work Orders & Dispatch**: SLA-driven preventative maintenance workflows, asset tracking, priority dispatch, and technician task status.
+- **Emergency Evacuation & Muster Accounting**: Instant roll-call tallying, panic alarms, critical muster point tracking, and missing personnel geofencing.
+- **Comprehensive Analytics & Compliance**: Safety index trending, sensor threshold analysis, acoustic monitoring, air quality metrics, and OSHA/Joint Commission export reporting.
 
-## Development
+---
 
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+## Tech Stack
 
-```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
+- **Framework**: [TanStack Start](https://tanstack.com/start) (Full-stack React with SSR & Nitro)
+- **Frontend**: React 19, TypeScript 5.8
+- **Styling**: Tailwind CSS v4, Framer Motion, Radix UI Primitives, Lucide Icons
+- **Data Visualization**: Recharts, TanStack Virtual
+- **State Management**: TanStack Query v5, Context API with Persistent Local Storage
+- **Build Engine**: Vite 8 & Nitro Engine
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 20+
+- npm, pnpm, or bun
+
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/Talish-creator/Mediinfra.git
+cd Mediinfra
+
+# Install dependencies
+npm install
+
+# Launch local development server
 npm run dev
 ```
 
-## Built with
+The application will be available at `http://localhost:8080/`.
 
-- TanStack Start
-- TypeScript
-- React
-- Tailwind CSS
+---
+
+## Production Build
+
+```bash
+# Compile and build production bundle
+npm run build
+
+# Preview production build
+npm run preview
+```
+
+---
+
+## License
+
+Proprietary — All Rights Reserved.
