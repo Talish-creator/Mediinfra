@@ -44,7 +44,7 @@ import { ROLES, useMediInfra } from "@/lib/mediinfra-store";
 import { motion } from "framer-motion";
 import { MediInfraLogo } from "./MediInfraLogo";
 import { CommandPalette } from "./CommandPalette";
-import { Dot, Mono, Pill } from "./ui-kit";
+import { Dot, LivePulse, Mono, Pill, SignalIndicator, StreamingDots } from "./ui-kit";
 
 type NavItem = {
   to: string;
@@ -147,41 +147,50 @@ export function AppShell({ children }: { children: ReactNode }) {
                 to={item.to}
                 title={item.label}
                 className={cn(
-                  "group flex items-center gap-3.5 rounded-xl px-3 py-2.5 text-[13px] font-medium transition-all duration-150",
+                  "group relative flex items-center gap-3.5 rounded-xl px-3 py-2.5 text-[13px] font-medium transition-colors duration-200",
                   active
-                    ? "bg-[#EFF6FF] text-[#2563EB] dark:bg-blue-950/50 dark:text-blue-400 font-semibold shadow-sm border border-blue-200/60 dark:border-blue-800/40"
-                    : "text-[#64748B] hover:bg-[#F8FAFC] dark:hover:bg-slate-800/80 hover:text-[#0F172A] dark:hover:text-white",
+                    ? "text-[#2563EB] dark:text-blue-400 font-semibold"
+                    : "text-[#64748B] hover:bg-[#F8FAFC]/80 dark:hover:bg-slate-800/60 hover:text-[#0F172A] dark:hover:text-white",
                   collapsed && "justify-center px-2",
                 )}
               >
-                <Icon
-                  className={cn(
-                    "size-[18px] shrink-0 transition-transform duration-150 group-hover:scale-110",
-                    active
-                      ? "text-[#2563EB] dark:text-blue-400"
-                      : "text-[#64748B] group-hover:text-[#0F172A] dark:group-hover:text-white",
-                  )}
-                />
-                {!collapsed && (
-                  <div className="flex flex-1 items-center justify-between min-w-0">
-                    <span className="truncate">{item.label}</span>
-                    {item.badge && (
-                      <span
-                        className={cn(
-                          "rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider",
-                          active
-                            ? "bg-[#2563EB] text-white shadow-[0_0_8px_rgba(37,99,235,0.35)]"
-                            : "bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200/60",
-                        )}
-                      >
-                        {item.badge}
-                      </span>
-                    )}
-                    {item.alert && !active && (
-                      <span className="size-2 rounded-full bg-amber-500 mi-pulse" />
-                    )}
-                  </div>
+                {active && (
+                  <motion.div
+                    layoutId="sidebarActivePill"
+                    className="absolute inset-0 rounded-xl bg-[#EFF6FF] dark:bg-blue-950/50 border border-blue-200/60 dark:border-blue-800/40 shadow-sm"
+                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                  />
                 )}
+                <span className="relative z-10 flex items-center gap-3.5 min-w-0 w-full">
+                  <Icon
+                    className={cn(
+                      "size-[18px] shrink-0 transition-transform duration-200 group-hover:scale-110",
+                      active
+                        ? "text-[#2563EB] dark:text-blue-400"
+                        : "text-[#64748B] group-hover:text-[#0F172A] dark:group-hover:text-white",
+                    )}
+                  />
+                  {!collapsed && (
+                    <div className="flex flex-1 items-center justify-between min-w-0">
+                      <span className="truncate">{item.label}</span>
+                      {item.badge && (
+                        <span
+                          className={cn(
+                            "rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider",
+                            active
+                              ? "bg-[#2563EB] text-white shadow-[0_0_8px_rgba(37,99,235,0.35)]"
+                              : "bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200/60",
+                          )}
+                        >
+                          {item.badge}
+                        </span>
+                      )}
+                      {item.alert && !active && (
+                        <span className="size-2 rounded-full bg-amber-500 mi-pulse" />
+                      )}
+                    </div>
+                  )}
+                </span>
               </Link>
             );
           })}
@@ -194,8 +203,9 @@ export function AppShell({ children }: { children: ReactNode }) {
               <span className="text-[11px] font-bold uppercase tracking-wider text-[#64748B] dark:text-slate-400">
                 Active Project
               </span>
-              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
-                <span className="size-1.5 rounded-full bg-emerald-500" /> Phase 1A / 1B
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
+                <SignalIndicator bars={4} activeBars={4} tone="ok" />
+                <span>Phase 1A / 1B</span>
               </span>
             </div>
 
@@ -237,19 +247,17 @@ export function AppShell({ children }: { children: ReactNode }) {
           {!collapsed ? (
             <div className="flex items-center justify-between text-[11px] text-[#64748B] dark:text-slate-400 px-1">
               <span className="flex items-center gap-1.5">
-                <span className="size-2 rounded-full bg-emerald-500 mi-pulse" />
+                <LivePulse tone="ok" size="sm" />
                 <span>ELV Gateway</span>
               </span>
-              <Mono className="text-emerald-600 dark:text-emerald-400 font-semibold">
-                42ms Latency
-              </Mono>
+              <span className="flex items-center gap-1.5 font-mono text-emerald-600 dark:text-emerald-400 font-semibold text-xs">
+                <StreamingDots tone="ok" />
+                <span>42ms</span>
+              </span>
             </div>
           ) : (
             <div className="flex justify-center">
-              <span
-                className="size-2.5 rounded-full bg-emerald-500 mi-pulse"
-                title="Gateway Online (42ms)"
-              />
+              <LivePulse tone="ok" size="md" className="cursor-pointer" />
             </div>
           )}
         </div>
@@ -440,7 +448,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
               {/* Live Qatar AST Clock */}
               <div className="hidden lg:flex items-center gap-2 rounded-xl border border-border bg-slate-50 dark:bg-slate-900/60 px-3 py-1.5 text-xs font-mono">
-                <span className="size-2 rounded-full bg-emerald-500 mi-pulse" />
+                <LivePulse tone="ok" size="sm" />
                 <span className="text-muted-foreground">AST:</span>
                 <span className="font-semibold text-foreground tabular-nums">{clock}</span>
               </div>
@@ -520,9 +528,9 @@ export function AppShell({ children }: { children: ReactNode }) {
         {/* Page Body */}
         <motion.main
           key={pathname}
-          initial={{ opacity: 0, y: 6 }}
+          initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.22, ease: "easeOut" }}
+          transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
           className="min-w-0 flex-1 space-y-8 p-8 max-w-[1720px] mx-auto w-full"
         >
           {children}

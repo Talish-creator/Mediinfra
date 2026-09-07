@@ -14,7 +14,18 @@ import {
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { Bar, Dot, KpiCard, Mono, PageHeader, Panel, Pill } from "@/components/mediinfra/ui-kit";
+import {
+  Bar,
+  Dot,
+  KpiCard,
+  LivePulse,
+  Mono,
+  PageHeader,
+  Panel,
+  Pill,
+  SignalIndicator,
+  StreamingDots,
+} from "@/components/mediinfra/ui-kit";
 import { HARDWARE } from "@/lib/mediinfra-data";
 
 export const Route = createFileRoute("/hardware")({
@@ -43,16 +54,23 @@ export function HardwarePage() {
         title="ELV Hardware & Sensor Telemetry"
         description="Physical low-current bill of quantities deployed across P875 Hamad General Hospital. Monitored via SNMP v3, Zebra IoT Connector, and on-premise industrial gateways."
         actions={
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-2 h-10 rounded-xl font-semibold text-xs"
-            onClick={() =>
-              toast.success("SNMP diagnostic scan poll completed across all 4 gate gateways")
-            }
-          >
-            <RefreshCw className="size-3.5" /> Scan All Nodes
-          </Button>
+          <div className="flex items-center gap-3">
+            <div className="hidden sm:flex items-center gap-2 rounded-xl border border-emerald-200/60 dark:border-emerald-900/40 bg-emerald-50/70 dark:bg-emerald-950/40 px-3.5 py-2 text-xs font-semibold text-emerald-800 dark:text-emerald-300 shadow-sm">
+              <LivePulse tone="ok" size="sm" />
+              <span>SNMP v3 Active</span>
+              <SignalIndicator bars={4} activeBars={4} tone="ok" />
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2 h-10 rounded-xl font-semibold text-xs"
+              onClick={() =>
+                toast.success("SNMP diagnostic scan poll completed across all 4 gate gateways")
+              }
+            >
+              <RefreshCw className="size-3.5" /> Scan All Nodes
+            </Button>
+          </div>
         }
       />
 
@@ -117,14 +135,23 @@ export function HardwarePage() {
           {HARDWARE.readers.map((r) => (
             <div
               key={r.id}
-              className="rounded-[18px] border border-[#0F172A]/[0.06] dark:border-white/[0.08] bg-white dark:bg-slate-900 p-5 shadow-[0_12px_40px_rgba(2,6,23,0.05)] transition-all hover:border-primary/40"
+              className="rounded-[18px] border border-[#0F172A]/[0.06] dark:border-white/[0.08] bg-white dark:bg-slate-900 p-5 shadow-[0_12px_40px_rgba(2,6,23,0.05)] hover:shadow-[0_20px_50px_rgba(2,6,23,0.08)] hover:-translate-y-0.5 transition-all duration-150"
             >
               <div className="flex items-center justify-between">
                 <p className="flex items-center gap-2 text-xs font-bold text-[#0F172A] dark:text-white">
                   <Radio className="size-4 text-primary" /> {r.id} · {r.gate}
                 </p>
-                <Pill tone={r.status === "Online" ? "ok" : "warn"} className="text-[10px]">
-                  <Dot tone={r.status === "Online" ? "ok" : "warn"} /> {r.status}
+                <Pill
+                  tone={r.status === "Online" ? "ok" : "warn"}
+                  glow={r.status === "Online"}
+                  className="text-[10px]"
+                >
+                  <LivePulse
+                    tone={r.status === "Online" ? "ok" : "warn"}
+                    size="sm"
+                    className="mr-1"
+                  />{" "}
+                  {r.status}
                 </Pill>
               </div>
               <div className="mt-3 grid grid-cols-4 gap-2 text-xs pt-2.5 border-t border-[#0F172A]/[0.05] dark:border-white/[0.06]">

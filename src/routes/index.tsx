@@ -22,6 +22,8 @@ import {
   Users,
 } from "lucide-react";
 
+import { motion } from "framer-motion";
+import { cardItemVariants, staggerContainerVariants } from "@/components/mediinfra/motion";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Floorplan } from "@/components/mediinfra/Floorplan";
 import {
@@ -29,10 +31,12 @@ import {
   Bar,
   Dot,
   KpiCard,
+  LivePulse,
   Mono,
   PageHeader,
   Panel,
   Pill,
+  StreamingDots,
 } from "@/components/mediinfra/ui-kit";
 import { GATES, MANPOWER_CURVE, SUBCONTRACTORS } from "@/lib/mediinfra-data";
 import { useMediInfra } from "@/lib/mediinfra-store";
@@ -73,15 +77,20 @@ export function CommandCenter() {
         description="P875 Hamad General Hospital expansion & retrofit. Real-time telemetry synchronized across optical turnstile readers, RFID digital twin zones, and Edge AI vision gateways."
         actions={
           <div className="flex items-center gap-3">
+            <div className="hidden sm:flex items-center gap-2 rounded-xl border border-blue-200/60 dark:border-blue-900/40 bg-blue-50/70 dark:bg-blue-950/40 px-3.5 py-2 text-xs font-semibold text-primary dark:text-blue-300 shadow-sm">
+              <LivePulse tone="cyan" size="sm" />
+              <span>Live Ingest</span>
+              <StreamingDots tone="cyan" />
+            </div>
             <Link
               to="/digital-twin"
-              className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2.5 text-xs font-semibold text-foreground hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-sm"
+              className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2.5 text-xs font-semibold text-foreground hover:bg-slate-50 dark:hover:bg-slate-800 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-sm"
             >
               <Boxes className="size-3.5 text-primary" /> 3D Digital Twin
             </Link>
             <Link
               to="/gates"
-              className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm"
+              className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-sm"
             >
               <ScanLine className="size-3.5" /> Gate Telemetry
             </Link>
@@ -89,71 +98,86 @@ export function CommandCenter() {
         }
       />
 
-      {/* 4 Commercial Enterprise KPI Cards (42px) */}
-      <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4 items-stretch">
-        <KpiCard
-          label="Total On-Site Headcount"
-          value={headcount.toLocaleString()}
-          trend="+4.2%"
-          trendLabel="vs 829 yesterday"
-          status="86.4% Scheduled"
-          tone="cyan"
-          spark={[620, 690, 742, 802, 861, 890, 872, headcount]}
-          footer={
-            <div className="flex items-center justify-between text-[11px] text-muted-foreground font-medium pt-1">
-              <span>Shift Target: 1,000 workers</span>
-              <span className="font-semibold text-foreground">136 badges available</span>
-            </div>
-          }
-        />
-        <KpiCard
-          label="Gate Turnstile Throughput"
-          value={`${throughputPerMin}/min`}
-          trend="+12%"
-          trendLabel="avg 2.6s per pass"
-          status="Optimal Flow"
-          tone="ok"
-          spark={[8, 14, 30, 52, 41, 33, 29, throughputPerMin]}
-          footer={
-            <div className="flex items-center justify-between text-[11px] text-muted-foreground font-medium pt-1">
-              <span>Peak: 52/min at 06:15 AST</span>
-              <span className="font-semibold text-foreground">All 4 Gates Operational</span>
-            </div>
-          }
-        />
-        <KpiCard
-          label="Work Order Execution"
-          value="18 Active"
-          trend="+2"
-          trendLabel="permits approved today"
-          status="100% Turnstile Synced"
-          tone="exec"
-          spark={[11, 12, 14, 15, 16, 17, 18, 18]}
-          footer={
-            <div className="flex items-center justify-between text-[11px] text-muted-foreground font-medium pt-1">
-              <span>2 in Consultant Review</span>
-              <span className="font-semibold text-foreground">0 Expired</span>
-            </div>
-          }
-        />
-        <KpiCard
-          label="HSE Safety Score"
-          value="98.4%"
-          trend="-0.2%"
-          trendLabel="3 AI alerts resolved"
-          status="Safe Operation"
-          tone="warn"
-          spark={[97.1, 97.6, 98.2, 98.9, 98.4, 98.5, 98.3, 98.4]}
-          footer={
-            <div className="flex items-center justify-between text-[11px] text-muted-foreground font-medium pt-1">
-              <span>Lost Time Incidents: 0</span>
-              <span className="font-semibold text-emerald-600 dark:text-emerald-400">
-                100% Induction Rate
-              </span>
-            </div>
-          }
-        />
-      </div>
+      {/* 4 Commercial Enterprise KPI Cards (42px) with Framer Motion Stagger */}
+      <motion.div
+        variants={staggerContainerVariants}
+        initial="initial"
+        animate="animate"
+        className="grid gap-6 md:grid-cols-2 xl:grid-cols-4 items-stretch"
+      >
+        <motion.div variants={cardItemVariants}>
+          <KpiCard
+            shimmer
+            label="Total On-Site Headcount"
+            value={headcount.toLocaleString()}
+            trend="+4.2%"
+            trendLabel="vs 829 yesterday"
+            status="86.4% Scheduled"
+            tone="cyan"
+            spark={[620, 690, 742, 802, 861, 890, 872, headcount]}
+            footer={
+              <div className="flex items-center justify-between text-[11px] text-muted-foreground font-medium pt-1">
+                <span>Shift Target: 1,000 workers</span>
+                <span className="font-semibold text-foreground">136 badges available</span>
+              </div>
+            }
+          />
+        </motion.div>
+        <motion.div variants={cardItemVariants}>
+          <KpiCard
+            shimmer
+            label="Gate Turnstile Throughput"
+            value={`${throughputPerMin}/min`}
+            trend="+12%"
+            trendLabel="avg 2.6s per pass"
+            status="Optimal Flow"
+            tone="ok"
+            spark={[8, 14, 30, 52, 41, 33, 29, throughputPerMin]}
+            footer={
+              <div className="flex items-center justify-between text-[11px] text-muted-foreground font-medium pt-1">
+                <span>Peak: 52/min at 06:15 AST</span>
+                <span className="font-semibold text-foreground">All 4 Gates Operational</span>
+              </div>
+            }
+          />
+        </motion.div>
+        <motion.div variants={cardItemVariants}>
+          <KpiCard
+            label="Work Order Execution"
+            value="18 Active"
+            trend="+2"
+            trendLabel="permits approved today"
+            status="100% Turnstile Synced"
+            tone="exec"
+            spark={[11, 12, 14, 15, 16, 17, 18, 18]}
+            footer={
+              <div className="flex items-center justify-between text-[11px] text-muted-foreground font-medium pt-1">
+                <span>2 in Consultant Review</span>
+                <span className="font-semibold text-foreground">0 Expired</span>
+              </div>
+            }
+          />
+        </motion.div>
+        <motion.div variants={cardItemVariants}>
+          <KpiCard
+            label="HSE Safety Score"
+            value="98.4%"
+            trend="-0.2%"
+            trendLabel="3 AI alerts resolved"
+            status="Safe Operation"
+            tone="warn"
+            spark={[97.1, 97.6, 98.2, 98.9, 98.4, 98.5, 98.3, 98.4]}
+            footer={
+              <div className="flex items-center justify-between text-[11px] text-muted-foreground font-medium pt-1">
+                <span>Lost Time Incidents: 0</span>
+                <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+                  100% Induction Rate
+                </span>
+              </div>
+            }
+          />
+        </motion.div>
+      </motion.div>
 
       {/* Digital Twin Overview & Real-Time Gates Hub */}
       <div className="grid gap-6 xl:grid-cols-3 items-stretch">
@@ -219,7 +243,7 @@ export function CommandCenter() {
             return (
               <div
                 key={gate.id}
-                className="rounded-2xl border border-border bg-slate-50/60 dark:bg-slate-900/30 p-4 transition-all hover:border-primary/40"
+                className="rounded-2xl border border-border bg-slate-50/60 dark:bg-slate-900/30 p-4 transition-all duration-150 hover:border-primary/40 hover:shadow-[0_4px_12px_rgba(2,6,23,0.04)] hover:-translate-y-0.5"
               >
                 <div className="flex items-center justify-between">
                   <div>
@@ -230,13 +254,13 @@ export function CommandCenter() {
                       {gate.reader} · {gate.ip} · {gate.uptime}% uptime
                     </Mono>
                   </div>
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-2">
                     {queueCount > 0 && (
                       <span className="rounded-full bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 px-2 py-0.5 text-[10px] font-bold">
                         {queueCount} in queue
                       </span>
                     )}
-                    <span className="size-2 rounded-full bg-emerald-500 mi-pulse" />
+                    <LivePulse tone="ok" size="sm" />
                   </div>
                 </div>
 

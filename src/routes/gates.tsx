@@ -52,10 +52,13 @@ import {
   Avatar,
   Dot,
   KpiCard,
+  LivePulse,
   Mono,
   PageHeader,
   Panel,
   Pill,
+  SignalIndicator,
+  StreamingDots,
 } from "@/components/mediinfra/ui-kit";
 import { GATES, HARDWARE, SUBCONTRACTORS, type Gate } from "@/lib/mediinfra-data";
 import { makeEvent, useMediInfra, type GateEvent } from "@/lib/mediinfra-store";
@@ -153,9 +156,14 @@ export function GatesPage() {
         description="Every optical turnstile tap across Gates 01–04 is evaluated against work orders, induction validity, and zone quotas in under 300 ms with edge SQLite caching."
         actions={
           <div className="flex items-center gap-2.5">
-            <Pill tone={simulating ? "ok" : "muted"} className="h-9 px-3 text-xs">
-              <Dot tone={simulating ? "ok" : "muted"} pulse={simulating} />
+            <Pill
+              tone={simulating ? "ok" : "muted"}
+              glow={simulating}
+              className="h-9 px-3.5 text-xs font-semibold"
+            >
+              <LivePulse tone={simulating ? "ok" : "muted"} size="sm" className="mr-1.5" />
               {simulating ? `Streaming: ${throughputPerMin} taps/min` : "Stream paused"}
+              {simulating && <StreamingDots tone="ok" className="ml-1.5" />}
             </Pill>
           </div>
         }
@@ -164,6 +172,7 @@ export function GatesPage() {
       {/* Real-Time KPI Cards (42px) */}
       <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4 items-stretch">
         <KpiCard
+          shimmer
           label="Active Optical Turnstiles"
           value="4 / 4"
           trend="+100%"
@@ -173,6 +182,7 @@ export function GatesPage() {
           spark={[4, 4, 4, 4, 4, 4, 4]}
         />
         <KpiCard
+          shimmer
           label="Telemetry Stream Velocity"
           value={`${throughputPerMin} taps/m`}
           trend="+12%"
@@ -225,7 +235,7 @@ export function GatesPage() {
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.9 }}
                 transition={{ duration: 0.2 }}
-                className="rounded-[18px] border border-[#0F172A]/[0.06] dark:border-white/[0.08] bg-white dark:bg-slate-900 shadow-[0_12px_40px_rgba(2,6,23,0.05)] p-4 flex flex-col justify-between"
+                className="rounded-[18px] border border-[#0F172A]/[0.06] dark:border-white/[0.08] bg-white dark:bg-slate-900 shadow-[0_12px_40px_rgba(2,6,23,0.05)] hover:shadow-[0_20px_50px_rgba(2,6,23,0.08)] hover:-translate-y-0.5 transition-all duration-150 p-4 flex flex-col justify-between"
               >
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2.5 min-w-0">

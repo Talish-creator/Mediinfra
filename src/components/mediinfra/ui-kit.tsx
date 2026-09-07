@@ -141,6 +141,137 @@ export function Dot({
   );
 }
 
+export function LivePulse({
+  tone = "ok",
+  size = "sm",
+  className,
+}: {
+  tone?: Tone | undefined;
+  size?: "sm" | "md" | undefined;
+  className?: string | undefined;
+}) {
+  const dotColor =
+    tone === "ok"
+      ? "bg-[#22C55E]"
+      : tone === "warn"
+        ? "bg-[#F59E0B]"
+        : tone === "crit"
+          ? "bg-[#EF4444]"
+          : "bg-[#2563EB]";
+  const pingColor =
+    tone === "ok"
+      ? "bg-[#22C55E]/40"
+      : tone === "warn"
+        ? "bg-[#F59E0B]/40"
+        : tone === "crit"
+          ? "bg-[#EF4444]/40"
+          : "bg-[#2563EB]/40";
+  const dim = size === "sm" ? "size-2" : "size-2.5";
+
+  return (
+    <span
+      className={cn("relative inline-flex items-center justify-center shrink-0", dim, className)}
+    >
+      <span
+        className={cn(
+          "absolute inline-flex size-full animate-ping rounded-full opacity-75",
+          pingColor,
+        )}
+      />
+      <span
+        className={cn(
+          "relative inline-flex size-full rounded-full shadow-[0_0_8px_currentColor]",
+          dotColor,
+        )}
+      />
+    </span>
+  );
+}
+
+export function SignalIndicator({
+  bars = 4,
+  activeBars = 4,
+  tone = "ok",
+  className,
+}: {
+  bars?: number | undefined;
+  activeBars?: number | undefined;
+  tone?: Tone | undefined;
+  className?: string | undefined;
+}) {
+  const activeColor =
+    tone === "ok"
+      ? "bg-[#22C55E]"
+      : tone === "warn"
+        ? "bg-[#F59E0B]"
+        : tone === "crit"
+          ? "bg-[#EF4444]"
+          : "bg-[#2563EB]";
+
+  const heights = ["h-1.5", "h-2", "h-2.5", "h-3.5"];
+
+  return (
+    <div
+      className={cn("inline-flex items-end gap-0.5 h-3.5 shrink-0", className)}
+      title={`Telemetry Link: ${activeBars}/${bars} bars active`}
+    >
+      {Array.from({ length: bars }).map((_, i) => {
+        const isActive = i < activeBars;
+        return (
+          <span
+            key={i}
+            className={cn(
+              "w-1 rounded-sm transition-all duration-300",
+              heights[i] ?? "h-2",
+              isActive ? activeColor : "bg-[#64748B]/20 dark:bg-slate-700",
+            )}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
+export function StreamingDots({
+  tone = "ok",
+  className,
+}: {
+  tone?: Tone | undefined;
+  className?: string | undefined;
+}) {
+  const dotColor =
+    tone === "ok"
+      ? "bg-[#22C55E]"
+      : tone === "warn"
+        ? "bg-[#F59E0B]"
+        : tone === "crit"
+          ? "bg-[#EF4444]"
+          : "bg-[#2563EB]";
+
+  return (
+    <span className={cn("inline-flex items-center gap-1 shrink-0", className)}>
+      <span
+        className={cn("size-1 rounded-full animate-bounce [animation-delay:-0.3s]", dotColor)}
+      />
+      <span
+        className={cn("size-1 rounded-full animate-bounce [animation-delay:-0.15s]", dotColor)}
+      />
+      <span className={cn("size-1 rounded-full animate-bounce", dotColor)} />
+    </span>
+  );
+}
+
+export function ScanningLine({ className }: { className?: string | undefined }) {
+  return (
+    <div
+      className={cn(
+        "pointer-events-none absolute inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-[#2563EB]/70 to-transparent mi-scanline",
+        className,
+      )}
+    />
+  );
+}
+
 export function Panel({
   title,
   subtitle,
@@ -245,6 +376,8 @@ export function Spark({ data, tone = "cyan" }: { data: number[]; tone?: Tone }) 
             strokeWidth={2.5}
             fill={`url(#${id})`}
             isAnimationActive={true}
+            animationDuration={800}
+            animationEasing="ease-out"
           />
         </AreaChart>
       </ResponsiveContainer>
@@ -262,6 +395,7 @@ export function KpiCard({
   trendLabel = "vs yesterday",
   status,
   footer,
+  shimmer = false,
 }: {
   label: string;
   value: ReactNode;
@@ -272,11 +406,17 @@ export function KpiCard({
   trendLabel?: string | undefined;
   status?: string | undefined;
   footer?: ReactNode;
+  shimmer?: boolean | undefined;
 }) {
   const isPositive = typeof trend === "number" ? trend >= 0 : String(trend).startsWith("+");
 
   return (
-    <div className="group relative h-full rounded-[18px] border border-[#0F172A]/[0.06] dark:border-white/[0.08] bg-white dark:bg-slate-900 p-6 shadow-[0_12px_40px_rgba(2,6,23,0.05)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.3)] hover:shadow-[0_20px_50px_rgba(2,6,23,0.08)] hover:-translate-y-0.5 transition-all duration-[180ms] ease-out overflow-hidden flex flex-col justify-between">
+    <div
+      className={cn(
+        "group relative h-full rounded-[18px] border border-[#0F172A]/[0.06] dark:border-white/[0.08] bg-white dark:bg-slate-900 p-6 shadow-[0_12px_40px_rgba(2,6,23,0.05)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.3)] hover:shadow-[0_20px_50px_rgba(2,6,23,0.08)] hover:-translate-y-0.5 transition-all duration-[180ms] ease-out overflow-hidden flex flex-col justify-between",
+        shimmer && "mi-shimmer",
+      )}
+    >
       {/* Top indicator bar */}
       <div
         className="absolute inset-x-0 top-0 h-1 transition-opacity opacity-80 group-hover:opacity-100"
@@ -626,8 +766,8 @@ export function EnterpriseDataGrid<T extends { id?: string | number }>({
                   <tr
                     key={id}
                     className={cn(
-                      "transition-colors hover:bg-[#F8FAFC]/90 dark:hover:bg-slate-800/50",
-                      isSelected && "bg-blue-50/50 dark:bg-blue-950/20",
+                      "transition-all duration-150 hover:bg-[#F8FAFC]/90 dark:hover:bg-slate-800/50 hover:shadow-[0_2px_8px_rgba(2,6,23,0.03)]",
+                      isSelected && "bg-blue-50/60 dark:bg-blue-950/30",
                     )}
                   >
                     <td className="px-6 py-4 text-center">

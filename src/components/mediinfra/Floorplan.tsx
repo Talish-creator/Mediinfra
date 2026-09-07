@@ -17,6 +17,7 @@ import {
 
 import { cn } from "@/lib/utils";
 import { ZONES, type Zone } from "@/lib/mediinfra-data";
+import { AnimatedNumber } from "./AnimatedNumber";
 import { Mono, Pill } from "./ui-kit";
 
 export function zoneTone(z: Zone) {
@@ -256,6 +257,11 @@ export function Floorplan({
             </span>
           </div>
 
+          {/* Radar Scanning Line Sweep */}
+          <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-20">
+            <div className="absolute inset-x-0 h-24 bg-gradient-to-b from-transparent via-[#2563EB]/25 to-transparent mi-scanline" />
+          </div>
+
           {/* Zones */}
           {zones.map((z, zoneIdx) => {
             const tone = zoneTone(z);
@@ -306,7 +312,7 @@ export function Floorplan({
                 {/* Animated Density Heatmap Layer */}
                 {showHeatmap && pct > 65 && (
                   <div
-                    className="absolute inset-0 pointer-events-none opacity-40 animate-pulse transition-opacity duration-1000"
+                    className="absolute inset-0 pointer-events-none opacity-40 mi-breathe transition-opacity duration-1000"
                     style={{
                       background: `radial-gradient(circle at 50% 50%, ${color}60 0%, transparent 70%)`,
                     }}
@@ -401,7 +407,7 @@ export function Floorplan({
                       )}
                     </div>
                     <span className="font-mono text-[10px] text-slate-400 block mt-0.5">
-                      {z.count} / {z.capacity} workers
+                      <AnimatedNumber value={z.count} /> / {z.capacity} workers
                     </span>
                   </div>
 

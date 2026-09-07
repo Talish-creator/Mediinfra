@@ -19,7 +19,16 @@ import {
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { Dot, Mono, PageHeader, Panel, Pill } from "@/components/mediinfra/ui-kit";
+import {
+  Dot,
+  LivePulse,
+  Mono,
+  PageHeader,
+  Panel,
+  Pill,
+  ScanningLine,
+  StreamingDots,
+} from "@/components/mediinfra/ui-kit";
 import { AI_CAMERAS, BROADCAST_LOG } from "@/lib/mediinfra-data";
 import { cn } from "@/lib/utils";
 
@@ -65,8 +74,8 @@ export function SafetyAi() {
         description="On-device TensorRT neural inference at perimeter gates and hoarding entrances detects PPE compliance and turnstile evasion within 11.4 ms, triggering automated site loudspeaker warnings."
         actions={
           <div className="flex items-center gap-2.5">
-            <Pill tone="ok" className="h-9 px-3 text-xs">
-              <Dot tone="ok" /> 3 Edge Nodes Active · {fps} FPS
+            <Pill tone="ok" glow className="h-9 px-3.5 text-xs font-semibold">
+              <LivePulse tone="ok" size="sm" className="mr-1.5" /> 3 Edge Nodes Active · {fps} FPS
             </Pill>
             <Button
               variant="outline"
@@ -178,7 +187,7 @@ export function SafetyAi() {
                 {/* HUD Camera Header */}
                 <div className="absolute top-2.5 left-2.5 right-2.5 z-20 flex items-center justify-between text-[10px] font-mono text-white/90">
                   <span className="flex items-center gap-1.5 rounded-md bg-black/60 px-2 py-0.5 backdrop-blur-sm">
-                    <span className="size-2 rounded-full bg-red-500 mi-pulse" />
+                    <LivePulse tone="crit" size="sm" />
                     <span>REC · LIVE</span>
                   </span>
                   <span className="rounded-md bg-black/60 px-2 py-0.5 backdrop-blur-sm">
@@ -192,14 +201,17 @@ export function SafetyAi() {
                   <div className="absolute top-1/2 left-0 right-0 h-px bg-slate-500 border-b border-dashed" />
                 </div>
 
+                {/* Live AI Scanning Beam */}
+                <ScanningLine className="opacity-80" />
+
                 {/* Animated AI Bounding Boxes */}
                 {cam.detections.map((d, dIdx) => {
                   const isViolation = d.type === "crit";
                   const isWarning = d.type === "warn";
                   const boxBorder = isViolation
-                    ? "border-red-500 text-red-500 bg-red-500/10"
+                    ? "border-red-500 text-red-500 bg-red-500/15 mi-breathe"
                     : isWarning
-                      ? "border-amber-500 text-amber-500 bg-amber-500/10"
+                      ? "border-amber-500 text-amber-500 bg-amber-500/15 mi-breathe"
                       : "border-emerald-400 text-emerald-400 bg-emerald-400/10";
                   const confidence = isViolation ? "99.2%" : isWarning ? "94.6%" : "98.7%";
 

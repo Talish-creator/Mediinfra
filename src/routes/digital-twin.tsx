@@ -13,7 +13,7 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Floorplan, zoneTone } from "@/components/mediinfra/Floorplan";
-import { Bar, Dot, Mono, PageHeader, Panel, Pill } from "@/components/mediinfra/ui-kit";
+import { Bar, Dot, LivePulse, Mono, PageHeader, Panel, Pill } from "@/components/mediinfra/ui-kit";
 import { ZONES, type Zone } from "@/lib/mediinfra-data";
 import { cn } from "@/lib/utils";
 
@@ -77,6 +77,10 @@ export function DigitalTwin() {
         description="BIM LOD-400 structural model paired with RFID portal gates and BLE spatial anchors. Tracks live contractor headcount, active work permits, and automated virtual geo-fences."
         actions={
           <div className="flex items-center gap-3">
+            <div className="hidden sm:flex items-center gap-2 rounded-xl border border-emerald-200/60 dark:border-emerald-900/40 bg-emerald-50/70 dark:bg-emerald-950/40 px-3.5 py-2 text-xs font-semibold text-emerald-800 dark:text-emerald-300 shadow-sm">
+              <LivePulse tone="ok" size="sm" />
+              <span>Spatial Mesh Active</span>
+            </div>
             <Button
               variant="outline"
               size="sm"
@@ -106,7 +110,7 @@ export function DigitalTwin() {
               key={b.id}
               onClick={() => setBuilding(b.id)}
               className={cn(
-                "flex items-center gap-2.5 rounded-xl border px-4 py-2.5 text-xs font-semibold transition-all shadow-sm",
+                "flex items-center gap-2.5 rounded-xl border px-4 py-2.5 text-xs font-semibold transition-all duration-150 shadow-sm hover:scale-[1.02] active:scale-[0.98]",
                 active
                   ? "border-[#2563EB] bg-gradient-to-r from-[#2563EB] to-[#1D4ED8] text-white shadow-[0_8px_20px_rgba(37,99,235,0.22)]"
                   : "border-[#0F172A]/[0.08] dark:border-white/10 bg-white dark:bg-slate-900 text-[#64748B] dark:text-slate-400 hover:border-primary/50 hover:text-[#0F172A] dark:hover:text-white hover:bg-[#F8FAFC]",

@@ -9,10 +9,12 @@ import {
   Bar,
   Dot,
   KpiCard,
+  LivePulse,
   Mono,
   PageHeader,
   Panel,
   Pill,
+  StreamingDots,
 } from "@/components/mediinfra/ui-kit";
 import { MISSING_PERSONNEL, MUSTER_POINTS } from "@/lib/mediinfra-data";
 import { useMediInfra } from "@/lib/mediinfra-store";
@@ -127,6 +129,7 @@ export function MusterPage() {
       {/* 3 Large KPI Cards (42px) */}
       <div className="grid gap-6 md:grid-cols-3 items-stretch">
         <KpiCard
+          shimmer={emergency}
           label="Site Population at Alarm"
           value={total.toLocaleString()}
           sub="Workers verified inside the perimeter"
@@ -135,6 +138,7 @@ export function MusterPage() {
           spark={[780, 810, 835, 850, 860, 864]}
         />
         <KpiCard
+          shimmer={emergency}
           label="Safely Accounted For"
           value={emergency ? accounted.toLocaleString() : 0}
           sub="Scanned at muster readers A / B / C"
@@ -143,6 +147,7 @@ export function MusterPage() {
           spark={emergency ? [0, 180, 390, 580, 720, accounted] : [0, 0, 0, 0, 0]}
         />
         <KpiCard
+          shimmer={emergency}
           label="Missing / Unaccounted Personnel"
           value={emergency ? missing.toLocaleString() : total.toLocaleString()}
           sub={emergency ? "Active search teams dispatched" : "Awaiting alarm trigger"}
@@ -163,8 +168,8 @@ export function MusterPage() {
               title={`Muster Station ${m.id}`}
               subtitle={m.name}
               action={
-                <Pill tone={emergency ? "ok" : "muted"} className="text-xs">
-                  <Dot tone={emergency ? "ok" : "muted"} pulse={emergency} />
+                <Pill tone={emergency ? "ok" : "muted"} glow={emergency} className="text-xs">
+                  <LivePulse tone={emergency ? "ok" : "muted"} size="sm" className="mr-1.5" />
                   MSTR-{m.id}-01
                 </Pill>
               }
