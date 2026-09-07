@@ -277,9 +277,9 @@ export function AppShell({ children }: { children: ReactNode }) {
       <div className="flex min-w-0 flex-1 flex-col overflow-x-hidden">
         {/* Top Enterprise Header */}
         <header className="sticky top-0 z-30 border-b border-[#0F172A]/[0.06] dark:border-white/[0.08] bg-white/95 dark:bg-slate-900/95 transition-colors">
-          <div className="flex items-center justify-between gap-4 px-4 sm:px-6 py-3">
+          <div className="flex h-16 items-center justify-between gap-3 sm:gap-4 px-4 sm:px-6">
             {/* Left: Mobile Navigation Trigger & Breadcrumb */}
-            <div className="flex items-center gap-2.5 min-w-0">
+            <div className="flex items-center gap-2 sm:gap-2.5 min-w-0 shrink">
               <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
                 <SheetTrigger asChild>
                   <Button
@@ -351,26 +351,32 @@ export function AppShell({ children }: { children: ReactNode }) {
                 </SheetContent>
               </Sheet>
 
-              <nav className="flex items-center gap-2 text-[13px] font-medium text-muted-foreground">
-                <span className="hover:text-foreground cursor-pointer font-semibold text-foreground truncate max-w-[130px] sm:max-w-none">
+              <nav className="flex items-center gap-1.5 sm:gap-2 text-[13px] font-medium text-muted-foreground min-w-0 overflow-hidden">
+                <span
+                  className="hover:text-foreground cursor-pointer font-semibold text-foreground truncate max-w-[100px] sm:max-w-[150px] md:max-w-[200px]"
+                  title={t("header.hospitalName")}
+                >
                   {t("header.hospitalName")}
                 </span>
-                <span className="text-muted-foreground/50">/</span>
-                <span className="text-primary font-semibold truncate max-w-[140px] sm:max-w-[220px]">
+                <span className="text-muted-foreground/40 shrink-0">/</span>
+                <span
+                  className="text-primary font-semibold truncate max-w-[110px] sm:max-w-[160px] md:max-w-[220px]"
+                  title={current?.label}
+                >
                   {current?.label}
                 </span>
               </nav>
             </div>
 
-            {/* Center: Context Badges */}
-            <div className="hidden xl:flex items-center gap-3">
+            {/* Center: Context Badges (visible only on 2XL / ultra-wide viewports to prevent collisions) */}
+            <div className="hidden 2xl:flex items-center gap-2.5 shrink-0 whitespace-nowrap">
               {/* Project & Client Selector */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="flex items-center gap-2 rounded-xl border border-border bg-slate-50 dark:bg-slate-900/60 px-3 py-1.5 text-xs font-semibold hover:border-primary/50 transition-colors">
-                    <span className="size-2 rounded-full bg-blue-500" />
+                  <button className="flex items-center gap-2 rounded-xl border border-border bg-slate-50 dark:bg-slate-900/60 px-3 py-1.5 text-xs font-semibold hover:border-primary/50 transition-colors shrink-0 whitespace-nowrap">
+                    <span className="size-2 rounded-full bg-blue-500 shrink-0" />
                     <span>{t("header.phase1a")}</span>
-                    <ChevronDown className="size-3 text-muted-foreground" />
+                    <ChevronDown className="size-3 text-muted-foreground shrink-0" />
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="center" className="w-64 rounded-xl">
@@ -385,34 +391,34 @@ export function AppShell({ children }: { children: ReactNode }) {
               </DropdownMenu>
 
               {/* Client Badge */}
-              <div className="flex items-center gap-1.5 rounded-xl border border-border bg-slate-50 dark:bg-slate-900/60 px-3 py-1.5 text-xs font-medium text-muted-foreground">
+              <div className="flex items-center gap-1.5 rounded-xl border border-border bg-slate-50 dark:bg-slate-900/60 px-3 py-1.5 text-xs font-medium text-muted-foreground shrink-0 whitespace-nowrap">
                 <span className="font-semibold text-foreground">{t("header.clientLabel")}</span> {t("header.clientValue")}
               </div>
 
               {/* Weather in Doha */}
-              <div className="flex items-center gap-1.5 rounded-xl border border-border bg-slate-50 dark:bg-slate-900/60 px-3 py-1.5 text-xs font-medium text-muted-foreground">
-                <CloudSun className="size-3.5 text-amber-500" />
+              <div className="flex items-center gap-1.5 rounded-xl border border-border bg-slate-50 dark:bg-slate-900/60 px-3 py-1.5 text-xs font-medium text-muted-foreground shrink-0 whitespace-nowrap">
+                <CloudSun className="size-3.5 text-amber-500 shrink-0" />
                 <span>{t("header.weatherDoha")}</span>
               </div>
 
               {/* Shift info */}
-              <div className="flex items-center gap-1.5 rounded-xl border border-border bg-slate-50 dark:bg-slate-900/60 px-3 py-1.5 text-xs font-medium text-muted-foreground">
-                <Radio className="size-3.5 text-emerald-500" />
+              <div className="flex items-center gap-1.5 rounded-xl border border-border bg-slate-50 dark:bg-slate-900/60 px-3 py-1.5 text-xs font-medium text-muted-foreground shrink-0 whitespace-nowrap">
+                <Radio className="size-3.5 text-emerald-500 shrink-0" />
                 <span className="text-foreground font-semibold">{t("header.shiftLabel")}</span>
-                <span>{shiftPhase}</span>
+                <span className="truncate max-w-[140px]">{shiftPhase}</span>
               </div>
             </div>
 
             {/* Right: Controls Suite */}
-            <div className="flex items-center gap-2.5 ms-auto">
+            <div className="flex items-center gap-2 sm:gap-2.5 ms-auto shrink-0 whitespace-nowrap">
               {/* Command Palette Trigger */}
               <button
                 onClick={() => setCmdkOpen(true)}
-                className="hidden lg:flex items-center gap-2 rounded-xl border border-border bg-slate-50 dark:bg-slate-900/60 px-3 py-1.5 text-xs text-muted-foreground hover:border-primary/60 hover:text-foreground transition-all shadow-sm"
+                className="hidden sm:flex items-center gap-2 rounded-xl border border-border bg-slate-50 dark:bg-slate-900/60 px-2.5 sm:px-3 py-1.5 text-xs text-muted-foreground hover:border-primary/60 hover:text-foreground transition-all shadow-sm shrink-0 whitespace-nowrap"
               >
-                <Search className="size-3.5 text-muted-foreground" />
-                <span className="font-medium">{t("header.quickCommand")}</span>
-                <kbd className="rounded bg-muted border border-border px-1.5 py-0.5 text-[10px] font-mono font-semibold">
+                <Search className="size-3.5 text-muted-foreground shrink-0" />
+                <span className="font-medium hidden md:inline">{t("header.quickCommand")}</span>
+                <kbd className="hidden md:inline rounded bg-muted border border-border px-1.5 py-0.5 text-[10px] font-mono font-semibold">
                   ⌘K
                 </kbd>
               </button>
@@ -420,7 +426,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               {/* Live Telemetry Simulator Toggle */}
               <label
                 className={cn(
-                  "hidden sm:flex items-center gap-2 rounded-xl border px-3 py-1.5 text-xs font-medium transition-colors cursor-pointer",
+                  "hidden lg:flex items-center gap-2 rounded-xl border px-2.5 sm:px-3 py-1.5 text-xs font-medium transition-colors cursor-pointer shrink-0 whitespace-nowrap",
                   simulating
                     ? "border-emerald-300 bg-emerald-50/70 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300"
                     : "border-border bg-slate-50 dark:bg-slate-900/60 text-muted-foreground",
@@ -428,11 +434,11 @@ export function AppShell({ children }: { children: ReactNode }) {
               >
                 <Gauge
                   className={cn(
-                    "size-3.5",
+                    "size-3.5 shrink-0",
                     simulating ? "text-emerald-600 animate-spin" : "text-muted-foreground",
                   )}
                 />
-                <span className="hidden md:inline">{t("header.liveStream")}</span>
+                <span className="hidden xl:inline">{t("header.liveStream")}</span>
                 <Switch
                   checked={simulating}
                   onCheckedChange={toggleSimulator}
@@ -446,7 +452,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   <Button
                     variant="outline"
                     size="icon"
-                    className="relative size-9 rounded-xl border-border hover:bg-slate-100 dark:hover:bg-slate-800"
+                    className="relative size-9 rounded-xl border-border hover:bg-slate-100 dark:hover:bg-slate-800 shrink-0"
                     aria-label="View notifications"
                   >
                     <Bell className="size-4 text-foreground" />
@@ -505,10 +511,10 @@ export function AppShell({ children }: { children: ReactNode }) {
               {/* Language Switcher */}
               <button
                 onClick={toggleLang}
-                className="flex items-center gap-1.5 rounded-xl border border-border bg-slate-50 dark:bg-slate-900/60 px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shadow-sm"
+                className="flex items-center gap-1.5 rounded-xl border border-border bg-slate-50 dark:bg-slate-900/60 px-2.5 sm:px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shadow-sm shrink-0 whitespace-nowrap"
                 title={t("header.switchLang")}
               >
-                <Globe className="size-3.5 text-primary" />
+                <Globe className="size-3.5 text-primary shrink-0" />
                 <span>{lang === "en" ? "العربية" : "EN"}</span>
               </button>
 
@@ -517,7 +523,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 variant="outline"
                 size="icon"
                 onClick={toggleTheme}
-                className="size-9 rounded-xl border-border hover:bg-slate-100 dark:hover:bg-slate-800"
+                className="size-9 rounded-xl border-border hover:bg-slate-100 dark:hover:bg-slate-800 shrink-0"
                 aria-label={t("header.toggleTheme")}
               >
                 {theme === "dark" ? (
@@ -528,7 +534,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               </Button>
 
               {/* Live Qatar AST Clock */}
-              <div className="hidden lg:flex items-center gap-2 rounded-xl border border-border bg-slate-50 dark:bg-slate-900/60 px-3 py-1.5 text-xs font-mono">
+              <div className="hidden xl:flex items-center gap-2 rounded-xl border border-border bg-slate-50 dark:bg-slate-900/60 px-2.5 sm:px-3 py-1.5 text-xs font-mono shrink-0 whitespace-nowrap">
                 <LivePulse tone="ok" size="sm" />
                 <span className="text-muted-foreground">{t("header.astTime")}</span>
                 <span className="font-semibold text-foreground tabular-nums">{clock}</span>
@@ -537,15 +543,15 @@ export function AppShell({ children }: { children: ReactNode }) {
               {/* Executive Profile Avatar */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="flex items-center gap-2.5 rounded-xl border border-border p-1 pe-3 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">
-                    <div className="size-7 rounded-lg bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white text-xs font-bold shadow-sm">
+                  <button className="flex items-center gap-2 rounded-xl border border-border p-1 pe-1.5 sm:pe-2.5 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors shrink-0 whitespace-nowrap">
+                    <div className="size-7 rounded-lg bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white text-xs font-bold shadow-sm shrink-0">
                       JA
                     </div>
-                    <div className="hidden sm:block text-start">
-                      <p className="text-xs font-semibold leading-none text-foreground">
+                    <div className="hidden xl:block text-start">
+                      <p className="text-xs font-semibold leading-none text-foreground truncate max-w-[130px]">
                         {t("header.directorName")}
                       </p>
-                      <p className="text-[10px] text-muted-foreground leading-tight mt-0.5">
+                      <p className="text-[10px] text-muted-foreground leading-tight mt-0.5 truncate max-w-[130px]">
                         {t("header.directorTitle")}
                       </p>
                     </div>
@@ -582,14 +588,14 @@ export function AppShell({ children }: { children: ReactNode }) {
               {/* Emergency Evacuation Button */}
               <Button
                 size="sm"
-                className="gap-2 bg-[#EF4444] hover:bg-[#DC2626] text-white font-semibold h-11 px-4 rounded-xl shadow-sm hover:shadow-[0_8px_20px_rgba(239,68,68,0.25)] transition-all hover:-translate-y-0.5 active:translate-y-0"
+                className="gap-1.5 sm:gap-2 bg-[#EF4444] hover:bg-[#DC2626] text-white font-semibold h-9 sm:h-10 px-3 sm:px-4 rounded-xl shadow-sm hover:shadow-[0_8px_20px_rgba(239,68,68,0.25)] transition-all hover:-translate-y-0.5 active:translate-y-0 shrink-0 whitespace-nowrap"
                 onClick={() => {
                   startEmergency();
                   navigate({ to: "/muster" });
                 }}
               >
-                <Siren className="size-4 animate-bounce" />
-                <span className="hidden sm:inline text-xs tracking-wide">{t("header.emergencyMuster")}</span>
+                <Siren className="size-4 animate-bounce shrink-0" />
+                <span className="text-xs tracking-wide">{t("header.emergencyMuster")}</span>
               </Button>
             </div>
           </div>
