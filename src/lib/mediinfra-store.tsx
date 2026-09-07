@@ -9,21 +9,25 @@ import {
   type ReactNode,
 } from "react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
+import i18n, { applyLanguageToDOM, getStoredLanguage, type SupportedLanguage } from "./i18n";
 
 import { GATES, HEADCOUNT, WORKERS, type Worker } from "./mediinfra-data";
 
 export type Role =
-  | "Ashghal / HMC Client View"
+  | "Ministry of Public Health (MoPH) Auditor"
+  | "Ashghal (PWA) Senior Resident Engineer"
+  | "Hamad Medical Corporation (HMC) Safety Inspector"
   | "IMAR-Al Sraiya JV Main Contractor"
-  | "HSE & Security Command"
-  | "Subcontractor Portal";
+  | "HSE Field Marshal";
 
-export const ROLES: Role[] = [
-  "Ashghal / HMC Client View",
+export const ROLES: readonly Role[] = [
+  "Ministry of Public Health (MoPH) Auditor",
+  "Ashghal (PWA) Senior Resident Engineer",
+  "Hamad Medical Corporation (HMC) Safety Inspector",
   "IMAR-Al Sraiya JV Main Contractor",
-  "HSE & Security Command",
-  "Subcontractor Portal",
-];
+  "HSE Field Marshal",
+] as const;
 
 export type AccessStatus =
   | "Authorized"
@@ -38,7 +42,7 @@ export type GateEvent = {
   worker: Worker;
   gateId: string;
   gateName: string;
-  lane: string;
+  lane: "Lane 1" | "Lane 2";
   direction: "IN" | "OUT";
   status: AccessStatus;
   transitSpeedSec: number;
@@ -49,6 +53,9 @@ export type GateEvent = {
 type Ctx = {
   theme: "dark" | "light";
   toggleTheme: () => void;
+  lang: SupportedLanguage;
+  setLang: (l: SupportedLanguage) => void;
+  toggleLang: () => void;
   role: Role;
   setRole: (r: Role) => void;
   simulating: boolean;
@@ -138,7 +145,29 @@ export function makeEvent(index: number, forceHour?: number): GateEvent {
 const SEED_EVENTS: GateEvent[] = Array.from({ length: 16 }, (_, i) => makeEvent(i));
 
 export function MediInfraProvider({ children }: { children: ReactNode }) {
+  const { t } = useTranslation();
   const [theme, setTheme] = useState<"dark" | "light">("light"); // Enterprise light default
+  const [lang, setLangState] = useState<SupportedLanguage>(getStoredLanguage);
+
+  const setLang = useCallback((newLang: SupportedLanguage) => {
+    setLangState(newLang);
+    i18n.changeLanguage(newLang);
+    applyLanguageToDOM(newLang);
+    try {
+      localStorage.setItem("mediinfra_lang", newLang);
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  const toggleLang = useCallback(() => {
+    setLang(lang === "en" ? "ar" : "en");
+  }, [lang, setLang]);
+
+  useEffect(() => {
+    applyLanguageToDOM(lang);
+  }, [lang]);
+
   const [role, setRole] = useState<Role>("IMAR-Al Sraiya JV Main Contractor");
   const [simulating, setSimulating] = useState(false);
   const [events, setEvents] = useState<GateEvent[]>(SEED_EVENTS);
@@ -174,11 +203,11 @@ export function MediInfraProvider({ children }: { children: ReactNode }) {
   // Realistic Shift Phase
   const shiftPhase = useMemo(() => {
     const h = parseInt(clock.split(":")[0] ?? "0", 10) || qatarNow().getUTCHours();
-    if (h >= 6 && h <= 8) return "Morning Ingress Peak (06:00 → 08:00)";
-    if (h >= 12 && h <= 13) return "Midday Meal Transit (12:00 → 13:00)";
-    if (h >= 16 && h <= 18) return "Evening Egress Peak (16:00 → 18:00)";
-    return "Standard Site Shift Operations";
-  }, [clock]);
+    if (h >= 6 && h <= 8) return t("header.shiftMorning");
+    if (h >= 12 && h <= 13) return t("header.shiftLunch");
+    if (h >= 16 && h <= 18) return t("header.shiftEvening");
+    return t("header.shiftStandard");
+  }, [clock, t]);
 
   // Live Telemetry realistic worker simulation
   useEffect(() => {
@@ -246,7 +275,10 @@ export function MediInfraProvider({ children }: { children: ReactNode }) {
   const value = useMemo<Ctx>(
     () => ({
       theme,
-      toggleTheme: () => setTheme((t) => (t === "dark" ? "light" : "dark")),
+      toggleTheme: () => setTheme((t) => (t === "light" ? "dark" : "light")),
+      lang,
+      setLang,
+      toggleLang,
       role,
       setRole,
       simulating,
@@ -254,8 +286,8 @@ export function MediInfraProvider({ children }: { children: ReactNode }) {
         setSimulating((s) => {
           const next = !s;
           if (next) {
-            toast.success("Live telemetry simulator armed", {
-              description: "Streaming real-time EPC Gen2 turnstile taps with dynamic queues.",
+            toast.success("Live telemetry simulator active", {
+              description: "Streaming 60 Hz RFID turnstile and edge AI telemetry events.",
             });
           } else {
             toast.info("Live telemetry simulator paused");
@@ -285,6 +317,9 @@ export function MediInfraProvider({ children }: { children: ReactNode }) {
     }),
     [
       theme,
+      lang,
+      setLang,
+      toggleLang,
       role,
       simulating,
       events,

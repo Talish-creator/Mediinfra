@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ArrowRight,
   BadgeCheck,
@@ -113,6 +114,7 @@ function QrBlock({ value }: { value: string }) {
 }
 
 function SignatureCanvas({ onSigned }: { onSigned: () => void }) {
+  const { t } = useTranslation();
   const ref = useRef<HTMLCanvasElement | null>(null);
   const drawing = useRef(false);
   const [dirty, setDirty] = useState(false);
@@ -160,7 +162,7 @@ function SignatureCanvas({ onSigned }: { onSigned: () => void }) {
         }}
       />
       <div className="mt-2.5 flex items-center justify-between">
-        <span className="text-[11px] text-slate-500">Draw signature with finger or stylus</span>
+        <span className="text-[11px] text-slate-500">{t("workOrders.signOffTitle")}</span>
         <div className="flex gap-2">
           <Button
             size="sm"
@@ -173,7 +175,7 @@ function SignatureCanvas({ onSigned }: { onSigned: () => void }) {
               setDirty(false);
             }}
           >
-            Clear
+            {t("common.clear")}
           </Button>
           <Button
             size="sm"
@@ -186,7 +188,7 @@ function SignatureCanvas({ onSigned }: { onSigned: () => void }) {
             }}
             className="h-8 rounded-lg text-xs font-semibold"
           >
-            Sign & Accept
+            {t("workOrders.submitSignature")}
           </Button>
         </div>
       </div>
@@ -195,6 +197,7 @@ function SignatureCanvas({ onSigned }: { onSigned: () => void }) {
 }
 
 export function WorkOrdersPage() {
+  const { t } = useTranslation();
   const [orders, setOrders] = useState<WorkOrder[]>(WORK_ORDERS);
   const [active, setActive] = useState<WorkOrder | null>(null);
   const [signed, setSigned] = useState<Record<string, boolean>>({});
@@ -203,6 +206,17 @@ export function WorkOrdersPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState<"briefing" | "audit" | "attachments" | "comments">(
     "briefing",
+  );
+
+  const stages = useMemo(
+    () => [
+      { id: 1, name: t("workOrders.stage1"), label: t("workOrders.stage1"), color: "bg-slate-500" },
+      { id: 2, name: t("workOrders.stage2"), label: t("workOrders.stage2"), color: "bg-blue-500" },
+      { id: 3, name: t("workOrders.stage3"), label: t("workOrders.stage3"), color: "bg-indigo-500" },
+      { id: 4, name: t("workOrders.stage4"), label: t("workOrders.stage4"), color: "bg-amber-500" },
+      { id: 5, name: t("workOrders.stage5"), label: t("workOrders.stage5"), color: "bg-emerald-500" },
+    ],
+    [t],
   );
 
   const [form, setForm] = useState({
@@ -263,7 +277,7 @@ export function WorkOrdersPage() {
       prev.map((o) => {
         if (o.id !== orderId) return o;
         const nextStage = Math.min(5, o.stage + 1) as 1 | 2 | 3 | 4 | 5;
-        const stageObj = STAGES.find((s) => s.id === nextStage);
+        const stageObj = stages.find((s) => s.id === nextStage);
         toast.success(`${o.id} promoted to ${stageObj?.name}`);
         const statusVal: WorkOrder["status"] =
           nextStage === 5
@@ -286,8 +300,8 @@ export function WorkOrdersPage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Electronic Work Orders & Permit-to-Work"
-        description="Every work order traverses five gated verification steps. Turnstiles at Gates 01–04 deny perimeter access until both consultant clearance and the digital worker briefing are executed."
+        title={t("workOrders.pageTitle")}
+        description={t("workOrders.pageDesc")}
         actions={
           <div className="flex items-center gap-3">
             {/* View Mode Switcher */}
@@ -301,7 +315,7 @@ export function WorkOrdersPage() {
                     : "text-muted-foreground hover:text-foreground",
                 )}
               >
-                <Kanban className="size-3.5" /> Kanban
+                <Kanban className="size-3.5" /> {t("workOrders.kanbanView")}
               </button>
               <button
                 onClick={() => setViewMode("table")}
@@ -312,7 +326,7 @@ export function WorkOrdersPage() {
                     : "text-muted-foreground hover:text-foreground",
                 )}
               >
-                <TableIcon className="size-3.5" /> Table
+                <TableIcon className="size-3.5" /> {t("workOrders.tableView")}
               </button>
             </div>
 
@@ -320,28 +334,28 @@ export function WorkOrdersPage() {
             <Dialog open={createOpen} onOpenChange={setCreateOpen}>
               <DialogTrigger asChild>
                 <Button className="gap-2 rounded-xl h-10 font-semibold text-xs">
-                  <Plus className="size-4" /> Create Work Order
+                  <Plus className="size-4" /> {t("workOrders.newPermit")}
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-2xl rounded-2xl">
                 <DialogHeader>
-                  <DialogTitle className="text-xl font-bold">Create New Work Order</DialogTitle>
+                  <DialogTitle className="text-xl font-bold">{t("workOrders.createPermit")}</DialogTitle>
                   <DialogDescription>
-                    P875 Hamad General Hospital retrofit permit submission.
+                    {t("workOrders.permitModalDesc")}
                   </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 md:grid-cols-2 mt-2">
                   <div className="md:col-span-2">
-                    <Label className="text-xs font-semibold">Work description</Label>
+                    <Label className="text-xs font-semibold">{t("workOrders.workDescription")}</Label>
                     <Textarea
                       className="mt-1.5 rounded-xl"
                       value={form.description}
                       onChange={(e) => setForm({ ...form, description: e.target.value })}
-                      placeholder="e.g. IPT Level 4 chilled water riser replacement"
+                      placeholder={t("workOrders.workDescriptionPlaceholder")}
                     />
                   </div>
                   <div>
-                    <Label className="text-xs font-semibold">Macro zone</Label>
+                    <Label className="text-xs font-semibold">{t("workOrders.macroZone")}</Label>
                     <Select value={form.zone} onValueChange={(v) => setForm({ ...form, zone: v })}>
                       <SelectTrigger className="mt-1.5 rounded-xl">
                         <SelectValue />
@@ -356,7 +370,7 @@ export function WorkOrdersPage() {
                     </Select>
                   </div>
                   <div>
-                    <Label className="text-xs font-semibold">Trade contractor</Label>
+                    <Label className="text-xs font-semibold">{t("workOrders.tradeContractor")}</Label>
                     <Select
                       value={form.contractor}
                       onValueChange={(v) => setForm({ ...form, contractor: v })}
@@ -374,7 +388,7 @@ export function WorkOrdersPage() {
                     </Select>
                   </div>
                   <div>
-                    <Label className="text-xs font-semibold">Start time</Label>
+                    <Label className="text-xs font-semibold">{t("workOrders.startTime")}</Label>
                     <Input
                       className="mt-1.5 rounded-xl"
                       type="time"
@@ -383,7 +397,7 @@ export function WorkOrdersPage() {
                     />
                   </div>
                   <div>
-                    <Label className="text-xs font-semibold">End time</Label>
+                    <Label className="text-xs font-semibold">{t("workOrders.endTime")}</Label>
                     <Input
                       className="mt-1.5 rounded-xl"
                       type="time"
@@ -392,7 +406,7 @@ export function WorkOrdersPage() {
                     />
                   </div>
                   <div>
-                    <Label className="text-xs font-semibold">Workforce Quota</Label>
+                    <Label className="text-xs font-semibold">{t("workOrders.workforceQuota")}</Label>
                     <Input
                       className="mt-1.5 rounded-xl"
                       type="number"
@@ -401,7 +415,7 @@ export function WorkOrdersPage() {
                     />
                   </div>
                   <div>
-                    <Label className="text-xs font-semibold">Consultant Approver</Label>
+                    <Label className="text-xs font-semibold">{t("workOrders.consultantApprover")}</Label>
                     <Select
                       value={form.approver}
                       onValueChange={(v) => setForm({ ...form, approver: v })}
@@ -421,7 +435,7 @@ export function WorkOrdersPage() {
                     </Select>
                   </div>
                   <div className="md:col-span-2">
-                    <Label className="text-xs font-semibold">Hazard Checklist</Label>
+                    <Label className="text-xs font-semibold">{t("workOrders.hazardChecklist")}</Label>
                     <div className="mt-2 grid grid-cols-2 gap-2 md:grid-cols-3">
                       {HAZARDS.map((h) => (
                         <label
@@ -447,7 +461,7 @@ export function WorkOrdersPage() {
                 </div>
                 <DialogFooter className="mt-4">
                   <Button onClick={createOrder} className="rounded-xl">
-                    Submit Permit Application
+                    {t("workOrders.submitPermit")}
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -459,24 +473,23 @@ export function WorkOrdersPage() {
       {/* Filter Bar */}
       <div className="flex items-center justify-between gap-4">
         <div className="relative w-full max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+          <Search className="absolute start-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search work order ID, zone, or contractor…"
-            className="pl-9 rounded-xl h-9 text-xs bg-card"
+            placeholder={t("workOrders.searchPlaceholder")}
+            className="ps-9 rounded-xl h-9 text-xs bg-card"
           />
         </div>
         <div className="text-xs text-muted-foreground font-medium">
-          Showing <span className="font-bold text-foreground">{filteredOrders.length}</span> permits
-          in P875 register
+          {t("workOrders.showingPermits", { count: filteredOrders.length })}
         </div>
       </div>
 
       {/* KANBAN BOARD VIEW */}
       {viewMode === "kanban" ? (
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 items-stretch">
-          {STAGES.map((stage) => {
+          {stages.map((stage) => {
             const stageOrders = filteredOrders.filter((o) => o.stage === stage.id);
             return (
               <div
@@ -488,7 +501,7 @@ export function WorkOrdersPage() {
                   <div className="flex items-center gap-2">
                     <span className={cn("size-2.5 rounded-full", stage.color)} />
                     <span className="text-xs font-bold text-[#0F172A] dark:text-white truncate max-w-[130px]">
-                      {stage.name}
+                      {t(`workOrders.stage${stage.id}`, stage.name)}
                     </span>
                   </div>
                   <span className="rounded-full bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[11px] font-bold text-[#64748B] dark:text-slate-400">
@@ -540,13 +553,13 @@ export function WorkOrdersPage() {
                                 advanceStage(o.id);
                               }}
                               className="flex items-center gap-1 text-[11px] font-semibold text-primary hover:underline"
-                              title="Advance to next stage"
+                              title={t("workOrders.advance")}
                             >
-                              Advance <ArrowRight className="size-3" />
+                              {t("workOrders.advance")} <ArrowRight className="size-3 rtl:rotate-180" />
                             </button>
                           ) : (
                             <span className="flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
-                              <CheckCircle2 className="size-3" /> Gate Active
+                              <CheckCircle2 className="size-3" /> {t("workOrders.gateActive")}
                             </span>
                           )}
                         </div>
@@ -556,7 +569,7 @@ export function WorkOrdersPage() {
 
                   {stageOrders.length === 0 && (
                     <div className="flex flex-col items-center justify-center h-48 border border-dashed border-[#0F172A]/[0.08] dark:border-white/10 rounded-xl p-4 text-center text-[#64748B] dark:text-slate-400 text-xs">
-                      No permits in {stage.name}
+                      {t("workOrders.noPermitsInStage", { stage: t(`workOrders.stage${stage.id}`, stage.name) })}
                     </div>
                   )}
                 </div>
@@ -569,16 +582,16 @@ export function WorkOrdersPage() {
         <Panel bodyClassName="p-0">
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
-              <thead className="border-b border-border bg-slate-50 dark:bg-slate-900 text-left uppercase text-[11px] font-semibold tracking-wider text-muted-foreground">
+              <thead className="border-b border-border bg-slate-50 dark:bg-slate-900 text-start uppercase text-[11px] font-semibold tracking-wider text-muted-foreground">
                 <tr>
-                  <th className="px-4 py-3">Work Order</th>
-                  <th className="px-4 py-3">Description</th>
-                  <th className="px-4 py-3">Zone</th>
-                  <th className="px-4 py-3">Contractor</th>
-                  <th className="px-4 py-3">Scheduled Window</th>
-                  <th className="px-4 py-3">Quota</th>
-                  <th className="px-4 py-3">Stage & Status</th>
-                  <th className="px-4 py-3 text-right">Actions</th>
+                  <th className="px-4 py-3 text-start">{t("workOrders.workOrder")}</th>
+                  <th className="px-4 py-3 text-start">{t("workOrders.description")}</th>
+                  <th className="px-4 py-3 text-start">{t("workOrders.zone")}</th>
+                  <th className="px-4 py-3 text-start">{t("workOrders.contractor")}</th>
+                  <th className="px-4 py-3 text-start">{t("workOrders.scheduledWindow")}</th>
+                  <th className="px-4 py-3 text-start">{t("workOrders.quota")}</th>
+                  <th className="px-4 py-3 text-start">{t("workOrders.stageStatus")}</th>
+                  <th className="px-4 py-3 text-end">{t("common.actions")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/60">
@@ -605,17 +618,17 @@ export function WorkOrdersPage() {
                     </td>
                     <td className="px-4 py-3">
                       <Pill tone={o.stage === 5 ? "ok" : o.stage >= 3 ? "cyan" : "warn"}>
-                        Stage {o.stage}: {o.status}
+                        {t("digitalTwin.level", "Stage")} {o.stage}: {o.status}
                       </Pill>
                     </td>
-                    <td className="px-4 py-3 text-right whitespace-nowrap">
+                    <td className="px-4 py-3 text-end whitespace-nowrap">
                       <Button
                         size="sm"
                         variant="secondary"
                         className="gap-1.5 h-8 rounded-lg text-xs"
                         onClick={() => setActive(o)}
                       >
-                        <QrCode className="size-3.5" /> Inspection & QR
+                        <QrCode className="size-3.5" /> {t("workOrders.briefingAndQr")}
                       </Button>
                     </td>
                   </tr>
@@ -634,11 +647,11 @@ export function WorkOrdersPage() {
               <DialogHeader>
                 <div className="flex items-center justify-between">
                   <DialogTitle className="text-xl font-bold flex items-center gap-2">
-                    <span>Permit Details</span>
+                    <span>{t("workOrders.permitDetails")}</span>
                     <Mono className="text-primary font-bold">{active.id}</Mono>
                   </DialogTitle>
                   <Pill tone={active.stage === 5 ? "ok" : "warn"}>
-                    Stage {active.stage} · {active.status}
+                    {t("digitalTwin.level", "Stage")} {active.stage} · {active.status}
                   </Pill>
                 </div>
                 <DialogDescription className="text-sm font-medium text-foreground mt-1">
@@ -653,17 +666,17 @@ export function WorkOrdersPage() {
                 className="mt-4"
               >
                 <TabsList className="grid grid-cols-4 w-full rounded-xl bg-slate-100 dark:bg-slate-900 p-1">
-                  <TabsTrigger value="briefing" className="rounded-lg text-xs font-semibold">
-                    <Smartphone className="size-3.5 mr-1.5" /> Briefing & QR
+                  <TabsTrigger value="briefing" className="rounded-lg text-xs font-semibold gap-1.5">
+                    <Smartphone className="size-3.5" /> {t("workOrders.briefingAndQr")}
                   </TabsTrigger>
-                  <TabsTrigger value="audit" className="rounded-lg text-xs font-semibold">
-                    <Clock className="size-3.5 mr-1.5" /> Audit History
+                  <TabsTrigger value="audit" className="rounded-lg text-xs font-semibold gap-1.5">
+                    <Clock className="size-3.5" /> {t("workOrders.auditHistory")}
                   </TabsTrigger>
-                  <TabsTrigger value="attachments" className="rounded-lg text-xs font-semibold">
-                    <Paperclip className="size-3.5 mr-1.5" /> Attachments
+                  <TabsTrigger value="attachments" className="rounded-lg text-xs font-semibold gap-1.5">
+                    <Paperclip className="size-3.5" /> {t("workOrders.attachments")}
                   </TabsTrigger>
-                  <TabsTrigger value="comments" className="rounded-lg text-xs font-semibold">
-                    <MessageSquare className="size-3.5 mr-1.5" /> Comments
+                  <TabsTrigger value="comments" className="rounded-lg text-xs font-semibold gap-1.5">
+                    <MessageSquare className="size-3.5" /> {t("workOrders.comments")}
                   </TabsTrigger>
                 </TabsList>
 
@@ -673,15 +686,15 @@ export function WorkOrdersPage() {
                     <div className="flex flex-col items-center justify-center p-4 rounded-xl border border-border bg-slate-50/50 dark:bg-slate-900/30">
                       <QrBlock value={active.id} />
                       <Mono className="mt-3 text-xs text-muted-foreground font-semibold">
-                        Scan at morning muster · {active.zone}
+                        {t("workOrders.scanAtMorning", { zone: active.zone })}
                       </Mono>
                       <Button
                         variant="outline"
                         size="sm"
                         className="mt-3 gap-1.5 rounded-xl text-xs"
-                        onClick={() => toast.success("QR Token downloaded as high-res PNG")}
+                        onClick={() => toast.success(t("workOrders.qrDownloaded"))}
                       >
-                        <Download className="size-3.5" /> Download Scanner Token
+                        <Download className="size-3.5" /> {t("workOrders.downloadToken")}
                       </Button>
                     </div>
 
@@ -689,17 +702,17 @@ export function WorkOrdersPage() {
                     <div className="rounded-[24px] border-4 border-slate-800 bg-slate-100 p-4 text-slate-900 shadow-xl">
                       <div className="flex items-center justify-between text-[11px] font-semibold text-slate-500 border-b border-slate-200 pb-2">
                         <span className="flex items-center gap-1.5">
-                          <Smartphone className="size-3.5" /> MediInfra Field App
+                          <Smartphone className="size-3.5" /> {t("workOrders.fieldApp")}
                         </span>
                         <span className="font-mono">P875-MOBILE</span>
                       </div>
                       <p className="mt-2 text-xs font-bold text-slate-900">{active.description}</p>
                       <p className="text-[11px] text-slate-600 mt-0.5">
-                        {active.contractor} · Quota: {active.quota} workers
+                        {active.contractor} · {t("workOrders.quota")}: {active.quota} {t("common.workers")}
                       </p>
 
                       <div className="mt-3 rounded-lg bg-white p-2.5 text-[11px] shadow-sm space-y-1.5">
-                        <p className="font-bold text-slate-800">Identified Hazards & Controls</p>
+                        <p className="font-bold text-slate-800">{t("workOrders.identifiedHazards")}</p>
                         <div className="flex flex-wrap gap-1">
                           {active.hazards.map((h) => (
                             <span
@@ -711,7 +724,7 @@ export function WorkOrdersPage() {
                           ))}
                         </div>
                         <p className="text-slate-600 text-[10px] pt-1">
-                          Mandatory PPE: Hard hat, eye protection, safety boots, high-vis vest.
+                          {t("workOrders.mandatoryPpe")}
                         </p>
                       </div>
 
@@ -749,9 +762,9 @@ export function WorkOrdersPage() {
                     <div className="flex items-start gap-3">
                       <span className="size-2 rounded-full bg-emerald-500 mt-1.5" />
                       <div>
-                        <p className="text-xs font-bold text-foreground">Permit Initialized</p>
+                        <p className="text-xs font-bold text-foreground">{t("workOrders.permitInit")}</p>
                         <p className="text-[11px] text-muted-foreground">
-                          Drafted by {active.contractor} HSE Representative · 05:30 AST
+                          {t("workOrders.permitInitDesc", { contractor: active.contractor })}
                         </p>
                       </div>
                     </div>
@@ -759,10 +772,10 @@ export function WorkOrdersPage() {
                       <span className="size-2 rounded-full bg-blue-500 mt-1.5" />
                       <div>
                         <p className="text-xs font-bold text-foreground">
-                          Main Contractor Approval Cleared
+                          {t("workOrders.mainContractorApproval")}
                         </p>
                         <p className="text-[11px] text-muted-foreground">
-                          Reviewed by IMAR-Al Sraiya JV Project Manager · 06:15 AST
+                          {t("workOrders.mainContractorApprovalDesc")}
                         </p>
                       </div>
                     </div>
@@ -770,11 +783,10 @@ export function WorkOrdersPage() {
                       <span className="size-2 rounded-full bg-indigo-500 mt-1.5" />
                       <div>
                         <p className="text-xs font-bold text-foreground">
-                          KEO Consultant Engineering Sign-Off
+                          {t("workOrders.keoConsultantSignoff")}
                         </p>
                         <p className="text-[11px] text-muted-foreground">
-                          Endorsed with conditions: ICRA barrier negative pressure verified · 07:00
-                          AST
+                          {t("workOrders.keoConsultantSignoffDesc")}
                         </p>
                       </div>
                     </div>
@@ -782,10 +794,10 @@ export function WorkOrdersPage() {
                       <span className="size-2 rounded-full bg-emerald-500 mt-1.5" />
                       <div>
                         <p className="text-xs font-bold text-foreground">
-                          Automatic Turnstile Permission Sync
+                          {t("workOrders.turnstileSync")}
                         </p>
                         <p className="text-[11px] text-muted-foreground">
-                          {active.quota} RFID EPC credentials enabled at Gates 01–04.
+                          {t("workOrders.turnstileSyncDesc", { quota: active.quota })}
                         </p>
                       </div>
                     </div>
@@ -807,7 +819,7 @@ export function WorkOrdersPage() {
                       </div>
                     </div>
                     <Button variant="ghost" size="sm" className="h-8 text-xs font-medium">
-                      Download
+                      {t("common.download")}
                     </Button>
                   </div>
                   <div className="flex items-center justify-between p-3 rounded-xl border border-border bg-card">
@@ -823,7 +835,7 @@ export function WorkOrdersPage() {
                       </div>
                     </div>
                     <Button variant="ghost" size="sm" className="h-8 text-xs font-medium">
-                      Download
+                      {t("common.download")}
                     </Button>
                   </div>
                 </TabsContent>
@@ -846,11 +858,11 @@ export function WorkOrdersPage() {
                   </div>
                   <div className="flex gap-2">
                     <Input
-                      placeholder="Add a comment or consultant instruction…"
+                      placeholder={t("workOrders.commentPlaceholder")}
                       className="rounded-xl text-xs h-9"
                     />
                     <Button size="sm" className="rounded-xl text-xs">
-                      Send
+                      {t("workOrders.send")}
                     </Button>
                   </div>
                 </TabsContent>

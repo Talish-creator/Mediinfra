@@ -27,7 +27,8 @@ import {
   Sun,
   Users,
 } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import { useState, useMemo, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -56,28 +57,19 @@ type NavItem = {
   alert?: boolean;
 };
 
-const NAV: readonly NavItem[] = [
-  { to: "/", label: "Executive Command Center", icon: LayoutDashboard, badge: "Live" },
-  { to: "/gates", label: "Gate & Turnstile Telemetry", icon: ScanLine },
-  { to: "/digital-twin", label: "Digital Twin & Zones", icon: Boxes, badge: "3D" },
-  { to: "/work-orders", label: "Work Orders & Permits", icon: BadgeCheck },
-  { to: "/analytics", label: "Manpower & Financials", icon: Users },
-  { to: "/safety-ai", label: "Edge AI Safety Vision", icon: ShieldAlert, alert: true },
-  { to: "/muster", label: "Emergency Muster", icon: Siren },
-  { to: "/hardware", label: "ELV Hardware Health", icon: Cpu },
-  { to: "/reports", label: "Audit & Compliance", icon: FileBarChart2 },
-];
-
 export function AppShell({ children }: { children: ReactNode }) {
+  const { t } = useTranslation();
   const [collapsed, setCollapsed] = useState(false);
   const [cmdkOpen, setCmdkOpen] = useState(false);
-  const [lang, setLang] = useState<"EN" | "AR">("EN");
   const [notifOpen, setNotifOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const {
+    lang,
+    setLang,
+    toggleLang,
     role,
     setRole,
     simulating,
@@ -91,6 +83,21 @@ export function AppShell({ children }: { children: ReactNode }) {
     toggleTheme,
     throughputPerMin,
   } = useMediInfra();
+
+  const NAV: readonly NavItem[] = useMemo(
+    () => [
+      { to: "/", label: t("nav.commandCenter"), icon: LayoutDashboard, badge: t("nav.live") },
+      { to: "/gates", label: t("nav.gates"), icon: ScanLine },
+      { to: "/digital-twin", label: t("nav.digitalTwin"), icon: Boxes, badge: t("nav.threeD") },
+      { to: "/work-orders", label: t("nav.workOrders"), icon: BadgeCheck },
+      { to: "/analytics", label: t("nav.analytics"), icon: Users },
+      { to: "/safety-ai", label: t("nav.safetyAi"), icon: ShieldAlert, alert: true },
+      { to: "/muster", label: t("nav.muster"), icon: Siren },
+      { to: "/hardware", label: t("nav.hardware"), icon: Cpu },
+      { to: "/reports", label: t("nav.reports"), icon: FileBarChart2 },
+    ],
+    [t],
+  );
 
   const current = NAV.find((n) => n.to === pathname) ?? NAV[0];
 
@@ -106,7 +113,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       {/* Floating Enterprise Sidebar */}
       <aside
         className={cn(
-          "sticky top-0 z-40 hidden h-screen shrink-0 flex-col border-r border-[#0F172A]/[0.06] dark:border-white/[0.08] bg-white dark:bg-slate-900 transition-all duration-300 md:flex select-none",
+          "sticky top-0 z-40 hidden h-screen shrink-0 flex-col border-e border-[#0F172A]/[0.06] dark:border-white/[0.08] bg-white dark:bg-slate-900 transition-all duration-300 md:flex select-none",
           collapsed ? "w-[78px]" : "w-[280px]",
         )}
       >
@@ -119,9 +126,9 @@ export function AppShell({ children }: { children: ReactNode }) {
             <button
               onClick={() => setCollapsed(true)}
               className="rounded-lg p-1.5 text-[#64748B] hover:bg-[#F8FAFC] dark:hover:bg-slate-800 hover:text-[#0F172A] dark:hover:text-white transition-colors"
-              aria-label="Collapse sidebar"
+              aria-label={t("nav.collapse")}
             >
-              <ChevronLeft className="size-4" />
+              <ChevronLeft className="size-4 rtl:rotate-180" />
             </button>
           )}
         </div>
@@ -132,9 +139,9 @@ export function AppShell({ children }: { children: ReactNode }) {
             <button
               onClick={() => setCollapsed(false)}
               className="rounded-lg p-1.5 text-[#64748B] hover:bg-[#F8FAFC] dark:hover:bg-slate-800 hover:text-[#0F172A] dark:hover:text-white transition-colors"
-              aria-label="Expand sidebar"
+              aria-label={t("nav.expand")}
             >
-              <ChevronRight className="size-4" />
+              <ChevronRight className="size-4 rtl:rotate-180" />
             </button>
           </div>
         )}
@@ -204,7 +211,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <div className="mx-3 mb-3 p-4 rounded-[18px] border border-[#0F172A]/[0.06] dark:border-white/[0.08] bg-white dark:bg-slate-900 shadow-[0_12px_40px_rgba(2,6,23,0.05)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.3)] space-y-2.5">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-bold uppercase tracking-wider text-[#64748B] dark:text-slate-400">
-                Active Project
+                {t("common.project")}
               </span>
               <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
                 <SignalIndicator bars={4} activeBars={4} tone="ok" />
@@ -214,11 +221,11 @@ export function AppShell({ children }: { children: ReactNode }) {
 
             <div>
               <p className="text-xs font-semibold text-[#0F172A] dark:text-white truncate">
-                P875 — Hamad General Hospital
+                {t("header.hospitalName")}
               </p>
               <div className="mt-1.5 flex items-center justify-between text-[11px] text-[#64748B] dark:text-slate-400 font-medium">
-                <span>Substructure & MEP</span>
-                <span className="font-semibold text-[#0F172A] dark:text-white">76% complete</span>
+                <span>{lang === "ar" ? "الهيكل الخرساني والأعمال الكهروميكانيكية" : "Substructure & MEP"}</span>
+                <span className="font-semibold text-[#0F172A] dark:text-white">{lang === "ar" ? "76% مكتمل" : "76% complete"}</span>
               </div>
               <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
                 <div
@@ -230,15 +237,15 @@ export function AppShell({ children }: { children: ReactNode }) {
 
             <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[#0F172A]/[0.05] dark:border-white/[0.06] text-[11px]">
               <div>
-                <p className="text-[#64748B] dark:text-slate-400">Workers</p>
+                <p className="text-[#64748B] dark:text-slate-400">{t("header.workersOnSite")}</p>
                 <p className="font-bold text-[#0F172A] dark:text-white tabular-nums">
-                  {headcount} on-site
+                  {t("header.onSiteCount", { count: headcount })}
                 </p>
               </div>
               <div>
-                <p className="text-[#64748B] dark:text-slate-400">Safety Score</p>
+                <p className="text-[#64748B] dark:text-slate-400">{t("header.safetyScore")}</p>
                 <p className="font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">
-                  98.4%
+                  {t("header.safetyScoreVal")}
                 </p>
               </div>
             </div>
@@ -251,7 +258,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <div className="flex items-center justify-between text-[11px] text-[#64748B] dark:text-slate-400 px-1">
               <span className="flex items-center gap-1.5">
                 <LivePulse tone="ok" size="sm" />
-                <span>ELV Gateway</span>
+                <span>{t("header.elvGateway")}</span>
               </span>
               <span className="flex items-center gap-1.5 font-mono text-emerald-600 dark:text-emerald-400 font-semibold text-xs">
                 <StreamingDots tone="ok" />
@@ -279,14 +286,14 @@ export function AppShell({ children }: { children: ReactNode }) {
                     variant="outline"
                     size="icon"
                     className="md:hidden size-9 rounded-xl border-border hover:bg-slate-100 dark:hover:bg-slate-800 shrink-0"
-                    aria-label="Open mobile navigation menu"
+                    aria-label={t("nav.openMobileMenu")}
                   >
                     <Menu className="size-4 text-foreground" />
                   </Button>
                 </SheetTrigger>
                 <SheetContent
-                  side="left"
-                  className="w-[300px] p-0 flex flex-col bg-white dark:bg-slate-900 border-r border-[#0F172A]/[0.06] dark:border-white/[0.08]"
+                  side={lang === "ar" ? "right" : "left"}
+                  className="w-[300px] p-0 flex flex-col bg-white dark:bg-slate-900 border-e border-[#0F172A]/[0.06] dark:border-white/[0.08]"
                 >
                   <div className="flex h-16 items-center justify-between border-b border-[#0F172A]/[0.06] dark:border-white/[0.08] px-5">
                     <MediInfraLogo size="md" />
@@ -317,7 +324,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                           {item.badge && (
                             <span
                               className={cn(
-                                "ml-auto text-[10px] px-1.5 py-0.5 rounded font-bold",
+                                "ms-auto text-[10px] px-1.5 py-0.5 rounded font-bold",
                                 active
                                   ? "bg-white/20 text-white"
                                   : "bg-blue-50 dark:bg-blue-950/60 text-primary",
@@ -332,13 +339,13 @@ export function AppShell({ children }: { children: ReactNode }) {
                   </div>
                   <div className="border-t border-[#0F172A]/[0.06] dark:border-white/[0.08] p-4 bg-slate-50/50 dark:bg-slate-950/40">
                     <div className="flex items-center justify-between text-xs font-semibold mb-1.5">
-                      <span className="text-muted-foreground">ELV Gateway</span>
+                      <span className="text-muted-foreground">{t("header.elvGateway")}</span>
                       <span className="text-emerald-600 font-mono flex items-center gap-1.5">
                         <LivePulse tone="ok" size="sm" /> 42ms
                       </span>
                     </div>
                     <div className="text-[11px] text-muted-foreground">
-                      P875 Hamad Hospital • Live Turnstile Sync
+                      {t("header.liveTurnstileSync")}
                     </div>
                   </div>
                 </SheetContent>
@@ -346,7 +353,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
               <nav className="flex items-center gap-2 text-[13px] font-medium text-muted-foreground">
                 <span className="hover:text-foreground cursor-pointer font-semibold text-foreground truncate max-w-[130px] sm:max-w-none">
-                  P875 Hamad General Hospital
+                  {t("header.hospitalName")}
                 </span>
                 <span className="text-muted-foreground/50">/</span>
                 <span className="text-primary font-semibold truncate max-w-[140px] sm:max-w-[220px]">
@@ -362,49 +369,49 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <DropdownMenuTrigger asChild>
                   <button className="flex items-center gap-2 rounded-xl border border-border bg-slate-50 dark:bg-slate-900/60 px-3 py-1.5 text-xs font-semibold hover:border-primary/50 transition-colors">
                     <span className="size-2 rounded-full bg-blue-500" />
-                    <span>P875 · Phase 1A</span>
+                    <span>{t("header.phase1a")}</span>
                     <ChevronDown className="size-3 text-muted-foreground" />
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="center" className="w-64 rounded-xl">
-                  <DropdownMenuLabel>Client / Project Selection</DropdownMenuLabel>
+                  <DropdownMenuLabel>{t("header.clientSelection")}</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem className="font-semibold text-primary">
-                    P875 — Hamad General Hospital Phase 1A
+                    {t("header.projectP875")}
                   </DropdownMenuItem>
-                  <DropdownMenuItem>P876 — Ambulatory Care Building</DropdownMenuItem>
-                  <DropdownMenuItem>P880 — Communicable Diseases Wing</DropdownMenuItem>
+                  <DropdownMenuItem>{t("header.projectP876")}</DropdownMenuItem>
+                  <DropdownMenuItem>{t("header.projectP880")}</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
 
               {/* Client Badge */}
               <div className="flex items-center gap-1.5 rounded-xl border border-border bg-slate-50 dark:bg-slate-900/60 px-3 py-1.5 text-xs font-medium text-muted-foreground">
-                <span className="font-semibold text-foreground">Client:</span> Ashghal / HMC
+                <span className="font-semibold text-foreground">{t("header.clientLabel")}</span> {t("header.clientValue")}
               </div>
 
               {/* Weather in Doha */}
               <div className="flex items-center gap-1.5 rounded-xl border border-border bg-slate-50 dark:bg-slate-900/60 px-3 py-1.5 text-xs font-medium text-muted-foreground">
                 <CloudSun className="size-3.5 text-amber-500" />
-                <span>Doha 34°C · Clear AST</span>
+                <span>{t("header.weatherDoha")}</span>
               </div>
 
               {/* Shift info */}
               <div className="flex items-center gap-1.5 rounded-xl border border-border bg-slate-50 dark:bg-slate-900/60 px-3 py-1.5 text-xs font-medium text-muted-foreground">
                 <Radio className="size-3.5 text-emerald-500" />
-                <span className="text-foreground font-semibold">Shift:</span>
+                <span className="text-foreground font-semibold">{t("header.shiftLabel")}</span>
                 <span>{shiftPhase}</span>
               </div>
             </div>
 
             {/* Right: Controls Suite */}
-            <div className="flex items-center gap-2.5 ml-auto">
+            <div className="flex items-center gap-2.5 ms-auto">
               {/* Command Palette Trigger */}
               <button
                 onClick={() => setCmdkOpen(true)}
                 className="hidden lg:flex items-center gap-2 rounded-xl border border-border bg-slate-50 dark:bg-slate-900/60 px-3 py-1.5 text-xs text-muted-foreground hover:border-primary/60 hover:text-foreground transition-all shadow-sm"
               >
                 <Search className="size-3.5 text-muted-foreground" />
-                <span className="font-medium">Quick command…</span>
+                <span className="font-medium">{t("header.quickCommand")}</span>
                 <kbd className="rounded bg-muted border border-border px-1.5 py-0.5 text-[10px] font-mono font-semibold">
                   ⌘K
                 </kbd>
@@ -425,7 +432,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                     simulating ? "text-emerald-600 animate-spin" : "text-muted-foreground",
                   )}
                 />
-                <span className="hidden md:inline">Live Stream</span>
+                <span className="hidden md:inline">{t("header.liveStream")}</span>
                 <Switch
                   checked={simulating}
                   onCheckedChange={toggleSimulator}
@@ -450,8 +457,8 @@ export function AppShell({ children }: { children: ReactNode }) {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-80 rounded-2xl p-2 shadow-xl">
                   <DropdownMenuLabel className="flex items-center justify-between py-1.5">
-                    <span className="font-bold text-[13px]">HSE Operational Alerts</span>
-                    <span className="text-[10px] font-semibold text-primary">3 New</span>
+                    <span className="font-bold text-[13px]">{t("header.notifications")}</span>
+                    <span className="text-[10px] font-semibold text-primary">{t("header.newAlerts")}</span>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <div className="space-y-1 py-1">
@@ -459,36 +466,36 @@ export function AppShell({ children }: { children: ReactNode }) {
                       <div className="flex items-center gap-2">
                         <span className="size-2 rounded-full bg-amber-500" />
                         <span className="text-xs font-semibold text-foreground">
-                          Missing PPE Detected
+                          {t("header.notif1Title")}
                         </span>
-                        <span className="ml-auto text-[10px] text-muted-foreground">06:14</span>
+                        <span className="ms-auto text-[10px] text-muted-foreground">06:14</span>
                       </div>
                       <p className="mt-1 text-[11px] text-muted-foreground">
-                        Gate 01 Ingress · Hard hat violation flagged by Edge AI.
+                        {t("header.notif1Desc")}
                       </p>
                     </div>
                     <div className="rounded-xl p-2.5 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors cursor-pointer">
                       <div className="flex items-center gap-2">
                         <span className="size-2 rounded-full bg-red-500" />
                         <span className="text-xs font-semibold text-foreground">
-                          Turnstile Access Denied
+                          {t("header.notif2Title")}
                         </span>
-                        <span className="ml-auto text-[10px] text-muted-foreground">06:08</span>
+                        <span className="ms-auto text-[10px] text-muted-foreground">06:08</span>
                       </div>
                       <p className="mt-1 text-[11px] text-muted-foreground">
-                        Gate 03 · Expired safety induction for subcontractor worker.
+                        {t("header.notif2Desc")}
                       </p>
                     </div>
                     <div className="rounded-xl p-2.5 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors cursor-pointer">
                       <div className="flex items-center gap-2">
                         <span className="size-2 rounded-full bg-blue-500" />
                         <span className="text-xs font-semibold text-foreground">
-                          Work Order Approved
+                          {t("header.notif3Title")}
                         </span>
-                        <span className="ml-auto text-[10px] text-muted-foreground">05:45</span>
+                        <span className="ms-auto text-[10px] text-muted-foreground">05:45</span>
                       </div>
                       <p className="mt-1 text-[11px] text-muted-foreground">
-                        WO-0142 approved by Ashghal Consultant.
+                        {t("header.notif3Desc")}
                       </p>
                     </div>
                   </div>
@@ -497,12 +504,12 @@ export function AppShell({ children }: { children: ReactNode }) {
 
               {/* Language Switcher */}
               <button
-                onClick={() => setLang(lang === "EN" ? "AR" : "EN")}
-                className="hidden sm:flex items-center gap-1 rounded-xl border border-border bg-slate-50 dark:bg-slate-900/60 px-2.5 py-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
-                title="Switch Language"
+                onClick={toggleLang}
+                className="flex items-center gap-1.5 rounded-xl border border-border bg-slate-50 dark:bg-slate-900/60 px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shadow-sm"
+                title={t("header.switchLang")}
               >
-                <Globe className="size-3.5" />
-                <span>{lang}</span>
+                <Globe className="size-3.5 text-primary" />
+                <span>{lang === "en" ? "العربية" : "EN"}</span>
               </button>
 
               {/* Theme Switcher */}
@@ -511,7 +518,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 size="icon"
                 onClick={toggleTheme}
                 className="size-9 rounded-xl border-border hover:bg-slate-100 dark:hover:bg-slate-800"
-                aria-label="Toggle light/dark theme"
+                aria-label={t("header.toggleTheme")}
               >
                 {theme === "dark" ? (
                   <Sun className="size-4 text-amber-500" />
@@ -523,35 +530,35 @@ export function AppShell({ children }: { children: ReactNode }) {
               {/* Live Qatar AST Clock */}
               <div className="hidden lg:flex items-center gap-2 rounded-xl border border-border bg-slate-50 dark:bg-slate-900/60 px-3 py-1.5 text-xs font-mono">
                 <LivePulse tone="ok" size="sm" />
-                <span className="text-muted-foreground">AST:</span>
+                <span className="text-muted-foreground">{t("header.astTime")}</span>
                 <span className="font-semibold text-foreground tabular-nums">{clock}</span>
               </div>
 
               {/* Executive Profile Avatar */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="flex items-center gap-2.5 rounded-xl border border-border p-1 pr-3 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">
+                  <button className="flex items-center gap-2.5 rounded-xl border border-border p-1 pe-3 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">
                     <div className="size-7 rounded-lg bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white text-xs font-bold shadow-sm">
                       JA
                     </div>
-                    <div className="hidden sm:block text-left">
+                    <div className="hidden sm:block text-start">
                       <p className="text-xs font-semibold leading-none text-foreground">
-                        Dr. J. Al-Kuwari
+                        {t("header.directorName")}
                       </p>
                       <p className="text-[10px] text-muted-foreground leading-tight mt-0.5">
-                        HSE Director
+                        {t("header.directorTitle")}
                       </p>
                     </div>
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-72 rounded-2xl p-2 shadow-xl">
                   <DropdownMenuLabel>
-                    <p className="font-semibold text-sm">Dr. Jassim Al-Kuwari</p>
-                    <p className="text-xs text-muted-foreground">j.alkuwari@ashghal.gov.qa</p>
+                    <p className="font-semibold text-sm">{t("header.directorName")}</p>
+                    <p className="text-xs text-muted-foreground">{t("header.directorEmail")}</p>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuLabel className="text-[11px] font-semibold text-muted-foreground uppercase">
-                    Active Authority Perspective
+                    {t("header.authorityPerspective")}
                   </DropdownMenuLabel>
                   {ROLES.map((r) => (
                     <DropdownMenuItem
@@ -567,7 +574,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   ))}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem className="text-xs text-muted-foreground cursor-pointer">
-                    System Security & Permissions
+                    {t("header.systemSecurity")}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -582,7 +589,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 }}
               >
                 <Siren className="size-4 animate-bounce" />
-                <span className="hidden sm:inline text-xs tracking-wide">EMERGENCY MUSTER</span>
+                <span className="hidden sm:inline text-xs tracking-wide">{t("header.emergencyMuster")}</span>
               </Button>
             </div>
           </div>
@@ -592,8 +599,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <div className="mi-siren border-t border-red-500 bg-red-600/20 px-4 py-2 text-center text-xs font-bold uppercase tracking-widest text-red-600 dark:text-red-400 flex items-center justify-center gap-2">
               <AlertTriangle className="size-4 animate-pulse" />
               <span>
-                Emergency Evacuation In Progress — Optical Turnstiles Released Open — Muster
-                Counting Live
+                {t("header.emergencyBanner")}
               </span>
             </div>
           )}

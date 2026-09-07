@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Activity,
   AlertTriangle,
@@ -52,6 +53,7 @@ export const Route = createFileRoute("/safety-ai")({
 });
 
 export function SafetyAi() {
+  const { t } = useTranslation();
   const [handled, setHandled] = useState<Record<string, string>>({});
   const [selectedCam, setSelectedCam] = useState<string>("CAM-01");
   const [fps, setFps] = useState(30);
@@ -70,22 +72,22 @@ export function SafetyAi() {
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Edge AI Safety Vision & Broadcast Hub"
-        description="On-device TensorRT neural inference at perimeter gates and hoarding entrances detects PPE compliance and turnstile evasion within 11.4 ms, triggering automated site loudspeaker warnings."
+        title={t("safetyAi.pageTitle")}
+        description={t("safetyAi.pageDesc")}
         actions={
           <div className="flex items-center gap-2.5">
             <Pill tone="ok" glow className="h-9 px-3.5 text-xs font-semibold">
-              <LivePulse tone="ok" size="sm" className="mr-1.5" /> 3 Edge Nodes Active · {fps} FPS
+              <LivePulse tone="ok" size="sm" className="mr-1.5" /> {t("safetyAi.edgeNodesActive", { fps })}
             </Pill>
             <Button
               variant="outline"
               size="sm"
               className="gap-2 h-9 rounded-xl text-xs"
               onClick={() =>
-                toast.success("Thermal recalibration routine triggered on edge cameras")
+                toast.success(t("safetyAi.recalibrateSuccess"))
               }
             >
-              <RefreshCw className="size-3.5" /> Recalibrate
+              <RefreshCw className="size-3.5" /> {t("safetyAi.recalibrate")}
             </Button>
           </div>
         }
@@ -99,13 +101,13 @@ export function SafetyAi() {
           </div>
           <div>
             <p className="text-xs text-[#64748B] dark:text-slate-400 font-medium">
-              Edge Compute Unit
+              {t("safetyAi.edgeComputeUnit")}
             </p>
             <p className="text-sm font-bold text-[#0F172A] dark:text-white">
               NVIDIA Jetson AGX Orin
             </p>
             <p className="text-[11px] text-[#64748B] dark:text-slate-400">
-              GPU Load: 42% · VRAM 14.8 GB
+              {t("safetyAi.edgeComputeSub")}
             </p>
           </div>
         </div>
@@ -116,13 +118,13 @@ export function SafetyAi() {
           </div>
           <div>
             <p className="text-xs text-[#64748B] dark:text-slate-400 font-medium">
-              Inference Latency
+              {t("safetyAi.kpiNeuralInference")}
             </p>
             <p className="text-sm font-bold text-[#0F172A] dark:text-white tabular-nums">
               {latency} ms
             </p>
             <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
-              TensorRT INT8 Precision
+              {t("safetyAi.tensorRtSub")}
             </p>
           </div>
         </div>
@@ -133,11 +135,11 @@ export function SafetyAi() {
           </div>
           <div>
             <p className="text-xs text-[#64748B] dark:text-slate-400 font-medium">
-              Active AI Models
+              {t("safetyAi.activeAiModels")}
             </p>
             <p className="text-sm font-bold text-[#0F172A] dark:text-white">YOLO-PPE + ByteTrack</p>
             <p className="text-[11px] text-[#64748B] dark:text-slate-400">
-              98.4% Precision on Helmets
+              {t("safetyAi.activeModelsSub")}
             </p>
           </div>
         </div>
@@ -148,13 +150,13 @@ export function SafetyAi() {
           </div>
           <div>
             <p className="text-xs text-[#64748B] dark:text-slate-400 font-medium">
-              Megaphone Array
+              {t("safetyAi.megaphoneArray")}
             </p>
             <p className="text-sm font-bold text-[#0F172A] dark:text-white">
-              Acoustic Auto-Broadcast
+              {t("safetyAi.acousticBroadcast")}
             </p>
             <p className="text-[11px] text-[#64748B] dark:text-slate-400">
-              Arabic · English · Hindi
+              {t("safetyAi.languagesSub")}
             </p>
           </div>
         </div>
@@ -176,7 +178,7 @@ export function SafetyAi() {
               subtitle={`${cam.id} · 1080p RTSP · H.265 stream`}
               action={
                 <Pill tone="ok" className="text-[10px]">
-                  <Dot tone="ok" /> Online
+                  <Dot tone="ok" /> {t("common.active", "Online")}
                 </Pill>
               }
               bodyClassName="p-4"
@@ -185,10 +187,10 @@ export function SafetyAi() {
               {/* Synthetic Camera View with Real-time AI Overlays */}
               <div className="relative aspect-video overflow-hidden rounded-xl border border-slate-800 bg-slate-950 shadow-inner group">
                 {/* HUD Camera Header */}
-                <div className="absolute top-2.5 left-2.5 right-2.5 z-20 flex items-center justify-between text-[10px] font-mono text-white/90">
+                <div className="absolute top-2.5 start-2.5 end-2.5 z-20 flex items-center justify-between text-[10px] font-mono text-white/90">
                   <span className="flex items-center gap-1.5 rounded-md bg-black/60 px-2 py-0.5 backdrop-blur-sm">
                     <LivePulse tone="crit" size="sm" />
-                    <span>REC · LIVE</span>
+                    <span>{t("safetyAi.recLive")}</span>
                   </span>
                   <span className="rounded-md bg-black/60 px-2 py-0.5 backdrop-blur-sm">
                     {fps} FPS · {latency}ms
@@ -233,7 +235,7 @@ export function SafetyAi() {
                       {/* Detection Tag */}
                       <span
                         className={cn(
-                          "absolute -top-5 left-0 whitespace-nowrap rounded px-1.5 py-0.2 font-mono text-[9px] font-bold text-white shadow-sm flex items-center gap-1",
+                          "absolute -top-5 start-0 whitespace-nowrap rounded px-1.5 py-0.2 font-mono text-[9px] font-bold text-white shadow-sm flex items-center gap-1",
                           isViolation
                             ? "bg-red-600"
                             : isWarning
@@ -246,19 +248,19 @@ export function SafetyAi() {
                       </span>
 
                       {/* Corner brackets */}
-                      <span className="absolute top-0 left-0 size-1.5 border-t-2 border-l-2 border-white" />
-                      <span className="absolute top-0 right-0 size-1.5 border-t-2 border-r-2 border-white" />
-                      <span className="absolute bottom-0 left-0 size-1.5 border-b-2 border-l-2 border-white" />
-                      <span className="absolute bottom-0 right-0 size-1.5 border-b-2 border-r-2 border-white" />
+                      <span className="absolute top-0 start-0 size-1.5 border-t-2 border-s-2 border-white" />
+                      <span className="absolute top-0 end-0 size-1.5 border-t-2 border-e-2 border-white" />
+                      <span className="absolute bottom-0 start-0 size-1.5 border-b-2 border-s-2 border-white" />
+                      <span className="absolute bottom-0 end-0 size-1.5 border-b-2 border-e-2 border-white" />
                     </div>
                   );
                 })}
 
                 {/* Bottom Stream Status */}
-                <div className="absolute bottom-2.5 left-2.5 right-2.5 z-20 flex items-center justify-between text-[10px] font-mono text-slate-300">
+                <div className="absolute bottom-2.5 start-2.5 end-2.5 z-20 flex items-center justify-between text-[10px] font-mono text-slate-300">
                   <span className="rounded bg-black/60 px-2 py-0.5">FOV: 110° · H.265 CBR</span>
                   <span className="rounded bg-black/60 px-2 py-0.5 text-emerald-400">
-                    Confidence ≥ 92%
+                    {t("safetyAi.confidenceMin")}
                   </span>
                 </div>
               </div>
@@ -278,11 +280,11 @@ export function SafetyAi() {
 
       {/* Automated Loudspeaker Broadcast Log */}
       <Panel
-        title="Automated Megaphone Broadcast & Response Log"
-        subtitle="Audible safety alerts triggered dynamically via site array across English, Arabic, and Hindi"
+        title={t("safetyAi.broadcastLogTitle")}
+        subtitle={t("safetyAi.broadcastLogSubtitle")}
         action={
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-semibold">
-            <Radio className="size-3.5 text-emerald-500" /> Dispatched within 1.2s of violation
+            <Radio className="size-3.5 text-emerald-500" /> {t("safetyAi.dispatchedSpeed")}
           </div>
         }
         bodyClassName="space-y-3"
@@ -301,7 +303,7 @@ export function SafetyAi() {
                 <span className="text-xs font-semibold text-muted-foreground">{b.lang}</span>
               </div>
               <span className="text-[11px] font-mono text-muted-foreground">
-                Trigger: AI Vision Stream #01
+                {t("safetyAi.triggerStream")}
               </span>
             </div>
 
@@ -322,34 +324,32 @@ export function SafetyAi() {
                     variant="outline"
                     className="h-8 rounded-xl text-xs font-semibold"
                     onClick={() => {
-                      setHandled((h) => ({ ...h, [b.ts]: "Acknowledged by HSE Command" }));
-                      toast.success("Broadcast acknowledged");
+                      setHandled((h) => ({ ...h, [b.ts]: t("safetyAi.ackSuccess") }));
+                      toast.success(t("safetyAi.toastAck"));
                     }}
                   >
-                    Acknowledge
+                    {t("safetyAi.btnAcknowledge")}
                   </Button>
                   <Button
                     size="sm"
                     className="h-8 rounded-xl text-xs font-semibold gap-1.5 bg-primary text-primary-foreground"
                     onClick={() => {
-                      setHandled((h) => ({ ...h, [b.ts]: "HSE Field Marshal Dispatched" }));
-                      toast.warning("HSE Marshal dispatched to perimeter sector");
+                      setHandled((h) => ({ ...h, [b.ts]: t("safetyAi.marshalSuccess") }));
+                      toast.warning(t("safetyAi.toastMarshal"));
                     }}
                   >
-                    <UserCheck className="size-3.5" /> Dispatch HSE Marshal
+                    <UserCheck className="size-3.5" /> {t("safetyAi.btnDispatchMarshal")}
                   </Button>
                   <Button
                     size="sm"
                     variant="ghost"
                     className="h-8 rounded-xl text-xs font-semibold text-red-600 hover:bg-red-50 dark:hover:bg-red-950/50 gap-1.5"
                     onClick={() => {
-                      setHandled((h) => ({ ...h, [b.ts]: "Subcontractor Penalty Issued" }));
-                      toast.error(
-                        "Subcontractor violation fine logged to Ashghal monthly register",
-                      );
+                      setHandled((h) => ({ ...h, [b.ts]: t("safetyAi.fineSuccess") }));
+                      toast.error(t("safetyAi.toastFine"));
                     }}
                   >
-                    <ShieldX className="size-3.5" /> Log Contractor Fine
+                    <ShieldX className="size-3.5" /> {t("safetyAi.btnLogFine")}
                   </Button>
                 </>
               )}

@@ -1,9 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
-  CheckCircle2,
-  Download,
-  FileCheck,
   FileDown,
   FileText,
   Lock,
@@ -99,77 +97,88 @@ const REPORTS = [
 ];
 
 export function ReportsPage() {
+  const { t } = useTranslation();
   const [preview, setPreview] = useState<(typeof REPORTS)[number] | null>(null);
 
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Audit & Compliance Reports"
-        description="Tamper-evident, timestamped returns compiled continuously from RFID turnstile logs and digital work permit sign-offs. Designed for Qatar Civil Defence, Ashghal, and HMC executive audit."
+        title={t("reports.title")}
+        description={t("reports.pageDesc")}
         actions={
           <div className="flex items-center gap-2.5">
             <Pill tone="ok" glow className="h-9 px-3.5 text-xs font-medium">
-              <ShieldCheck className="size-3.5 mr-1.5 text-[#22C55E]" /> Chain-of-Custody SHA-256
-              Hashing Active
+              <ShieldCheck className="size-3.5 me-1.5 text-[#22C55E]" />{" "}
+              {t("reports.chainCustodyActive")}
             </Pill>
           </div>
         }
       />
 
       <Panel
-        title="Enterprise Compliance Archive"
-        subtitle="Cryptographically sealed daily and weekly compliance returns"
+        title={t("reports.archiveTitle")}
+        subtitle={t("reports.archiveSubtitle")}
         bodyClassName="p-0"
       >
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="sticky top-0 z-10 border-b border-[#0F172A]/[0.06] bg-[#F8FAFC] text-left uppercase text-[12px] font-semibold tracking-wider text-[#64748B]">
+            <thead className="sticky top-0 z-10 border-b border-[#0F172A]/[0.06] bg-[#F8FAFC] text-start uppercase text-[12px] font-semibold tracking-wider text-[#64748B]">
               <tr>
-                <th className="px-6 py-4">Report Ref</th>
-                <th className="px-6 py-4">Document Title</th>
-                <th className="px-6 py-4">Audit Period</th>
-                <th className="px-6 py-4">Issuing Authority</th>
-                <th className="px-6 py-4">Integrity Hash</th>
-                <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4 text-right">Action</th>
+                <th className="px-6 py-4 text-start">{t("reports.colRef")}</th>
+                <th className="px-6 py-4 text-start">{t("reports.colTitle")}</th>
+                <th className="px-6 py-4 text-start">{t("reports.colPeriod")}</th>
+                <th className="px-6 py-4 text-start">{t("reports.colAuthority")}</th>
+                <th className="px-6 py-4 text-start">{t("reports.colHash")}</th>
+                <th className="px-6 py-4 text-start">{t("common.status")}</th>
+                <th className="px-6 py-4 text-end">{t("common.actions")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#0F172A]/[0.06]">
-              {REPORTS.map((r) => (
-                <tr key={r.id} className="hover:bg-[#F8FAFC]/90 transition-colors">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <Mono className="text-[#2563EB] font-bold">{r.id}</Mono>
-                  </td>
-                  <td className="px-6 py-4 font-semibold text-[#0F172A] max-w-sm">{r.name}</td>
-                  <td className="px-6 py-4 text-[#64748B] whitespace-nowrap">{r.period}</td>
-                  <td className="px-6 py-4 text-[#64748B] whitespace-nowrap font-medium">
-                    {r.owner}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="flex items-center gap-1.5 font-mono text-xs text-[#64748B]">
-                      <Lock className="size-3 text-[#22C55E]" /> {r.hash}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <Pill
-                      tone={r.status === "Ready" || r.status === "Signed" ? "ok" : "warn"}
-                      className="text-xs"
-                    >
-                      {r.status}
-                    </Pill>
-                  </td>
-                  <td className="px-6 py-4 text-right whitespace-nowrap">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="gap-1.5 h-9 px-3 rounded-xl text-xs font-semibold bg-white border-[#0F172A]/10 hover:border-[#2563EB] hover:text-[#2563EB] shadow-sm transition-all"
-                      onClick={() => setPreview(r)}
-                    >
-                      <FileText className="size-3.5" /> Preview & Sign
-                    </Button>
-                  </td>
-                </tr>
-              ))}
+              {REPORTS.map((r) => {
+                const localizedName = t(`reports.items.${r.id}.name`, r.name);
+                const localizedOwner = t(`reports.items.${r.id}.owner`, r.owner);
+                const localizedStatus = t(`reports.items.${r.id}.status`, r.status);
+
+                return (
+                  <tr key={r.id} className="hover:bg-[#F8FAFC]/90 transition-colors">
+                    <td className="px-6 py-4 whitespace-nowrap text-start">
+                      <Mono className="text-[#2563EB] font-bold">{r.id}</Mono>
+                    </td>
+                    <td className="px-6 py-4 font-semibold text-[#0F172A] max-w-sm text-start">
+                      {localizedName}
+                    </td>
+                    <td className="px-6 py-4 text-[#64748B] whitespace-nowrap text-start">
+                      {r.period}
+                    </td>
+                    <td className="px-6 py-4 text-[#64748B] whitespace-nowrap font-medium text-start">
+                      {localizedOwner}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-start">
+                      <span className="flex items-center gap-1.5 font-mono text-xs text-[#64748B]">
+                        <Lock className="size-3 text-[#22C55E]" /> {r.hash}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-start">
+                      <Pill
+                        tone={r.status === "Ready" || r.status === "Signed" ? "ok" : "warn"}
+                        className="text-xs"
+                      >
+                        {localizedStatus}
+                      </Pill>
+                    </td>
+                    <td className="px-6 py-4 text-end whitespace-nowrap">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="gap-1.5 h-9 px-3 rounded-xl text-xs font-semibold bg-white border-[#0F172A]/10 hover:border-[#2563EB] hover:text-[#2563EB] shadow-sm transition-all"
+                        onClick={() => setPreview(r)}
+                      >
+                        <FileText className="size-3.5" /> {t("reports.previewSign")}
+                      </Button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -177,54 +186,60 @@ export function ReportsPage() {
 
       {/* Preview Dialog */}
       <Dialog open={!!preview} onOpenChange={(o) => !o && setPreview(null)}>
-        <DialogContent className="max-w-2xl rounded-[20px] p-6 border border-[#0F172A]/[0.08] shadow-[0_20px_50px_rgba(2,6,23,0.12)] bg-white">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold text-[#0F172A]">{preview?.name}</DialogTitle>
+        <DialogContent className="max-w-2xl rounded-[20px] p-6 border border-[#0F172A]/[0.08] shadow-[0_20px_50px_rgba(2,6,23,0.12)] bg-white text-start">
+          <DialogHeader className="text-start">
+            <DialogTitle className="text-xl font-bold text-[#0F172A]">
+              {preview ? t(`reports.items.${preview.id}.name`, preview.name) : ""}
+            </DialogTitle>
           </DialogHeader>
           {preview && (
-            <div className="relative overflow-hidden rounded-[18px] border border-[#0F172A]/[0.08] bg-[#F8FAFC]/60 p-6 text-[#0F172A] shadow-sm mt-2">
-              <span className="pointer-events-none absolute inset-0 flex items-center justify-center text-5xl font-bold uppercase tracking-widest text-[#0F172A]/5 select-none">
-                Official Certified Copy
+            <div className="relative overflow-hidden rounded-[18px] border border-[#0F172A]/[0.08] bg-[#F8FAFC]/60 p-6 text-[#0F172A] shadow-sm mt-2 text-start">
+              <span className="pointer-events-none absolute inset-0 flex items-center justify-center text-4xl sm:text-5xl font-bold uppercase tracking-widest text-[#0F172A]/5 select-none text-center">
+                {t("reports.officialCopy")}
               </span>
               <p className="text-[11px] uppercase tracking-widest text-[#64748B] font-bold">
-                Ashghal · Hamad Medical Corporation
+                {t("reports.authorityHeader")}
               </p>
-              <h3 className="mt-1 text-lg font-bold text-[#0F172A]">{preview.name}</h3>
+              <h3 className="mt-1 text-lg font-bold text-[#0F172A]">
+                {t(`reports.items.${preview.id}.name`, preview.name)}
+              </h3>
               <p className="text-xs text-[#64748B]">
-                {PROJECT.code} — {PROJECT.name} · Period: {preview.period}
+                {PROJECT.code} — {PROJECT.name} · {t("reports.periodLabel", { period: preview.period })}
               </p>
 
-              <dl className="mt-4 grid grid-cols-2 gap-y-2.5 text-xs border-t border-[#0F172A]/[0.08] pt-3.5">
-                <dt className="text-[#64748B] font-medium">Main Contractor</dt>
+              <dl className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-y-2.5 text-xs border-t border-[#0F172A]/[0.08] pt-3.5">
+                <dt className="text-[#64748B] font-medium">{t("reports.mainContractor")}</dt>
                 <dd className="font-semibold text-[#0F172A]">{PROJECT.contractor}</dd>
-                <dt className="text-[#64748B] font-medium">Supervising Consultant</dt>
+                <dt className="text-[#64748B] font-medium">{t("reports.supervisingConsultant")}</dt>
                 <dd className="font-semibold text-[#0F172A]">{PROJECT.consultant}</dd>
-                <dt className="text-[#64748B] font-medium">Report Custodian</dt>
-                <dd className="font-semibold text-[#0F172A]">{preview.owner}</dd>
-                <dt className="text-[#64748B] font-medium">Active Trade Contractors</dt>
+                <dt className="text-[#64748B] font-medium">{t("reports.reportCustodian")}</dt>
                 <dd className="font-semibold text-[#0F172A]">
-                  {SUBCONTRACTORS.length} Contractors
+                  {t(`reports.items.${preview.id}.owner`, preview.owner)}
                 </dd>
-                <dt className="text-[#64748B] font-medium">Chain of Custody Hash</dt>
+                <dt className="text-[#64748B] font-medium">{t("reports.activeContractors")}</dt>
+                <dd className="font-semibold text-[#0F172A]">
+                  {t("reports.contractorsCount", { count: SUBCONTRACTORS.length })}
+                </dd>
+                <dt className="text-[#64748B] font-medium">{t("reports.chainCustodyHash")}</dt>
                 <dd className="font-mono text-xs font-bold text-[#2563EB]">{preview.hash}</dd>
               </dl>
 
               <p className="mt-5 text-[10px] text-[#64748B] border-t border-[#0F172A]/[0.08] pt-3">
-                Generated securely by MediInfra Command Platform v4.2.0-Enterprise. Derived from
-                RFID turnstile telemetry and permit-to-work sign-offs; manual alterations
-                prohibited.
+                {t("reports.disclaimer")}
               </p>
             </div>
           )}
-          <DialogFooter className="mt-4">
+          <DialogFooter className="mt-4 flex sm:justify-end gap-2">
             <Button
               className="gap-2 h-11 px-5 rounded-xl text-xs font-semibold shadow-sm"
               onClick={() => {
-                toast.success(`${preview?.id} exported as cryptographic signed PDF`);
+                toast.success(
+                  t("reports.toastExported", { id: preview?.id })
+                );
                 setPreview(null);
               }}
             >
-              <FileDown className="size-4" /> Download Signed Official PDF
+              <FileDown className="size-4" /> {t("reports.downloadOfficialPdf")}
             </Button>
           </DialogFooter>
         </DialogContent>

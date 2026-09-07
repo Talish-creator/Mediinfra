@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Area,
   AreaChart,
@@ -60,39 +61,43 @@ export const Route = createFileRoute("/")({
   component: CommandCenter,
 });
 
-const BUILDINGS = [
-  { id: "IPT", label: "IPT Inpatient Tower (L2–L6)", count: 485, capacity: 560 },
-  { id: "OPT", label: "OPT Outpatient Tower (L1–L3)", count: 242, capacity: 320 },
-  { id: "ENG", label: "Engineering & Services Plant", count: 137, capacity: 180 },
-] as const;
-
 export function CommandCenter() {
+  const { t } = useTranslation();
   const { events, headcount, throughputPerMin, gateQueues } = useMediInfra();
   const [building, setBuilding] = useState<"IPT" | "OPT" | "ENG">("IPT");
+
+  const buildings = useMemo(
+    () => [
+      { id: "IPT" as const, label: t("dashboard.bldgIPT"), count: 485, capacity: 560 },
+      { id: "OPT" as const, label: t("dashboard.bldgOPT"), count: 242, capacity: 320 },
+      { id: "ENG" as const, label: t("dashboard.bldgENG"), count: 137, capacity: 180 },
+    ],
+    [t],
+  );
 
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Executive Safety & Workforce Command"
-        description="P875 Hamad General Hospital expansion & retrofit. Real-time telemetry synchronized across optical turnstile readers, RFID digital twin zones, and Edge AI vision gateways."
+        title={t("dashboard.heroTitle")}
+        description={t("dashboard.heroDesc")}
         actions={
           <div className="flex items-center gap-3">
             <div className="hidden sm:flex items-center gap-2 rounded-xl border border-blue-200/60 dark:border-blue-900/40 bg-blue-50/70 dark:bg-blue-950/40 px-3.5 py-2 text-xs font-semibold text-primary dark:text-blue-300 shadow-sm">
               <LivePulse tone="cyan" size="sm" />
-              <span>Live Ingest</span>
+              <span>{t("dashboard.liveIngest")}</span>
               <StreamingDots tone="cyan" />
             </div>
             <Link
               to="/digital-twin"
               className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2.5 text-xs font-semibold text-foreground hover:bg-slate-50 dark:hover:bg-slate-800 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-sm"
             >
-              <Boxes className="size-3.5 text-primary" /> 3D Digital Twin
+              <Boxes className="size-3.5 text-primary" /> {t("dashboard.twin3D")}
             </Link>
             <Link
               to="/gates"
               className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-sm"
             >
-              <ScanLine className="size-3.5" /> Gate Telemetry
+              <ScanLine className="size-3.5" /> {t("dashboard.gateTelemetry")}
             </Link>
           </div>
         }
@@ -108,17 +113,17 @@ export function CommandCenter() {
         <motion.div variants={cardItemVariants}>
           <KpiCard
             shimmer
-            label="Total On-Site Headcount"
+            label={t("dashboard.kpiHeadcountLabel")}
             value={headcount.toLocaleString()}
             trend="+4.2%"
-            trendLabel="vs 829 yesterday"
-            status="86.4% Scheduled"
+            trendLabel={t("dashboard.kpiHeadcountTrendLabel")}
+            status={t("dashboard.kpiHeadcountStatus")}
             tone="cyan"
             spark={[620, 690, 742, 802, 861, 890, 872, headcount]}
             footer={
               <div className="flex items-center justify-between text-[11px] text-muted-foreground font-medium pt-1">
-                <span>Shift Target: 1,000 workers</span>
-                <span className="font-semibold text-foreground">136 badges available</span>
+                <span>{t("dashboard.kpiHeadcountTarget")}</span>
+                <span className="font-semibold text-foreground">{t("dashboard.kpiHeadcountBadges")}</span>
               </div>
             }
           />
@@ -126,52 +131,52 @@ export function CommandCenter() {
         <motion.div variants={cardItemVariants}>
           <KpiCard
             shimmer
-            label="Gate Turnstile Throughput"
+            label={t("dashboard.kpiThroughputLabel")}
             value={`${throughputPerMin}/min`}
             trend="+12%"
-            trendLabel="avg 2.6s per pass"
-            status="Optimal Flow"
+            trendLabel={t("dashboard.kpiThroughputTrendLabel")}
+            status={t("dashboard.kpiThroughputStatus")}
             tone="ok"
             spark={[8, 14, 30, 52, 41, 33, 29, throughputPerMin]}
             footer={
               <div className="flex items-center justify-between text-[11px] text-muted-foreground font-medium pt-1">
-                <span>Peak: 52/min at 06:15 AST</span>
-                <span className="font-semibold text-foreground">All 4 Gates Operational</span>
+                <span>{t("dashboard.kpiThroughputPeak")}</span>
+                <span className="font-semibold text-foreground">{t("dashboard.kpiThroughputOperational")}</span>
               </div>
             }
           />
         </motion.div>
         <motion.div variants={cardItemVariants}>
           <KpiCard
-            label="Work Order Execution"
-            value="18 Active"
+            label={t("dashboard.kpiWorkOrdersLabel")}
+            value={t("dashboard.kpiWorkOrdersActive")}
             trend="+2"
-            trendLabel="permits approved today"
-            status="100% Turnstile Synced"
+            trendLabel={t("dashboard.kpiWorkOrdersTrendLabel")}
+            status={t("dashboard.kpiWorkOrdersStatus")}
             tone="exec"
             spark={[11, 12, 14, 15, 16, 17, 18, 18]}
             footer={
               <div className="flex items-center justify-between text-[11px] text-muted-foreground font-medium pt-1">
-                <span>2 in Consultant Review</span>
-                <span className="font-semibold text-foreground">0 Expired</span>
+                <span>{t("dashboard.kpiWorkOrdersReview")}</span>
+                <span className="font-semibold text-foreground">{t("dashboard.kpiWorkOrdersExpired")}</span>
               </div>
             }
           />
         </motion.div>
         <motion.div variants={cardItemVariants}>
           <KpiCard
-            label="HSE Safety Score"
+            label={t("dashboard.kpiSafetyScoreLabel")}
             value="98.4%"
             trend="-0.2%"
-            trendLabel="3 AI alerts resolved"
-            status="Safe Operation"
+            trendLabel={t("dashboard.kpiSafetyScoreTrendLabel")}
+            status={t("dashboard.kpiSafetyScoreStatus")}
             tone="warn"
             spark={[97.1, 97.6, 98.2, 98.9, 98.4, 98.5, 98.3, 98.4]}
             footer={
               <div className="flex items-center justify-between text-[11px] text-muted-foreground font-medium pt-1">
-                <span>Lost Time Incidents: 0</span>
+                <span>{t("dashboard.kpiSafetyScoreIncidents")}</span>
                 <span className="font-semibold text-emerald-600 dark:text-emerald-400">
-                  100% Induction Rate
+                  {t("dashboard.kpiSafetyScoreInduction")}
                 </span>
               </div>
             }
@@ -184,12 +189,12 @@ export function CommandCenter() {
         {/* Digital Twin Floorplan Panel */}
         <Panel
           className="xl:col-span-2 flex flex-col h-full"
-          title="Digital Twin — Live Worker Concentration Heatmap"
-          subtitle="Real-time macro-zone occupancy computed from RFID portal reads and BLE mesh"
+          title={t("dashboard.twinPanelTitle")}
+          subtitle={t("dashboard.twinPanelSubtitle")}
           action={
             <div className="flex items-center gap-2">
               <Pill tone="cyan" className="text-xs">
-                <Dot tone="cyan" /> Telemetry Streaming
+                <Dot tone="cyan" /> {t("dashboard.telemetryStreaming")}
               </Pill>
             </div>
           }
@@ -200,20 +205,20 @@ export function CommandCenter() {
             className="flex-1 flex flex-col"
           >
             <TabsList className="mb-4 flex-wrap rounded-xl bg-slate-100 dark:bg-slate-900 p-1 shrink-0">
-              {BUILDINGS.map((b) => (
+              {buildings.map((b) => (
                 <TabsTrigger
                   key={b.id}
                   value={b.id}
                   className="rounded-lg text-xs font-semibold px-3 py-1.5"
                 >
                   <span>{b.label}</span>
-                  <span className="ml-2 rounded-full bg-white/70 dark:bg-slate-800 px-1.5 py-0.2 text-[10px] font-bold text-muted-foreground">
+                  <span className="ms-2 rounded-full bg-white/70 dark:bg-slate-800 px-1.5 py-0.2 text-[10px] font-bold text-muted-foreground">
                     {b.count}/{b.capacity}
                   </span>
                 </TabsTrigger>
               ))}
             </TabsList>
-            {BUILDINGS.map((b) => (
+            {buildings.map((b) => (
               <TabsContent key={b.id} value={b.id} className="mt-0 flex-1 flex flex-col">
                 <Floorplan building={b.id} height={540} />
               </TabsContent>
@@ -224,14 +229,14 @@ export function CommandCenter() {
         {/* Real-Time Gate Status Hub */}
         <Panel
           className="flex flex-col h-full"
-          title="Perimeter Access Gate Status"
-          subtitle="4 optical turnstile portals · Zebra FXR90 Gen2 readers"
+          title={t("dashboard.perimeterGateStatus")}
+          subtitle={t("dashboard.perimeterGateDesc")}
           action={
             <Link
               to="/gates"
               className="text-xs font-semibold text-primary hover:underline flex items-center gap-1"
             >
-              View All <ChevronRight className="size-3" />
+              {t("dashboard.viewAll")} <ChevronRight className="size-3 rtl:rotate-180" />
             </Link>
           }
           bodyClassName="space-y-4 flex-1 flex flex-col justify-between"
@@ -257,7 +262,7 @@ export function CommandCenter() {
                   <div className="flex items-center gap-2">
                     {queueCount > 0 && (
                       <span className="rounded-full bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 px-2 py-0.5 text-[10px] font-bold">
-                        {queueCount} in queue
+                        {t("dashboard.inQueue", { count: queueCount })}
                       </span>
                     )}
                     <LivePulse tone="ok" size="sm" />
@@ -286,7 +291,7 @@ export function CommandCenter() {
 
                 <div className="mt-3 flex items-center justify-between pt-2 border-t border-border/50">
                   <span className="text-[11px] font-medium text-muted-foreground">
-                    Latest Taps:
+                    {t("dashboard.latestTaps")}
                   </span>
                   <div className="flex items-center gap-1.5">
                     {recent.length ? (
@@ -296,7 +301,7 @@ export function CommandCenter() {
                         </span>
                       ))
                     ) : (
-                      <span className="text-[10px] text-muted-foreground italic">listening…</span>
+                      <span className="text-[10px] text-muted-foreground italic">{t("dashboard.listening")}</span>
                     )}
                   </div>
                 </div>
@@ -308,12 +313,12 @@ export function CommandCenter() {
 
       {/* Upgraded Manpower Curve with Recharts Gradient */}
       <Panel
-        title="24-Hour Manpower Distribution Curve"
-        subtitle="Scheduled contractual headcount vs actual RFID turnstile ingress over 24 hours (AST)"
+        title={t("dashboard.manpowerCurveTitle")}
+        subtitle={t("dashboard.manpowerCurveSubtitle")}
         action={
           <div className="flex items-center gap-2">
             <Pill tone="ok" className="text-xs">
-              <CheckCircle2 className="size-3 mr-1" /> 98.2% Correlation
+              <CheckCircle2 className="size-3 me-1" /> {t("dashboard.correlation")}
             </Pill>
           </div>
         }
@@ -352,7 +357,7 @@ export function CommandCenter() {
               <Area
                 type="monotone"
                 dataKey="scheduled"
-                name="Scheduled Manpower"
+                name={t("dashboard.scheduledManpower")}
                 stroke="#7C3AED"
                 strokeWidth={2.5}
                 fill="url(#gradScheduled)"
@@ -360,7 +365,7 @@ export function CommandCenter() {
               <Area
                 type="monotone"
                 dataKey="actual"
-                name="Actual Turnstile Attendance"
+                name={t("dashboard.actualAttendance")}
                 stroke="#2563EB"
                 strokeWidth={2.5}
                 fill="url(#gradActual)"
@@ -372,27 +377,27 @@ export function CommandCenter() {
 
       {/* Subcontractor Breakdown Table */}
       <Panel
-        title="Subcontractor Headcount & Permit Utilization"
-        subtitle="On-site workers vs approved permit quotas for Tier-1 trade contractors"
+        title={t("dashboard.subcontractorTableTitle")}
+        subtitle={t("dashboard.subcontractorTableSubtitle")}
         action={
           <Link
             to="/analytics"
             className="flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline"
           >
-            Detailed Manpower Audit <ArrowUpRight className="size-3.5" />
+            {t("dashboard.detailedAudit")} <ArrowUpRight className="size-3.5 rtl:rotate-[-90deg]" />
           </Link>
         }
         bodyClassName="p-0"
       >
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="border-b border-border bg-slate-50 dark:bg-slate-900 text-left uppercase text-[12px] font-semibold tracking-wider text-muted-foreground">
+            <thead className="border-b border-border bg-slate-50 dark:bg-slate-900 text-start uppercase text-[12px] font-semibold tracking-wider text-muted-foreground">
               <tr>
-                <th className="px-6 py-4">Contractor</th>
-                <th className="px-6 py-4">Trade Package</th>
-                <th className="px-6 py-4">Present / Planned</th>
-                <th className="px-6 py-4">Capacity Utilization</th>
-                <th className="px-6 py-4">Permits</th>
+                <th className="px-6 py-4 text-start">{t("dashboard.thContractor")}</th>
+                <th className="px-6 py-4 text-start">{t("dashboard.thTrade")}</th>
+                <th className="px-6 py-4 text-start">{t("dashboard.thPresentPlanned")}</th>
+                <th className="px-6 py-4 text-start">{t("dashboard.thCapacity")}</th>
+                <th className="px-6 py-4 text-start">{t("dashboard.thPermits")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/60">
@@ -420,7 +425,7 @@ export function CommandCenter() {
                   </td>
                   <td className="px-6 py-4">
                     <Pill tone="cyan" className="text-xs">
-                      {s.permits} Active
+                      {t("dashboard.permitsActive", { count: s.permits })}
                     </Pill>
                   </td>
                 </tr>

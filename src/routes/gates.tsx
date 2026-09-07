@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Activity,
   ArrowDownRight,
@@ -84,6 +85,7 @@ export const Route = createFileRoute("/gates")({
 });
 
 export function GatesPage() {
+  const { t } = useTranslation();
   const { events, addEvent, simulating, gateQueues, throughputPerMin } = useMediInfra();
   const [q, setQ] = useState("");
   const [gate, setGate] = useState("all");
@@ -152,8 +154,8 @@ export function GatesPage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Live Gate & Turnstile Telemetry"
-        description="Every optical turnstile tap across Gates 01–04 is evaluated against work orders, induction validity, and zone quotas in under 300 ms with edge SQLite caching."
+        title={t("gates.pageTitle")}
+        description={t("gates.pageDesc")}
         actions={
           <div className="flex items-center gap-2.5">
             <Pill
@@ -161,9 +163,11 @@ export function GatesPage() {
               glow={simulating}
               className="h-9 px-3.5 text-xs font-semibold"
             >
-              <LivePulse tone={simulating ? "ok" : "muted"} size="sm" className="mr-1.5" />
-              {simulating ? `Streaming: ${throughputPerMin} taps/min` : "Stream paused"}
-              {simulating && <StreamingDots tone="ok" className="ml-1.5" />}
+              <LivePulse tone={simulating ? "ok" : "muted"} size="sm" className="me-1.5" />
+              {simulating
+                ? t("gates.streamingVelocity", { count: throughputPerMin })
+                : t("gates.streamPaused")}
+              {simulating && <StreamingDots tone="ok" className="ms-1.5" />}
             </Pill>
           </div>
         }
@@ -173,39 +177,39 @@ export function GatesPage() {
       <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4 items-stretch">
         <KpiCard
           shimmer
-          label="Active Optical Turnstiles"
+          label={t("gates.kpiActiveGates")}
           value="4 / 4"
           trend="+100%"
-          trendLabel="all portals operational"
-          status="Online"
+          trendLabel={t("gates.kpiActiveGatesTrend")}
+          status={t("common.active")}
           tone="ok"
           spark={[4, 4, 4, 4, 4, 4, 4]}
         />
         <KpiCard
           shimmer
-          label="Telemetry Stream Velocity"
+          label={t("gates.kpiVelocity")}
           value={`${throughputPerMin} taps/m`}
           trend="+12%"
-          trendLabel="morning ingress flow"
-          status="Nominal"
+          trendLabel={t("gates.kpiVelocityTrend")}
+          status={t("gates.kpiVelocityStatus")}
           tone="cyan"
           spark={[28, 32, 38, 44, 42, 48, throughputPerMin]}
         />
         <KpiCard
-          label="Average Reader Latency"
+          label={t("gates.kpiAvgLatency")}
           value="42 ms"
           trend="-4 ms"
-          trendLabel="edge SQLite cache hit"
-          status="Optimal"
+          trendLabel={t("gates.kpiAvgLatencyTrend")}
+          status={t("gates.kpiAvgLatencyStatus")}
           tone="ok"
           spark={[54, 48, 46, 44, 43, 42, 42]}
         />
         <KpiCard
-          label="Cumulative Turnstile Reads"
+          label={t("gates.kpiCumulativeReads")}
           value={events.length}
           trend="+8"
-          trendLabel="buffered in session"
-          status="Live"
+          trendLabel={t("gates.kpiCumulativeTrend")}
+          status={t("gates.kpiCumulativeStatus")}
           tone="exec"
           spark={[80, 95, 110, 125, 140, 160, events.length]}
         />
@@ -217,11 +221,11 @@ export function GatesPage() {
           <div className="flex items-center gap-2">
             <Activity className="size-4 text-primary animate-pulse" />
             <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              Live Ingress/Egress Stream Pulse
+              {t("gates.liveStreamPulse")}
             </span>
           </div>
           <span className="text-[11px] text-muted-foreground font-mono">
-            {filtered.length} reads buffered
+            {t("gates.readsBuffered", { count: filtered.length })}
           </span>
         </div>
 
@@ -274,8 +278,8 @@ export function GatesPage() {
         {/* Real-Time Queue Visualizers for 4 Gates */}
         <Panel
           className="lg:col-span-2 flex flex-col h-full"
-          title="Turnstile Portal Queues & Hardware Diagnostics"
-          subtitle="Real-time worker queue density and optical lane transit velocity"
+          title={t("gates.portalQueues")}
+          subtitle={t("gates.laneUtilizationDesc")}
           action={
             <div className="flex items-center gap-2">
               <Pill tone="cyan" className="text-xs">
@@ -304,7 +308,7 @@ export function GatesPage() {
                       </p>
                     </div>
                     <Pill tone={isBusy ? "warn" : "ok"} className="text-[10px] font-mono font-bold">
-                      {qCount} in queue
+                      {t("dashboard.inQueue", { count: qCount })}
                     </Pill>
                   </div>
 
@@ -312,7 +316,7 @@ export function GatesPage() {
                   <div className="flex items-center gap-1.5 py-1.5 px-2 rounded-xl bg-card border border-border/60 min-h-[38px]">
                     {qCount === 0 ? (
                       <span className="text-[11px] text-muted-foreground italic">
-                        Turnstile clear · No queue delay
+                        {t("common.normal")} · 0s delay
                       </span>
                     ) : (
                       <div className="flex items-center gap-1">
@@ -324,8 +328,8 @@ export function GatesPage() {
                             W{i + 1}
                           </span>
                         ))}
-                        <span className="text-[10px] text-muted-foreground font-mono ml-1.5">
-                          ~{(qCount * 2.8).toFixed(1)}s wait
+                        <span className="text-[10px] text-muted-foreground font-mono ms-1.5">
+                          ~{(qCount * 2.8).toFixed(1)}s
                         </span>
                       </div>
                     )}
@@ -355,8 +359,8 @@ export function GatesPage() {
 
         {/* Lane Utilization Mini Chart */}
         <Panel
-          title="Lane Utilization Comparison"
-          subtitle="Ingress (Lane 1) vs Egress (Lane 2) flow"
+          title={t("gates.laneUtilization")}
+          subtitle={t("gates.laneUtilizationDesc")}
         >
           <div className="h-64 min-h-[250px]">
             <ResponsiveContainer width="100%" height={250}>
@@ -380,14 +384,14 @@ export function GatesPage() {
                 />
                 <RBar
                   dataKey="lane1"
-                  name="Lane 1 (Ingress)"
+                  name={t("gates.dirIn")}
                   fill="#2563EB"
                   radius={[6, 6, 0, 0]}
                   isAnimationActive={true}
                 />
                 <RBar
                   dataKey="lane2"
-                  name="Lane 2 (Egress)"
+                  name={t("gates.dirOut")}
                   fill="#14B8A6"
                   radius={[6, 6, 0, 0]}
                   isAnimationActive={true}
@@ -404,17 +408,17 @@ export function GatesPage() {
           {/* Filter Toolbar */}
           <Panel bodyClassName="grid gap-3 md:grid-cols-5 p-3.5">
             <Input
-              placeholder="Search worker name or QID…"
+              placeholder={t("gates.searchPlaceholder")}
               value={q}
               onChange={(e) => setQ(e.target.value)}
               className="rounded-xl h-9 text-xs"
             />
             <Select value={gate} onValueChange={setGate}>
               <SelectTrigger className="rounded-xl h-9 text-xs">
-                <SelectValue placeholder="All Gates" />
+                <SelectValue placeholder={t("gates.allGates")} />
               </SelectTrigger>
               <SelectContent className="rounded-xl">
-                <SelectItem value="all">All 4 Gates</SelectItem>
+                <SelectItem value="all">{t("gates.allGates")}</SelectItem>
                 {GATES.map((g) => (
                   <SelectItem key={g.id} value={g.id}>
                     {g.id} — {g.name}
@@ -425,10 +429,10 @@ export function GatesPage() {
 
             <Select value={sub} onValueChange={setSub}>
               <SelectTrigger className="rounded-xl h-9 text-xs">
-                <SelectValue placeholder="All Subcontractors" />
+                <SelectValue placeholder={t("gates.allSubcontractors")} />
               </SelectTrigger>
               <SelectContent className="rounded-xl">
-                <SelectItem value="all">All Subcontractors</SelectItem>
+                <SelectItem value="all">{t("gates.allSubcontractors")}</SelectItem>
                 {SUBCONTRACTORS.map((s) => (
                   <SelectItem key={s.id} value={s.id}>
                     {s.name}
@@ -439,33 +443,32 @@ export function GatesPage() {
 
             <Select value={status} onValueChange={setStatus}>
               <SelectTrigger className="rounded-xl h-9 text-xs">
-                <SelectValue placeholder="Access Status" />
+                <SelectValue placeholder={t("gates.allStatuses")} />
               </SelectTrigger>
               <SelectContent className="rounded-xl">
-                <SelectItem value="all">All Access Statuses</SelectItem>
-                <SelectItem value="Authorized">Authorized Only</SelectItem>
-                <SelectItem value="Denied">Denied Only</SelectItem>
+                <SelectItem value="all">{t("gates.allStatuses")}</SelectItem>
+                <SelectItem value="Authorized">{t("gates.statusAuthorized")}</SelectItem>
+                <SelectItem value="Denied">{t("common.denied")}</SelectItem>
               </SelectContent>
             </Select>
 
             <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger asChild>
                 <Button variant="secondary" className="gap-2 rounded-xl h-9 text-xs font-semibold">
-                  <ShieldCheck className="size-3.5 text-primary" /> Security Override
+                  <ShieldCheck className="size-3.5 text-primary" /> {t("gates.manualOverride")}
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-md rounded-2xl">
                 <DialogHeader>
-                  <DialogTitle className="text-lg font-bold">Manual Security Override</DialogTitle>
+                  <DialogTitle className="text-lg font-bold">{t("gates.overrideTitle")}</DialogTitle>
                   <DialogDescription className="text-xs">
-                    Recorded permanently in the Ashghal audit log with supervisor timestamp and
-                    camera snapshot.
+                    {t("gates.overrideDesc")}
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-3.5 mt-2">
                   <div>
                     <Label htmlFor="qid" className="text-xs font-semibold">
-                      Worker Qatar ID (QID)
+                      {t("gates.workerQid")}
                     </Label>
                     <Input
                       id="qid"
@@ -476,7 +479,7 @@ export function GatesPage() {
                     />
                   </div>
                   <div>
-                    <Label className="text-xs font-semibold">Authorized Justification</Label>
+                    <Label className="text-xs font-semibold">{t("gates.overrideReason")}</Label>
                     <Select
                       value={override.reason}
                       onValueChange={(v) => setOverride({ ...override, reason: v })}
@@ -485,14 +488,14 @@ export function GatesPage() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent className="rounded-xl">
-                        <SelectItem value="Tag Damaged">Tag Physically Damaged</SelectItem>
-                        <SelectItem value="VIP Visitor">VIP Client Delegations</SelectItem>
-                        <SelectItem value="Emergency Response">Emergency Response Crew</SelectItem>
+                        <SelectItem value="Tag Damaged">{t("gates.tagDamaged")}</SelectItem>
+                        <SelectItem value="VIP Visitor">{t("gates.vipEscort")}</SelectItem>
+                        <SelectItem value="Emergency Response">{t("gates.emergencySpecialist")}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div>
-                    <Label className="text-xs font-semibold">Verification Snapshot</Label>
+                    <Label className="text-xs font-semibold">{t("gates.photoProof")}</Label>
                     <button
                       type="button"
                       onClick={() =>
@@ -501,13 +504,13 @@ export function GatesPage() {
                       className="mt-1 flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-border py-5 text-xs text-muted-foreground hover:border-primary hover:text-foreground transition-colors"
                     >
                       <Camera className="size-4" />
-                      {override.photo || "Click to snap live turnstile camera"}
+                      {override.photo || t("gates.photoProof")}
                     </button>
                   </div>
                 </div>
                 <DialogFooter className="mt-3">
                   <Button onClick={submitOverride} className="rounded-xl text-xs font-semibold">
-                    Authorize & Release Turnstile
+                    {t("gates.authorizeEntry")}
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -516,40 +519,40 @@ export function GatesPage() {
 
           {/* Virtualized Telemetry Stream Table */}
           <Panel
-            title="Real-Time Turnstile Event Stream"
-            subtitle={`${filtered.length} reads buffered · EPC Gen2 RFID & Face Verification`}
+            title={t("gates.liveTurnstileGrid")}
+            subtitle={t("gates.liveTurnstileGridDesc")}
             bodyClassName="p-0"
           >
             <div ref={parentRef} className="h-[520px] overflow-auto relative">
               <table className="w-full text-xs" role="grid">
-                <thead className="sticky top-0 z-10 border-b border-[#0F172A]/[0.06] dark:border-white/[0.06] bg-[#F8FAFC] dark:bg-slate-900 text-left uppercase text-[11px] font-semibold tracking-wider text-[#64748B] dark:text-slate-400">
+                <thead className="sticky top-0 z-10 border-b border-[#0F172A]/[0.06] dark:border-white/[0.06] bg-[#F8FAFC] dark:bg-slate-900 text-start uppercase text-[11px] font-semibold tracking-wider text-[#64748B] dark:text-slate-400">
                   <tr role="row">
-                    <th scope="col" className="px-4 py-3">
-                      Time
+                    <th scope="col" className="px-4 py-3 text-start">
+                      {t("gates.colTimestamp")}
                     </th>
-                    <th scope="col" className="px-4 py-3">
-                      Worker Details
+                    <th scope="col" className="px-4 py-3 text-start">
+                      {t("gates.colWorker")}
                     </th>
-                    <th scope="col" className="px-4 py-3">
+                    <th scope="col" className="px-4 py-3 text-start">
                       QID
                     </th>
-                    <th scope="col" className="px-4 py-3">
+                    <th scope="col" className="px-4 py-3 text-start">
                       RFID EPC
                     </th>
-                    <th scope="col" className="px-4 py-3">
-                      Contractor
+                    <th scope="col" className="px-4 py-3 text-start">
+                      {t("gates.colEmployer")}
                     </th>
-                    <th scope="col" className="px-4 py-3">
-                      Gate & Lane
+                    <th scope="col" className="px-4 py-3 text-start">
+                      {t("gates.colPortal")}
                     </th>
-                    <th scope="col" className="px-4 py-3">
-                      Speed
+                    <th scope="col" className="px-4 py-3 text-start">
+                      {t("gates.colSpeed")}
                     </th>
-                    <th scope="col" className="px-4 py-3">
-                      Dir
+                    <th scope="col" className="px-4 py-3 text-start">
+                      {t("gates.colDirection")}
                     </th>
-                    <th scope="col" className="px-4 py-3">
-                      Access Decision
+                    <th scope="col" className="px-4 py-3 text-start">
+                      {t("gates.colStatus")}
                     </th>
                   </tr>
                 </thead>
@@ -564,7 +567,7 @@ export function GatesPage() {
                     return (
                       <tr
                         key={e.id}
-                        className="transition-colors hover:bg-[#F8FAFC]/90 dark:hover:bg-slate-800/50 absolute left-0 right-0 flex w-full"
+                        className="transition-colors hover:bg-[#F8FAFC]/90 dark:hover:bg-slate-800/50 absolute inset-x-0 flex w-full"
                         style={{
                           height: `${virtualRow.size}px`,
                           transform: `translateY(${virtualRow.start}px)`,
@@ -609,7 +612,7 @@ export function GatesPage() {
                             tone={e.status === "Authorized" ? "ok" : "crit"}
                             className="text-[11px]"
                           >
-                            {e.manual ? `Override: ${e.reason}` : e.status}
+                            {e.manual ? `${t("gates.manualBypass")}: ${e.reason}` : (e.status === "Authorized" ? t("gates.statusAuthorized") : e.status)}
                           </Pill>
                         </td>
                       </tr>
@@ -623,7 +626,7 @@ export function GatesPage() {
 
         {/* Reader Telemetry & Hardware Diagnostics Sidebar */}
         <Panel
-          title="Reader Infrastructure"
+          title={t("hardware.rfidReaders")}
           subtitle="Zebra FXR90 8-port Fixed Readers"
           bodyClassName="space-y-3.5"
         >
@@ -639,23 +642,23 @@ export function GatesPage() {
                 </div>
                 <Pill tone={r.status === "Online" ? "ok" : "warn"} className="text-[10px]">
                   <Dot tone={r.status === "Online" ? "ok" : "warn"} />
-                  {r.status}
+                  {r.status === "Online" ? t("common.active") : r.status}
                 </Pill>
               </div>
 
               <dl className="grid grid-cols-2 gap-y-1 text-xs pt-1 border-t border-border/50">
                 <dt className="text-muted-foreground">IP Address</dt>
-                <dd className="text-right">
+                <dd className="text-end">
                   <Mono className="text-[11px]">{r.ip}</Mono>
                 </dd>
                 <dt className="text-muted-foreground">RF Transmit</dt>
-                <dd className="text-right font-medium">{r.rf} dBm</dd>
+                <dd className="text-end font-medium">{r.rf} dBm</dd>
                 <dt className="flex items-center gap-1 text-muted-foreground">
-                  <Thermometer className="size-3 text-amber-500" /> Core Temp
+                  <Thermometer className="size-3 text-amber-500" /> {t("hardware.coreTemp")}
                 </dt>
-                <dd className="text-right font-medium">{r.temp}°C</dd>
-                <dt className="text-muted-foreground">Antenna VSWR</dt>
-                <dd className="text-right text-emerald-600 dark:text-emerald-400 font-bold font-mono">
+                <dd className="text-end font-medium">{r.temp}°C</dd>
+                <dt className="text-muted-foreground">{t("hardware.vswr")}</dt>
+                <dd className="text-end text-emerald-600 dark:text-emerald-400 font-bold font-mono">
                   {r.vswr.toFixed(2)}:1
                 </dd>
               </dl>

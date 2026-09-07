@@ -1,4 +1,5 @@
 import { useState, useMemo, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { Area, AreaChart, ResponsiveContainer } from "recharts";
 import {
   ArrowDownRight,
@@ -545,7 +546,7 @@ export function PageHeader({
 export interface Column<T> {
   key: string;
   header: string;
-  render?: (row: T) => ReactNode;
+  render?: (row: T, val?: unknown) => ReactNode;
   sortable?: boolean;
   align?: "left" | "center" | "right";
   width?: string;
@@ -572,6 +573,7 @@ export function EnterpriseDataGrid<T extends { id?: string | number }>({
   title?: string;
   actions?: ReactNode;
 }) {
+  const { t } = useTranslation();
   const [query, setQuery] = useState("");
   const [filterVal, setFilterVal] = useState("all");
   const [sortKey, setSortKey] = useState<string | null>(null);
@@ -637,15 +639,15 @@ export function EnterpriseDataGrid<T extends { id?: string | number }>({
       <div className="flex flex-wrap items-center justify-between gap-4 p-6 border-b border-[#0F172A]/[0.06] dark:border-white/[0.06] bg-[#F8FAFC]/50 dark:bg-slate-900/30">
         <div className="flex items-center gap-3 min-w-[280px] flex-1 max-w-md">
           <div className="relative w-full">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-[#64748B] dark:text-slate-400" />
+            <Search className="absolute start-3 top-1/2 -translate-y-1/2 size-4 text-[#64748B] dark:text-slate-400" />
             <Input
               value={query}
               onChange={(e) => {
                 setQuery(e.target.value);
                 setPage(1);
               }}
-              placeholder={searchPlaceholder}
-              className="pl-9 h-11 rounded-xl bg-background border-[#0F172A]/[0.08] dark:border-white/10 text-sm"
+              placeholder={searchPlaceholder ?? t("uiKit.search")}
+              className="ps-9 h-11 rounded-xl bg-background border-[#0F172A]/[0.08] dark:border-white/10 text-sm"
             />
           </div>
           {filterOptions && (
@@ -657,7 +659,7 @@ export function EnterpriseDataGrid<T extends { id?: string | number }>({
               }}
               className="h-11 px-3.5 rounded-xl border border-[#0F172A]/[0.08] dark:border-white/10 bg-background text-sm font-medium text-[#0F172A] dark:text-white outline-none focus:ring-2 focus:ring-primary"
             >
-              <option value="all">All categories</option>
+              <option value="all">{t("common.all")}</option>
               {filterOptions.map((opt) => (
                 <option key={opt.value} value={opt.value}>
                   {opt.label}
@@ -676,7 +678,7 @@ export function EnterpriseDataGrid<T extends { id?: string | number }>({
               onClick={onExportCsv}
               className="gap-2 h-11 rounded-xl text-sm"
             >
-              <Download className="size-4" /> Export CSV
+              <Download className="size-4" /> {t("common.export")}
             </Button>
           )}
         </div>
@@ -685,12 +687,12 @@ export function EnterpriseDataGrid<T extends { id?: string | number }>({
       {/* Grid Content */}
       <div className="overflow-x-auto">
         <table className="w-full text-sm" role="grid">
-          <thead className="sticky top-0 z-10 border-b border-[#0F172A]/[0.06] dark:border-white/[0.06] bg-[#F8FAFC] dark:bg-slate-900 text-left uppercase text-[12px] font-semibold tracking-wider text-[#64748B] dark:text-slate-400">
+          <thead className="sticky top-0 z-10 border-b border-[#0F172A]/[0.06] dark:border-white/[0.06] bg-[#F8FAFC] dark:bg-slate-900 text-start uppercase text-[12px] font-semibold tracking-wider text-[#64748B] dark:text-slate-400">
             <tr role="row">
               <th className="w-12 px-6 py-4 text-center" scope="col">
                 <input
                   type="checkbox"
-                  aria-label="Select all rows"
+                  aria-label={t("uiKit.selectAll")}
                   checked={
                     paginated.length > 0 && Object.keys(selectedIds).length === paginated.length
                   }
@@ -728,7 +730,7 @@ export function EnterpriseDataGrid<T extends { id?: string | number }>({
                     "px-6 py-4 whitespace-nowrap",
                     col.sortable !== false &&
                       "cursor-pointer select-none hover:text-foreground focus:outline-none focus-visible:ring-1 focus-visible:ring-primary",
-                    col.align === "right" && "text-right",
+                    col.align === "right" && "text-end",
                     col.align === "center" && "text-center",
                   )}
                   style={{ width: col.width }}
@@ -753,9 +755,9 @@ export function EnterpriseDataGrid<T extends { id?: string | number }>({
               <tr>
                 <td colSpan={columns.length + 1} className="py-12 px-6">
                   <EmptyState
-                    title="No Matching Records Found"
-                    description="No entries correspond to active query or filter criteria. Reset filters to view all telemetry records."
-                    actionText="Reset Search"
+                    title={t("uiKit.noMatchingRecords")}
+                    description={t("uiKit.noMatchingDesc")}
+                    actionText={t("uiKit.resetSearch")}
                     onAction={() => {
                       setQuery("");
                       setPage(1);
@@ -778,30 +780,34 @@ export function EnterpriseDataGrid<T extends { id?: string | number }>({
                     <td className="px-6 py-4 text-center">
                       <input
                         type="checkbox"
+                        aria-label={`Select row ${id}`}
                         checked={isSelected}
-                        onChange={() =>
-                          setSelectedIds((prev) => ({
-                            ...prev,
-                            [id]: !prev[id],
-                          }))
-                        }
+                        onChange={() => {
+                          setSelectedIds((prev) => {
+                            const next = { ...prev };
+                            if (next[id]) delete next[id];
+                            else next[id] = true;
+                            return next;
+                          });
+                        }}
                         className="rounded border-slate-300 text-primary focus:ring-primary cursor-pointer"
                       />
                     </td>
-                    {columns.map((col) => (
-                      <td
-                        key={col.key}
-                        className={cn(
-                          "px-6 py-4 text-[#0F172A] dark:text-slate-200",
-                          col.align === "right" && "text-right tabular-nums",
-                          col.align === "center" && "text-center",
-                        )}
-                      >
-                        {col.render
-                          ? col.render(row)
-                          : String((row as Record<string, unknown>)[col.key] ?? "")}
-                      </td>
-                    ))}
+                    {columns.map((col) => {
+                      const val = (row as Record<string, unknown>)[col.key];
+                      return (
+                        <td
+                          key={col.key}
+                          className={cn(
+                            "px-6 py-4 text-sm text-foreground",
+                            col.align === "right" && "text-end",
+                            col.align === "center" && "text-center",
+                          )}
+                        >
+                          {col.render ? col.render(row, val) : String(val ?? "—")}
+                        </td>
+                      );
+                    })}
                   </tr>
                 );
               })
@@ -813,18 +819,13 @@ export function EnterpriseDataGrid<T extends { id?: string | number }>({
       {/* Pagination Footer */}
       <div className="flex items-center justify-between border-t border-[#0F172A]/[0.06] dark:border-white/[0.06] px-6 py-4 bg-[#F8FAFC]/50 dark:bg-slate-900/30 text-xs text-[#64748B] dark:text-slate-400">
         <div>
-          Showing{" "}
-          <span className="font-semibold text-[#0F172A] dark:text-white">
-            {sorted.length === 0 ? 0 : (page - 1) * pageSize + 1}
-          </span>{" "}
-          to{" "}
-          <span className="font-semibold text-[#0F172A] dark:text-white">
-            {Math.min(sorted.length, page * pageSize)}
-          </span>{" "}
-          of <span className="font-semibold text-[#0F172A] dark:text-white">{sorted.length}</span>{" "}
-          records
+          {t("uiKit.recordsCount", {
+            from: sorted.length === 0 ? 0 : (page - 1) * pageSize + 1,
+            to: Math.min(sorted.length, page * pageSize),
+            total: sorted.length,
+          })}
           {Object.keys(selectedIds).length > 0 && (
-            <span className="ml-3 font-medium text-primary">
+            <span className="ms-3 font-medium text-primary">
               ({Object.keys(selectedIds).length} selected)
             </span>
           )}
@@ -836,11 +837,12 @@ export function EnterpriseDataGrid<T extends { id?: string | number }>({
             disabled={page <= 1}
             onClick={() => setPage((p) => p - 1)}
             className="h-9 w-9 p-0 rounded-lg"
+            aria-label={t("uiKit.previous")}
           >
-            <ChevronLeft className="size-4" />
+            <ChevronLeft className="size-4 rtl:rotate-180" />
           </Button>
           <span className="px-2 font-medium text-[#0F172A] dark:text-white">
-            Page {page} of {totalPages}
+            {t("uiKit.page", { current: page, total: totalPages })}
           </span>
           <Button
             variant="outline"
@@ -848,8 +850,9 @@ export function EnterpriseDataGrid<T extends { id?: string | number }>({
             disabled={page >= totalPages}
             onClick={() => setPage((p) => p + 1)}
             className="h-9 w-9 p-0 rounded-lg"
+            aria-label={t("uiKit.next")}
           >
-            <ChevronRight className="size-4" />
+            <ChevronRight className="size-4 rtl:rotate-180" />
           </Button>
         </div>
       </div>

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import {
   AlertTriangle,
   Flame,
@@ -100,6 +101,7 @@ export function Floorplan({
   showTrails?: boolean;
   showGeofence?: boolean;
 }) {
+  const { t } = useTranslation();
   const [hover, setHover] = useState<Zone | null>(null);
   const [scale, setScale] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
@@ -205,10 +207,10 @@ export function Floorplan({
         style={{ height }}
       >
         {/* Floating Zoom & Pan HUD */}
-        <div className="absolute top-3 right-3 z-30 flex items-center gap-1.5 rounded-xl border border-slate-700/80 bg-slate-900/90 p-1 backdrop-blur-md shadow-lg">
+        <div className="absolute top-3 end-3 z-30 flex items-center gap-1.5 rounded-xl border border-slate-700/80 bg-slate-900/90 p-1 backdrop-blur-md shadow-lg">
           <button
             type="button"
-            title="Zoom In"
+            title={t("floorplan.zoomIn")}
             onClick={zoomIn}
             className="flex size-7 items-center justify-center rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors"
           >
@@ -219,7 +221,7 @@ export function Floorplan({
           </span>
           <button
             type="button"
-            title="Zoom Out"
+            title={t("floorplan.zoomOut")}
             onClick={zoomOut}
             className="flex size-7 items-center justify-center rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors"
           >
@@ -228,7 +230,7 @@ export function Floorplan({
           <div className="h-4 w-px bg-slate-700 mx-0.5" />
           <button
             type="button"
-            title="Reset View"
+            title={t("floorplan.resetView")}
             onClick={resetView}
             className="flex size-7 items-center justify-center rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition-colors"
           >
@@ -245,15 +247,15 @@ export function Floorplan({
         >
           {/* Subtle architectural coordinate lines & axes */}
           <div className="absolute inset-0 pointer-events-none opacity-30">
-            <div className="absolute left-6 top-0 bottom-0 w-px bg-slate-700/60 border-r border-dashed border-slate-600" />
-            <div className="absolute right-6 top-0 bottom-0 w-px bg-slate-700/60 border-r border-dashed border-slate-600" />
-            <div className="absolute top-6 left-0 right-0 h-px bg-slate-700/60 border-b border-dashed border-slate-600" />
-            <div className="absolute bottom-6 left-0 right-0 h-px bg-slate-700/60 border-b border-dashed border-slate-600" />
-            <span className="absolute top-2 left-2 text-[10px] font-mono text-slate-500">
-              GRID: BLDG-{building} · ELEVATION +14.500m
+            <div className="absolute start-6 top-0 bottom-0 w-px bg-slate-700/60 border-e border-dashed border-slate-600" />
+            <div className="absolute end-6 top-0 bottom-0 w-px bg-slate-700/60 border-e border-dashed border-slate-600" />
+            <div className="absolute top-6 inset-x-0 h-px bg-slate-700/60 border-b border-dashed border-slate-600" />
+            <div className="absolute bottom-6 inset-x-0 h-px bg-slate-700/60 border-b border-dashed border-slate-600" />
+            <span className="absolute top-2 start-2 text-[10px] font-mono text-slate-500">
+              {t("floorplan.gridElevation", { building })}
             </span>
-            <span className="absolute bottom-2 right-2 text-[10px] font-mono text-slate-500">
-              BIM LOD-400 · RFID SPATIAL ANCHORS ACTIVE
+            <span className="absolute bottom-2 end-2 text-[10px] font-mono text-slate-500">
+              {t("floorplan.bimAnchors")}
             </span>
           </div>
 
@@ -407,7 +409,7 @@ export function Floorplan({
                       )}
                     </div>
                     <span className="font-mono text-[10px] text-slate-400 block mt-0.5">
-                      <AnimatedNumber value={z.count} /> / {z.capacity} workers
+                      <AnimatedNumber value={z.count} /> / {z.capacity} {t("floorplan.workers")}
                     </span>
                   </div>
 
@@ -442,9 +444,9 @@ export function Floorplan({
                 </div>
 
                 {/* Bottom Trade Badges & Status */}
-                <div className="absolute bottom-2 left-3 right-3 z-10 flex items-center justify-between text-[10px]">
+                <div className="absolute bottom-2 inset-x-3 z-10 flex items-center justify-between text-[10px]">
                   <span className="truncate max-w-[130px] text-slate-300 font-medium">
-                    {z.subs[0] ?? "Restricted Zone"}
+                    {z.subs[0] ?? t("floorplan.restrictedZone")}
                   </span>
                   <span
                     className="size-2 rounded-full mi-pulse"
@@ -459,37 +461,37 @@ export function Floorplan({
 
       {/* Rich Zone Hover Inspector Card */}
       {hover && (
-        <div className="pointer-events-none absolute bottom-4 left-4 z-40 w-84 rounded-2xl border border-border/80 bg-card/95 p-4 shadow-2xl backdrop-blur-md transition-all animate-in fade-in-0 duration-150">
+        <div className="pointer-events-none absolute bottom-4 start-4 z-40 w-84 rounded-2xl border border-border/80 bg-card/95 p-4 shadow-2xl backdrop-blur-md transition-all animate-in fade-in-0 duration-150">
           <div className="flex items-center justify-between border-b border-border/60 pb-2.5">
             <div>
               <p className="text-sm font-bold text-foreground tracking-tight">{hover.label}</p>
               <p className="text-xs text-muted-foreground">
-                Building {hover.building} · Level {hover.level} · {hover.wing} wing
+                {t("floorplan.building")} {hover.building} · {t("floorplan.level")} {hover.level} · {hover.wing} {t("floorplan.wing")}
               </p>
             </div>
             <Pill tone={zoneTone(hover)}>
-              {hover.restricted ? "RESTRICTED" : `${hover.count}/${hover.capacity}`}
+              {hover.restricted ? t("floorplan.restricted") : `${hover.count}/${hover.capacity}`}
             </Pill>
           </div>
 
           <div className="mt-3 space-y-2.5 text-xs">
             <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">Work Permit:</span>
+              <span className="text-muted-foreground">{t("floorplan.workPermit")}</span>
               <Mono className="font-semibold text-primary">{hover.permit}</Mono>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">HSE Foreman:</span>
+              <span className="text-muted-foreground">{t("floorplan.foreman")}</span>
               <span className="font-medium text-foreground">{hover.foreman}</span>
             </div>
             <div className="grid grid-cols-2 gap-2 pt-1">
               <div className="rounded-xl border border-border/60 bg-slate-50/50 dark:bg-slate-900/50 p-2 text-center">
-                <span className="text-[10px] text-muted-foreground block">Air Quality</span>
+                <span className="text-[10px] text-muted-foreground block">{t("floorplan.airQuality")}</span>
                 <span className="font-semibold text-emerald-600 dark:text-emerald-400 inline-flex items-center gap-1 mt-0.5">
                   <Wind className="size-3" /> {hover.dust}
                 </span>
               </div>
               <div className="rounded-xl border border-border/60 bg-slate-50/50 dark:bg-slate-900/50 p-2 text-center">
-                <span className="text-[10px] text-muted-foreground block">Sound Level</span>
+                <span className="text-[10px] text-muted-foreground block">{t("floorplan.soundLevel")}</span>
                 <span className="font-semibold text-foreground inline-flex items-center gap-1 mt-0.5">
                   <Volume2 className="size-3 text-muted-foreground" /> 64 dBA
                 </span>
@@ -497,7 +499,7 @@ export function Floorplan({
             </div>
 
             <div>
-              <span className="text-muted-foreground block mb-1">Active Subcontractors:</span>
+              <span className="text-muted-foreground block mb-1">{t("floorplan.activeSubcontractors")}</span>
               <div className="flex flex-wrap gap-1">
                 {hover.subs.length ? (
                   hover.subs.map((s) => (
@@ -509,7 +511,7 @@ export function Floorplan({
                     </span>
                   ))
                 ) : (
-                  <span className="text-muted-foreground italic">No contractors authorized</span>
+                  <span className="text-muted-foreground italic">{t("floorplan.noContractors")}</span>
                 )}
               </div>
             </div>

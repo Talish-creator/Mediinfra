@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Phone, Send, Siren, ShieldCheck, AlertTriangle, CheckCircle2, UserX } from "lucide-react";
 import { toast } from "sonner";
 
@@ -40,6 +41,7 @@ export const Route = createFileRoute("/muster")({
 });
 
 export function MusterPage() {
+  const { t } = useTranslation();
   const { emergency, startEmergency, standDown, accounted } = useMediInfra();
   const total = 864;
   const missing = Math.max(0, total - accounted);
@@ -55,13 +57,13 @@ export function MusterPage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Life Safety & Emergency Evacuation Muster"
-        description="High-frequency RFID muster stations at Points A, B and C reconcile evacuated personnel against the morning ingress register. Real-time manifests transmit directly to Qatar Civil Defence and the HMC Disaster Center."
+        title={t("muster.pageTitle")}
+        description={t("muster.pageDesc")}
         actions={
           <div className="flex items-center gap-2.5">
             <Pill tone={emergency ? "crit" : "ok"} className="h-9 px-3 text-xs">
               <Dot tone={emergency ? "crit" : "ok"} pulse={emergency} />
-              {emergency ? "EVACUATION ALARM ACTIVE" : "Civil Defence Link Armed"}
+              {emergency ? t("muster.alarmActive") : t("muster.linkArmed")}
             </Pill>
           </div>
         }
@@ -95,13 +97,13 @@ export function MusterPage() {
               )}
             >
               {emergency
-                ? "SITE-WIDE EMERGENCY EVACUATION IN PROGRESS"
-                : "NORMAL SITE OPERATION — ALL ACCESS GATES MONITORED"}
+                ? t("muster.bannerActive")
+                : t("muster.bannerNormal")}
             </p>
             <p className="mt-1 text-xs text-[#64748B] dark:text-slate-400 font-medium">
               {emergency
-                ? "Fail-safe optical turnstiles opened · Acoustic sirens broadcasting · Exterior muster points streaming"
-                : "Continuous RFID perimeter accounting · Qatar Civil Defence integration verified online"}
+                ? t("muster.bannerSubActive")
+                : t("muster.bannerSubNormal")}
             </p>
           </div>
         </div>
@@ -113,14 +115,14 @@ export function MusterPage() {
               onClick={standDown}
               className="h-11 px-5 rounded-xl font-semibold text-xs border-[#0F172A]/[0.08] dark:border-white/10 hover:bg-card"
             >
-              Stand Down Alarm & Restore Gates
+              {t("muster.restoreGates")}
             </Button>
           ) : (
             <Button
               className="h-11 px-5 rounded-xl gap-2 bg-[#EF4444] hover:bg-[#DC2626] text-white font-semibold text-xs shadow-sm hover:shadow-[0_8px_20px_rgba(239,68,68,0.25)] transition-all hover:-translate-y-0.5 active:translate-y-0"
               onClick={startEmergency}
             >
-              <Siren className="size-4" /> INITIATE EMERGENCY EVACUATION ALARM
+              <Siren className="size-4" /> {t("muster.initiateAlarmBtn")}
             </Button>
           )}
         </div>
@@ -130,28 +132,28 @@ export function MusterPage() {
       <div className="grid gap-6 md:grid-cols-3 items-stretch">
         <KpiCard
           shimmer={emergency}
-          label="Site Population at Alarm"
+          label={t("muster.kpiTotalOnSite")}
           value={total.toLocaleString()}
-          sub="Workers verified inside the perimeter"
-          status="Ingress Locked"
+          sub={t("muster.kpiTotalSub")}
+          status={t("muster.kpiTotalStatus")}
           tone="cyan"
           spark={[780, 810, 835, 850, 860, 864]}
         />
         <KpiCard
           shimmer={emergency}
-          label="Safely Accounted For"
+          label={t("muster.kpiAccounted")}
           value={emergency ? accounted.toLocaleString() : 0}
-          sub="Scanned at muster readers A / B / C"
-          status={emergency ? `${Math.round((accounted / total) * 100)}% Safe` : "Standing By"}
+          sub={t("muster.kpiAccountedSub")}
+          status={emergency ? `${Math.round((accounted / total) * 100)}% Safe` : t("muster.standingBy")}
           tone="ok"
           spark={emergency ? [0, 180, 390, 580, 720, accounted] : [0, 0, 0, 0, 0]}
         />
         <KpiCard
           shimmer={emergency}
-          label="Missing / Unaccounted Personnel"
+          label={t("muster.kpiMissing")}
           value={emergency ? missing.toLocaleString() : total.toLocaleString()}
-          sub={emergency ? "Active search teams dispatched" : "Awaiting alarm trigger"}
-          status={emergency ? `${missing} Remaining` : "Pre-Alarm Baseline"}
+          sub={emergency ? t("muster.kpiMissingActiveSub") : t("muster.kpiMissingIdleSub")}
+          status={emergency ? `${missing} Remaining` : t("muster.preAlarmBaseline")}
           tone="crit"
           spark={emergency ? [864, 684, 474, 284, 144, missing] : [864, 864, 864, 864]}
         />
@@ -165,7 +167,7 @@ export function MusterPage() {
             <Panel
               key={m.id}
               className="flex flex-col h-full"
-              title={`Muster Station ${m.id}`}
+              title={t("muster.musterStation", { id: m.id })}
               subtitle={m.name}
               action={
                 <Pill tone={emergency ? "ok" : "muted"} glow={emergency} className="text-xs">
@@ -179,7 +181,7 @@ export function MusterPage() {
                 <div className="flex items-baseline justify-between">
                   <p className="text-3xl font-bold tabular-nums text-foreground">{share}</p>
                   <span className="text-xs text-muted-foreground font-semibold">
-                    / {m.accounted} expected
+                    {t("muster.expectedCount", { count: m.accounted })}
                   </span>
                 </div>
                 <div className="mt-3">
@@ -187,8 +189,7 @@ export function MusterPage() {
                 </div>
               </div>
               <p className="mt-4 text-[12px] text-muted-foreground flex items-center gap-1.5 font-medium pt-3 border-t border-border/40">
-                <CheckCircle2 className="size-3.5 text-emerald-500" /> Antenna beam active · 99.8%
-                capture rate
+                <CheckCircle2 className="size-3.5 text-emerald-500" /> {t("muster.antennaActive")}
               </p>
             </Panel>
           );
@@ -197,13 +198,13 @@ export function MusterPage() {
 
       {/* Missing Personnel Triage Register */}
       <Panel
-        title="Missing Personnel Triage Register"
-        subtitle="Last known work zone derived from final portal RFID read — synchronized for Civil Defence rescue squads"
+        title={t("muster.unaccountedManifestTitle")}
+        subtitle={t("muster.unaccountedManifestSubtitle")}
         action={
           <div className="flex items-center gap-3">
             <input
               type="text"
-              placeholder="Search missing worker, trade, or zone…"
+              placeholder={t("muster.searchMissing")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="h-10 w-72 rounded-xl border border-input bg-background px-3.5 text-xs outline-none focus:ring-2 focus:ring-primary"
@@ -212,12 +213,12 @@ export function MusterPage() {
               size="sm"
               className="gap-2 h-10 rounded-xl font-semibold text-xs"
               onClick={() =>
-                toast.success("Emergency Evacuation Manifest Transmitted", {
-                  description: `${missing || MISSING_PERSONNEL.length} personnel profiles dispatched to Qatar Civil Defence & HMC Disaster Operations.`,
+                toast.success(t("muster.manifestTransmitted"), {
+                  description: t("muster.manifestDesc", { count: missing || MISSING_PERSONNEL.length }),
                 })
               }
             >
-              <Send className="size-3.5" /> Transmit to Civil Defence
+              <Send className="size-3.5 rtl:rotate-180" /> {t("muster.transmitCivilDefence")}
             </Button>
           </div>
         }
@@ -225,13 +226,13 @@ export function MusterPage() {
       >
         <div className="max-h-[460px] overflow-auto">
           <table className="w-full text-sm" role="grid">
-            <thead className="sticky top-0 z-10 border-b border-[#0F172A]/[0.06] dark:border-white/[0.06] bg-[#F8FAFC] dark:bg-slate-900 text-left uppercase text-[12px] font-semibold tracking-wider text-[#64748B] dark:text-slate-400">
+            <thead className="sticky top-0 z-10 border-b border-[#0F172A]/[0.06] dark:border-white/[0.06] bg-[#F8FAFC] dark:bg-slate-900 text-start uppercase text-[12px] font-semibold tracking-wider text-[#64748B] dark:text-slate-400">
               <tr role="row">
-                <th className="px-6 py-4">Worker Profile</th>
-                <th className="px-6 py-4">Subcontractor Employer</th>
-                <th className="px-6 py-4">Assigned Trade</th>
-                <th className="px-6 py-4">Last RFID Portal Read</th>
-                <th className="px-6 py-4">Triage Protocol</th>
+                <th className="px-6 py-4 text-start">{t("muster.colWorker")}</th>
+                <th className="px-6 py-4 text-start">{t("muster.colEmployer")}</th>
+                <th className="px-6 py-4 text-start">{t("muster.colTrade")}</th>
+                <th className="px-6 py-4 text-start">{t("muster.colLastRead")}</th>
+                <th className="px-6 py-4 text-start">{t("muster.colTriage")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#0F172A]/[0.05] dark:divide-white/[0.06]">
@@ -264,7 +265,7 @@ export function MusterPage() {
                   </td>
                   <td className="px-6 py-4">
                     <Pill tone="crit" className="text-xs font-semibold">
-                      <UserX className="size-3 mr-1" /> Unaccounted
+                      <UserX className="size-3 me-1" /> {t("muster.unaccounted")}
                     </Pill>
                   </td>
                 </tr>

@@ -366,3 +366,23 @@
 ::-webkit-scrollbar-thumb:hover {
   background: var(--muted-foreground);
 }
+
+/*
+ * Native Enterprise RTL & Arabic Typography System
+ */
+html[lang="ar"],
+html[dir="rtl"],
+[dir="rtl"] {
+  --font-sans: "Cairo", "IBM Plex Sans Arabic", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--font-sans);
+}
+
+/* Automatic icon mirroring for directional elements in RTL */
+[dir="rtl"] .rtl-flip {
+  transform: scaleX(-1);
+}
+
+/* Smooth layout transition on language switch */
+html {
+  transition: opacity 200ms ease;
+}

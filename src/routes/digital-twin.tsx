@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import {
   AlertTriangle,
   Building2,
@@ -36,19 +37,8 @@ export const Route = createFileRoute("/digital-twin")({
   component: DigitalTwin,
 });
 
-const BUILDINGS = [
-  {
-    id: "IPT",
-    label: "IPT Inpatient Tower",
-    levels: ["L2", "L3", "L4", "L5", "L6"],
-    area: "42,000 m²",
-  },
-  { id: "OPT", label: "OPT Outpatient Tower", levels: ["L1", "L2", "L3"], area: "28,500 m²" },
-  { id: "ENG", label: "Engineering & Plant", levels: ["GF", "B1"], area: "14,200 m²" },
-  { id: "SV", label: "Services Yard & Staging", levels: ["GF"], area: "19,000 m²" },
-] as const;
-
 export function DigitalTwin() {
+  const { t } = useTranslation();
   const [building, setBuilding] = useState<"IPT" | "OPT" | "ENG" | "SV">("IPT");
   const [selected, setSelected] = useState<Zone | null>(null);
   const [intruded, setIntruded] = useState(false);
@@ -56,6 +46,36 @@ export function DigitalTwin() {
   const [showWorkers, setShowWorkers] = useState(true);
   const [showTrails, setShowTrails] = useState(true);
   const [showGeofence, setShowGeofence] = useState(true);
+
+  const buildings = useMemo(
+    () => [
+      {
+        id: "IPT" as const,
+        label: t("dashboard.bldgIPT"),
+        levels: ["L2", "L3", "L4", "L5", "L6"],
+        area: "42,000 m²",
+      },
+      {
+        id: "OPT" as const,
+        label: t("dashboard.bldgOPT"),
+        levels: ["L1", "L2", "L3"],
+        area: "28,500 m²",
+      },
+      {
+        id: "ENG" as const,
+        label: t("dashboard.bldgENG"),
+        levels: ["GF", "B1"],
+        area: "14,200 m²",
+      },
+      {
+        id: "SV" as const,
+        label: "Services Yard & Staging",
+        levels: ["GF"],
+        area: "19,000 m²",
+      },
+    ],
+    [t],
+  );
 
   const zones = ZONES.filter((z) => z.building === building);
 
@@ -73,13 +93,13 @@ export function DigitalTwin() {
   return (
     <div className="space-y-8">
       <PageHeader
-        title="3D/2D Building Digital Twin & Macro-Zones"
-        description="BIM LOD-400 structural model paired with RFID portal gates and BLE spatial anchors. Tracks live contractor headcount, active work permits, and automated virtual geo-fences."
+        title={t("digitalTwin.pageTitle")}
+        description={t("digitalTwin.pageDesc")}
         actions={
           <div className="flex items-center gap-3">
             <div className="hidden sm:flex items-center gap-2 rounded-xl border border-emerald-200/60 dark:border-emerald-900/40 bg-emerald-50/70 dark:bg-emerald-950/40 px-3.5 py-2 text-xs font-semibold text-emerald-800 dark:text-emerald-300 shadow-sm">
               <LivePulse tone="ok" size="sm" />
-              <span>Spatial Mesh Active</span>
+              <span>{t("digitalTwin.spatialMeshActive")}</span>
             </div>
             <Button
               variant="outline"
@@ -87,15 +107,15 @@ export function DigitalTwin() {
               className="gap-2 h-10 rounded-xl font-semibold text-xs border-red-200 hover:bg-red-50 text-red-600 dark:border-red-900/60 dark:hover:bg-red-950/40"
               onClick={simulateIntrusion}
             >
-              <AlertTriangle className="size-4" /> Simulate Zone Breach
+              <AlertTriangle className="size-4" /> {t("digitalTwin.simulateBreach")}
             </Button>
             <Button
               variant="outline"
               size="sm"
               className="gap-1.5 h-10 rounded-xl font-semibold text-xs"
-              onClick={() => toast.success("BIM LOD-400 digital twin geometry refreshed")}
+              onClick={() => toast.success(t("digitalTwin.bimRefreshed"))}
             >
-              <RefreshCw className="size-3.5" /> Sync BIM
+              <RefreshCw className="size-3.5" /> {t("digitalTwin.syncBim")}
             </Button>
           </div>
         }
@@ -103,7 +123,7 @@ export function DigitalTwin() {
 
       {/* Building Switcher Pills */}
       <div className="flex flex-wrap gap-3">
-        {BUILDINGS.map((b) => {
+        {buildings.map((b) => {
           const active = building === b.id;
           return (
             <button
@@ -137,8 +157,8 @@ export function DigitalTwin() {
       <div className="grid gap-6 xl:grid-cols-3 items-stretch">
         <Panel
           className="xl:col-span-2 flex flex-col h-full"
-          title={`${building} Spatial Micro-Grid`}
-          subtitle="Hover any zone for contractor permits, air quality, and foreman contacts. Click to lock inspection."
+          title={`${building} — ${t("digitalTwin.zoneOccupancy")}`}
+          subtitle={t("digitalTwin.selectZoneHint")}
           action={
             <div className="flex flex-wrap items-center gap-1.5">
               <button
@@ -151,7 +171,7 @@ export function DigitalTwin() {
                     : "bg-slate-100 dark:bg-slate-800 border-border text-muted-foreground",
                 )}
               >
-                Workers
+                {t("common.workers")}
               </button>
               <button
                 type="button"
@@ -163,7 +183,7 @@ export function DigitalTwin() {
                     : "bg-slate-100 dark:bg-slate-800 border-border text-muted-foreground",
                 )}
               >
-                Trails
+                {t("digitalTwin.movementTrails")}
               </button>
               <button
                 type="button"
@@ -175,7 +195,7 @@ export function DigitalTwin() {
                     : "bg-slate-100 dark:bg-slate-800 border-border text-muted-foreground",
                 )}
               >
-                Heatmap
+                {t("digitalTwin.heatmapDensity")}
               </button>
               <button
                 type="button"
@@ -187,7 +207,7 @@ export function DigitalTwin() {
                     : "bg-slate-100 dark:bg-slate-800 border-border text-muted-foreground",
                 )}
               >
-                Geofence
+                {t("digitalTwin.geofenceBorders")}
               </button>
             </div>
           }
@@ -208,8 +228,8 @@ export function DigitalTwin() {
         {/* Macro-Zone Register */}
         <Panel
           className="flex flex-col h-full"
-          title="Macro-Zone Occupancy Register"
-          subtitle="Real-time RFID headcount vs permissible capacity"
+          title={t("digitalTwin.occupancyState")}
+          subtitle={t("digitalTwin.zoneInventoryDesc", { building })}
           bodyClassName="space-y-3 flex-1 flex flex-col justify-start"
         >
           {zones.map((z) => {
@@ -220,7 +240,7 @@ export function DigitalTwin() {
                 key={z.id}
                 onClick={() => setSelected(z)}
                 className={cn(
-                  "w-full rounded-[18px] border p-4 text-left transition-all hover:border-primary/60 shadow-[0_12px_40px_rgba(2,6,23,0.05)]",
+                  "w-full rounded-[18px] border p-4 text-start transition-all hover:border-primary/60 shadow-[0_12px_40px_rgba(2,6,23,0.05)]",
                   isSelected
                     ? "border-primary bg-blue-50/50 dark:bg-blue-950/20"
                     : "border-[#0F172A]/[0.06] dark:border-white/[0.08] bg-white dark:bg-slate-900 hover:bg-[#F8FAFC] dark:hover:bg-slate-800/40",
@@ -247,28 +267,28 @@ export function DigitalTwin() {
       {/* Selected Zone Deep Dive */}
       {selected && (
         <Panel
-          title={`Zone Detail — ${selected.id}`}
+          title={`${t("digitalTwin.selectedZone")} — ${selected.id}`}
           subtitle={selected.label}
           action={
             <Pill tone={selected.restricted ? "crit" : "ok"} className="text-xs">
-              {selected.restricted ? "Restricted / Non-Permit Zone" : "Permitted Works Active"}
+              {selected.restricted ? t("floorplan.restricted") : t("common.authorized")}
             </Pill>
           }
         >
           <div className="grid gap-4 md:grid-cols-4 pt-1">
             <div className="rounded-xl border border-[#0F172A]/[0.06] dark:border-white/[0.08] bg-[#F8FAFC] dark:bg-slate-900/30 p-4">
               <p className="text-[11px] font-bold uppercase tracking-wider text-[#64748B] dark:text-slate-400">
-                Active Permit
+                {t("digitalTwin.activePermit")}
               </p>
               <Mono className="mt-1.5 block text-sm font-bold text-primary">{selected.permit}</Mono>
               <p className="text-[11px] text-[#64748B] dark:text-slate-400 mt-1">
-                Gated under WO-0142
+                WO-0142
               </p>
             </div>
 
             <div className="rounded-xl border border-[#0F172A]/[0.06] dark:border-white/[0.08] bg-[#F8FAFC] dark:bg-slate-900/30 p-4">
               <p className="text-[11px] font-bold uppercase tracking-wider text-[#64748B] dark:text-slate-400">
-                Responsible Foreman
+                {t("digitalTwin.foremanInCharge")}
               </p>
               <p className="mt-1 text-xs font-bold text-[#0F172A] dark:text-white">
                 {selected.foreman}
@@ -280,7 +300,7 @@ export function DigitalTwin() {
 
             <div className="rounded-xl border border-[#0F172A]/[0.06] dark:border-white/[0.08] bg-[#F8FAFC] dark:bg-slate-900/30 p-4">
               <p className="text-[11px] font-bold uppercase tracking-wider text-[#64748B] dark:text-slate-400">
-                Authorized Contractors
+                {t("digitalTwin.authorizedTrades")}
               </p>
               <div className="mt-1.5 flex flex-wrap gap-1">
                 {selected.subs.length ? (
@@ -293,20 +313,20 @@ export function DigitalTwin() {
                     </span>
                   ))
                 ) : (
-                  <span className="text-xs text-muted-foreground italic">None permitted</span>
+                  <span className="text-xs text-muted-foreground italic">{t("floorplan.noContractors")}</span>
                 )}
               </div>
             </div>
 
             <div className="rounded-xl border border-border bg-slate-50/60 dark:bg-slate-900/30 p-3.5">
               <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-                IAQ & Dust Sensor
+                {t("digitalTwin.airQuality")}
               </p>
               <p className="mt-1 text-xs font-semibold text-foreground flex items-center gap-1.5">
                 <Wind className="size-4 text-emerald-500" />
                 <span>{selected.dust}</span>
               </p>
-              <p className="text-[10px] text-muted-foreground mt-1">Complies with ICRA Class IV</p>
+              <p className="text-[10px] text-muted-foreground mt-1">ICRA Class IV</p>
             </div>
           </div>
         </Panel>

@@ -8,7 +8,9 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 
+import "@/lib/i18n";
 import { AlertTriangle, FileQuestion, RotateCcw, ArrowLeft, Activity } from "lucide-react";
 import appCss from "../styles.css?url";
 import { Toaster } from "@/components/ui/sonner";
@@ -16,6 +18,8 @@ import { MediInfraProvider } from "@/lib/mediinfra-store";
 import { AppShell } from "@/components/mediinfra/AppShell";
 
 function NotFoundComponent() {
+  const { t } = useTranslation();
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#F6F8FC] dark:bg-slate-950 px-4">
       <div className="w-full max-w-lg rounded-[22px] border border-[#0F172A]/[0.08] dark:border-white/[0.08] bg-white dark:bg-slate-900 p-8 sm:p-10 text-center shadow-[0_20px_50px_rgba(2,6,23,0.08)]">
@@ -23,29 +27,28 @@ function NotFoundComponent() {
           <FileQuestion className="size-7 text-primary" />
         </div>
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-mono font-semibold uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 mb-3">
-          Error 404 • Resource Unresolved
+          {t("diagnostics.notFoundBadge")}
         </div>
         <h1 className="text-2xl font-bold tracking-tight text-[#0F172A] dark:text-white sm:text-3xl">
-          Telemetry Node Not Found
+          {t("diagnostics.notFoundTitle")}
         </h1>
         <p className="mt-2.5 text-sm text-[#64748B] dark:text-slate-400 max-w-sm mx-auto leading-relaxed">
-          The requested command route, sensor viewpoint, or telemetry view cannot be resolved in the
-          current site schema.
+          {t("diagnostics.notFoundDesc")}
         </p>
         <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
           <Link
             to="/"
             className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-xs font-semibold text-white shadow-sm transition-all duration-150 hover:bg-blue-700 active:scale-[0.98]"
           >
-            <ArrowLeft className="size-3.5" />
-            Return to Command Center
+            <ArrowLeft className="size-3.5 rtl:rotate-180" />
+            {t("diagnostics.returnHome")}
           </Link>
           <Link
             to="/digital-twin"
             className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#0F172A]/10 dark:border-white/10 bg-white dark:bg-slate-800 px-5 py-2.5 text-xs font-semibold text-[#0F172A] dark:text-white shadow-sm transition-all duration-150 hover:bg-slate-50 dark:hover:bg-slate-700"
           >
             <Activity className="size-3.5 text-primary" />
-            Open Digital Twin
+            {t("diagnostics.openDigitalTwin")}
           </Link>
         </div>
       </div>
@@ -54,6 +57,7 @@ function NotFoundComponent() {
 }
 
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
+  const { t } = useTranslation();
   console.error(error);
   const router = useRouter();
 
@@ -66,16 +70,15 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
           </div>
           <div>
             <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10.5px] font-mono font-semibold uppercase tracking-wider bg-red-100/80 dark:bg-red-950/80 text-red-700 dark:text-red-400 mb-1.5">
-              Fault Code • ERR_TELEMETRY_PIPELINE
+              {t("diagnostics.errorBadge")}
             </div>
             <h1 className="text-xl font-bold tracking-tight text-[#0F172A] dark:text-white sm:text-2xl">
-              Telemetry Ingestion Interrupted
+              {t("diagnostics.errorTitle")}
             </h1>
           </div>
         </div>
         <p className="text-sm text-[#64748B] dark:text-slate-400 leading-relaxed mb-4">
-          A runtime exception occurred while processing telemetry streams or rendering dashboard
-          nodes. You can invalidate cache and retry stream synchronization.
+          {t("diagnostics.errorDesc")}
         </p>
         <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 p-3.5 mb-6 overflow-x-auto">
           <p className="font-mono text-xs text-red-600 dark:text-red-400 font-medium">
@@ -90,14 +93,14 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
             }}
             className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-xs font-semibold text-white shadow-sm transition-all duration-150 hover:bg-blue-700 active:scale-[0.98]"
           >
-            <RotateCcw className="size-3.5" />
-            Retry Stream Sync
+            <RotateCcw className="size-3.5 rtl:rotate-180" />
+            {t("diagnostics.retrySync")}
           </button>
           <a
             href="/"
             className="inline-flex items-center justify-center gap-2 rounded-xl border border-[#0F172A]/10 dark:border-white/10 bg-white dark:bg-slate-800 px-5 py-2.5 text-xs font-semibold text-[#0F172A] dark:text-white shadow-sm transition-all duration-150 hover:bg-slate-50 dark:hover:bg-slate-700"
           >
-            Go to Command Center
+            {t("diagnostics.returnHome")}
           </a>
         </div>
       </div>
@@ -125,7 +128,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap",
       },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
     ],
@@ -141,6 +144,11 @@ function RootShell({ children }: { children: ReactNode }) {
     <html lang="en">
       <head>
         <HeadContent />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var l=localStorage.getItem('mediinfra_lang')||(navigator.language&&navigator.language.startsWith('ar')?'ar':'en');if(l==='ar'){document.documentElement.lang='ar';document.documentElement.dir='rtl';document.documentElement.classList.add('rtl');}else{document.documentElement.lang='en';document.documentElement.dir='ltr';document.documentElement.classList.remove('rtl');}}catch(e){}})();`,
+          }}
+        />
       </head>
       <body>
         {children}

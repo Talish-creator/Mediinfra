@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Area,
   AreaChart,
@@ -80,7 +81,7 @@ const FORECAST_DATA = [
   { day: "Sep 17", planned: 950, forecast: 942 },
 ];
 
-function csvExport() {
+function csvExport(toastMsg: string) {
   const rows = [
     [
       "Contractor",
@@ -110,10 +111,11 @@ function csvExport() {
   a.download = "P875-payroll-reconciliation-timesheet.csv";
   a.click();
   URL.revokeObjectURL(url);
-  toast.success("Payroll reconciliation timesheet exported (CSV)");
+  toast.success(toastMsg);
 }
 
 export function AnalyticsPage() {
+  const { t } = useTranslation();
   const [pdfOpen, setPdfOpen] = useState(false);
 
   const chart = SUBCONTRACTORS.map((s) => ({
@@ -125,7 +127,7 @@ export function AnalyticsPage() {
   const columns = [
     {
       key: "name",
-      header: "Subcontractor",
+      header: t("analytics.contractor"),
       render: (s: (typeof SUBCONTRACTORS)[0]) => (
         <div>
           <span className="font-bold text-foreground">{s.name}</span>
@@ -133,11 +135,11 @@ export function AnalyticsPage() {
         </div>
       ),
     },
-    { key: "planned", header: "Planned", sortable: true, align: "right" as const },
-    { key: "present", header: "Actual (RFID)", sortable: true, align: "right" as const },
+    { key: "planned", header: t("analytics.planned"), sortable: true, align: "right" as const },
+    { key: "present", header: t("analytics.actual"), sortable: true, align: "right" as const },
     {
       key: "variance",
-      header: "Variance",
+      header: t("analytics.discrepancy"),
       align: "right" as const,
       render: (s: (typeof SUBCONTRACTORS)[0]) => {
         const v = ((s.present - s.planned) / s.planned) * 100;
@@ -150,7 +152,7 @@ export function AnalyticsPage() {
     },
     {
       key: "manHours",
-      header: "Billed Hours",
+      header: t("analytics.actualHours"),
       sortable: true,
       align: "right" as const,
       render: (s: (typeof SUBCONTRACTORS)[0]) => (
@@ -159,16 +161,16 @@ export function AnalyticsPage() {
     },
     {
       key: "ghostFlags",
-      header: "Ghost Worker Audit",
-      render: (s: (typeof SUBCONTRACTORS)[0]) => (
+      header: t("analytics.ghostWorkerAudit"),
+      render: () => (
         <span className="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-semibold text-xs">
-          <CheckCircle2 className="size-3.5" /> 0 Flags (Verified)
+          <CheckCircle2 className="size-3.5" /> {t("analytics.ghostFlagsVerified")}
         </span>
       ),
     },
     {
       key: "inductionValidity",
-      header: "Safety Induction",
+      header: t("analytics.safetyInduction"),
       render: (s: (typeof SUBCONTRACTORS)[0]) => (
         <div className="flex items-center gap-2">
           <div className="h-1.5 w-24 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
@@ -186,22 +188,22 @@ export function AnalyticsPage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Executive Manpower & Financial Analytics"
-        description="Every billed man-hour is reconciled in real time against RFID turnstile passes. This audit-proof register forms the contractual baseline for monthly Ashghal and HMC labor certification."
+        title={t("analytics.pageTitle")}
+        description={t("analytics.pageDesc")}
         actions={
           <div className="flex items-center gap-3">
             <Button
               className="gap-2 h-10 rounded-xl font-semibold text-xs"
               onClick={() => setPdfOpen(true)}
             >
-              <FileDown className="size-4" /> Export Ashghal Return (PDF)
+              <FileDown className="size-4" /> {t("analytics.exportPdf")}
             </Button>
             <Button
               variant="outline"
               className="gap-2 h-10 rounded-xl font-semibold text-xs"
-              onClick={csvExport}
+              onClick={() => csvExport(t("analytics.csvToast"))}
             >
-              <FileSpreadsheet className="size-4" /> Payroll Timesheet (CSV)
+              <FileSpreadsheet className="size-4" /> {t("analytics.exportCsv")}
             </Button>
           </div>
         }
@@ -210,38 +212,38 @@ export function AnalyticsPage() {
       {/* 4 Large Executive KPI Cards (42px) */}
       <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4 items-stretch">
         <KpiCard
-          label="Contract Budget Allocation"
+          label={t("analytics.kpiBudget")}
           value="QAR 285.4M"
           trend="+1.2%"
-          trendLabel="within approved cashflow"
-          status="On Budget"
+          trendLabel={t("analytics.kpiBudgetTrend")}
+          status={t("analytics.kpiBudgetStatus")}
           tone="cyan"
           spark={[240, 252, 260, 268, 274, 280, 285.4]}
         />
         <KpiCard
-          label="Daily Billed Labor Cost"
+          label={t("analytics.kpiDailyCost")}
           value="QAR 48.2K"
           trend="-3.4%"
-          trendLabel="vs planned cap"
-          status="Optimal"
+          trendLabel={t("analytics.kpiDailyCostTrend")}
+          status={t("analytics.kpiDailyCostStatus")}
           tone="ok"
           spark={[44, 46, 51, 53, 49, 47, 48.2]}
         />
         <KpiCard
-          label="Manpower Burn Rate"
+          label={t("analytics.kpiBurnRate")}
           value="94.2%"
           trend="-2.1%"
-          trendLabel="under peak allowance"
-          status="Controlled"
+          trendLabel={t("analytics.kpiBurnRateTrend")}
+          status={t("analytics.kpiBurnRateStatus")}
           tone="exec"
           spark={[88, 91, 93, 96, 95, 94.2]}
         />
         <KpiCard
-          label="Site Productivity Index"
+          label={t("analytics.kpiProductivity")}
           value="1.08x"
           trend="+8.0%"
-          trendLabel="above baseline"
-          status="High Output"
+          trendLabel={t("analytics.kpiProductivityTrend")}
+          status={t("analytics.kpiProductivityStatus")}
           tone="ok"
           spark={[0.96, 0.99, 1.02, 1.05, 1.07, 1.08]}
         />
@@ -249,11 +251,11 @@ export function AnalyticsPage() {
 
       {/* 14-Day Forecast & Trend Analysis */}
       <Panel
-        title="14-Day Manpower Forecast & RFID Trend"
-        subtitle="Historical turnstile throughput vs 14-day lookahead staffing projections"
+        title={t("analytics.forecastTitle")}
+        subtitle={t("analytics.forecastSubtitle")}
         action={
           <div className="flex items-center gap-2">
-            <Pill tone="cyan">Confidence: 96.4%</Pill>
+            <Pill tone="cyan">{t("analytics.confidence")}</Pill>
           </div>
         }
       >
@@ -291,7 +293,7 @@ export function AnalyticsPage() {
               <Area
                 type="monotone"
                 dataKey="actual"
-                name="Actual RFID Attendance"
+                name={t("analytics.actual")}
                 stroke="#2563EB"
                 strokeWidth={2.5}
                 fill="url(#colorActual)"
@@ -301,7 +303,7 @@ export function AnalyticsPage() {
               <Area
                 type="monotone"
                 dataKey="forecast"
-                name="AI Projected Manpower"
+                name={t("analytics.forecast")}
                 stroke="#22C55E"
                 strokeWidth={2}
                 strokeDasharray="4 4"
@@ -318,8 +320,8 @@ export function AnalyticsPage() {
       <div className="grid gap-6 lg:grid-cols-2 items-stretch">
         <Panel
           className="flex flex-col h-full"
-          title="Planned vs Actual Labor Headcount"
-          subtitle="Variance comparison across authorized trade contractors"
+          title={t("analytics.plannedVsActual")}
+          subtitle={t("analytics.plannedVsActualSub")}
         >
           <div className="h-72 min-h-[280px]">
             <ResponsiveContainer width="100%" height={280} minHeight={280}>
@@ -344,12 +346,14 @@ export function AnalyticsPage() {
                 <Legend wrapperStyle={{ fontSize: 12, color: "#64748B" }} />
                 <RBar
                   dataKey="Planned"
+                  name={t("analytics.planned")}
                   fill="#64748B"
                   radius={[6, 6, 0, 0]}
                   isAnimationActive={true}
                 />
                 <RBar
                   dataKey="Actual"
+                  name={t("analytics.actual")}
                   fill="#2563EB"
                   radius={[6, 6, 0, 0]}
                   isAnimationActive={true}
@@ -360,8 +364,8 @@ export function AnalyticsPage() {
         </Panel>
 
         <Panel
-          title="Zone Dwell-Time Distribution"
-          subtitle="Average hours spent by workers per shift inside work zones"
+          title={t("analytics.dwellTitle")}
+          subtitle={t("analytics.dwellSubtitle")}
         >
           <div className="h-72 min-h-[280px]">
             <ResponsiveContainer width="100%" height={280} minHeight={280}>
@@ -407,9 +411,9 @@ export function AnalyticsPage() {
       <EnterpriseDataGrid
         data={SUBCONTRACTORS}
         columns={columns}
-        searchPlaceholder="Search contractor name or trade…"
+        searchPlaceholder={t("analytics.searchSubcontractor")}
         searchKeys={["name", "trade"]}
-        onExportCsv={csvExport}
+        onExportCsv={() => csvExport(t("analytics.csvToast"))}
       />
 
       {/* Daily Ashghal Labor Return PDF Modal */}
@@ -417,58 +421,58 @@ export function AnalyticsPage() {
         <DialogContent className="max-w-2xl rounded-2xl p-6">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold">
-              Daily Ashghal Labor Return — Preview
+              {t("analytics.pdfModalTitle")}
             </DialogTitle>
           </DialogHeader>
           <div className="relative overflow-hidden rounded-xl border border-slate-300 bg-white p-6 text-slate-900 shadow-md">
             <span className="pointer-events-none absolute inset-0 flex items-center justify-center text-5xl font-bold uppercase tracking-widest text-slate-900/5">
-              Ashghal · HMC Certified
+              {t("analytics.pdfWatermark")}
             </span>
             <p className="text-[11px] uppercase tracking-widest text-slate-500 font-bold">
-              State of Qatar · Public Works Authority (Ashghal)
+              {t("analytics.pdfAuthority")}
             </p>
             <h3 className="mt-1 text-lg font-bold text-slate-950">
-              Daily Labor Return Certification — {PROJECT.code}
+              {t("analytics.pdfCertTitle", { code: PROJECT.code })}
             </h3>
             <p className="text-xs text-slate-600">
-              {PROJECT.name} · {PROJECT.phase} · Consultant: {PROJECT.consultant}
+              {t("analytics.pdfCertSub", { name: PROJECT.name, phase: PROJECT.phase, consultant: PROJECT.consultant })}
             </p>
 
             <table className="mt-4 w-full text-xs">
-              <thead className="border-b border-slate-300 text-left font-bold text-slate-800">
+              <thead className="border-b border-slate-300 text-start font-bold text-slate-800">
                 <tr>
-                  <th className="py-2">Contractor</th>
-                  <th className="py-2 text-right">Planned</th>
-                  <th className="py-2 text-right">Actual</th>
-                  <th className="py-2 text-right">Man-Hours</th>
+                  <th className="py-2 text-start">{t("analytics.contractor")}</th>
+                  <th className="py-2 text-end">{t("analytics.planned")}</th>
+                  <th className="py-2 text-end">{t("analytics.actual")}</th>
+                  <th className="py-2 text-end">{t("analytics.actualHours")}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
                 {SUBCONTRACTORS.map((s) => (
                   <tr key={s.id}>
                     <td className="py-2 font-medium">{s.name}</td>
-                    <td className="py-2 text-right tabular-nums">{s.planned}</td>
-                    <td className="py-2 text-right tabular-nums font-bold">{s.present}</td>
-                    <td className="py-2 text-right tabular-nums">{s.manHours.toLocaleString()}</td>
+                    <td className="py-2 text-end tabular-nums">{s.planned}</td>
+                    <td className="py-2 text-end tabular-nums font-bold">{s.present}</td>
+                    <td className="py-2 text-end tabular-nums">{s.manHours.toLocaleString()}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
 
             <div className="mt-5 pt-4 border-t border-slate-200 flex items-center justify-between text-[11px] text-slate-600">
-              <span>Ghost Worker Verification: 0 discrepancies</span>
-              <span className="font-semibold text-emerald-700">Digital Seal: ASHGHAL-ELV-OK</span>
+              <span>{t("analytics.pdfGhostVerif")}</span>
+              <span className="font-semibold text-emerald-700">{t("analytics.pdfSeal")}</span>
             </div>
           </div>
           <DialogFooter className="mt-4">
             <Button
               onClick={() => {
-                toast.success("Ashghal Labor Return PDF queued for certified download");
+                toast.success(t("analytics.pdfToast"));
                 setPdfOpen(false);
               }}
               className="rounded-xl font-semibold text-xs"
             >
-              Confirm & Download PDF
+              {t("analytics.pdfConfirm")}
             </Button>
           </DialogFooter>
         </DialogContent>
