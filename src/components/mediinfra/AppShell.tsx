@@ -15,6 +15,7 @@ import {
   Gauge,
   Globe,
   LayoutDashboard,
+  Menu,
   MessageSquare,
   Moon,
   Radio,
@@ -29,6 +30,7 @@ import {
 import { useState, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -71,6 +73,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [cmdkOpen, setCmdkOpen] = useState(false);
   const [lang, setLang] = useState<"EN" | "AR">("EN");
   const [notifOpen, setNotifOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -267,15 +270,86 @@ export function AppShell({ children }: { children: ReactNode }) {
       <div className="flex min-w-0 flex-1 flex-col overflow-x-hidden">
         {/* Top Enterprise Header */}
         <header className="sticky top-0 z-30 border-b border-[#0F172A]/[0.06] dark:border-white/[0.08] bg-white/95 dark:bg-slate-900/95 transition-colors">
-          <div className="flex items-center justify-between gap-4 px-6 py-3">
-            {/* Left: Breadcrumb */}
-            <div className="flex items-center gap-3 min-w-0">
+          <div className="flex items-center justify-between gap-4 px-4 sm:px-6 py-3">
+            {/* Left: Mobile Navigation Trigger & Breadcrumb */}
+            <div className="flex items-center gap-2.5 min-w-0">
+              <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+                <SheetTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="md:hidden size-9 rounded-xl border-border hover:bg-slate-100 dark:hover:bg-slate-800 shrink-0"
+                    aria-label="Open mobile navigation menu"
+                  >
+                    <Menu className="size-4 text-foreground" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent
+                  side="left"
+                  className="w-[300px] p-0 flex flex-col bg-white dark:bg-slate-900 border-r border-[#0F172A]/[0.06] dark:border-white/[0.08]"
+                >
+                  <div className="flex h-16 items-center justify-between border-b border-[#0F172A]/[0.06] dark:border-white/[0.08] px-5">
+                    <MediInfraLogo size="md" />
+                  </div>
+                  <div className="flex-1 overflow-y-auto px-3 py-4 space-y-1.5">
+                    {NAV.map((item) => {
+                      const Icon = item.icon;
+                      const active = pathname === item.to;
+                      return (
+                        <Link
+                          key={item.to}
+                          to={item.to}
+                          onClick={() => setMobileOpen(false)}
+                          className={cn(
+                            "flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-semibold transition-all duration-150",
+                            active
+                              ? "bg-primary text-white shadow-[0_4px_12px_rgba(37,99,235,0.25)]"
+                              : "text-[#64748B] dark:text-slate-400 hover:bg-[#F8FAFC] dark:hover:bg-slate-800 hover:text-[#0F172A] dark:hover:text-white",
+                          )}
+                        >
+                          <Icon
+                            className={cn(
+                              "size-4 shrink-0",
+                              active ? "text-white" : "text-muted-foreground",
+                            )}
+                          />
+                          <span className="truncate">{item.label}</span>
+                          {item.badge && (
+                            <span
+                              className={cn(
+                                "ml-auto text-[10px] px-1.5 py-0.5 rounded font-bold",
+                                active
+                                  ? "bg-white/20 text-white"
+                                  : "bg-blue-50 dark:bg-blue-950/60 text-primary",
+                              )}
+                            >
+                              {item.badge}
+                            </span>
+                          )}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                  <div className="border-t border-[#0F172A]/[0.06] dark:border-white/[0.08] p-4 bg-slate-50/50 dark:bg-slate-950/40">
+                    <div className="flex items-center justify-between text-xs font-semibold mb-1.5">
+                      <span className="text-muted-foreground">ELV Gateway</span>
+                      <span className="text-emerald-600 font-mono flex items-center gap-1.5">
+                        <LivePulse tone="ok" size="sm" /> 42ms
+                      </span>
+                    </div>
+                    <div className="text-[11px] text-muted-foreground">
+                      P875 Hamad Hospital • Live Turnstile Sync
+                    </div>
+                  </div>
+                </SheetContent>
+              </Sheet>
+
               <nav className="flex items-center gap-2 text-[13px] font-medium text-muted-foreground">
-                <span className="hover:text-foreground cursor-pointer font-semibold text-foreground">
+                <span className="hover:text-foreground cursor-pointer font-semibold text-foreground truncate max-w-[130px] sm:max-w-none">
                   P875 Hamad General Hospital
                 </span>
                 <span className="text-muted-foreground/50">/</span>
-                <span className="text-primary font-semibold truncate max-w-[220px]">
+                <span className="text-primary font-semibold truncate max-w-[140px] sm:max-w-[220px]">
                   {current?.label}
                 </span>
               </nav>
@@ -531,7 +605,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-          className="min-w-0 flex-1 space-y-8 p-8 max-w-[1720px] mx-auto w-full"
+          className="min-w-0 flex-1 space-y-8 p-4 sm:p-6 lg:p-8 max-w-[1720px] mx-auto w-full"
         >
           {children}
         </motion.main>

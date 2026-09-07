@@ -751,11 +751,16 @@ export function EnterpriseDataGrid<T extends { id?: string | number }>({
           <tbody className="divide-y divide-[#0F172A]/[0.05] dark:divide-white/[0.06]">
             {paginated.length === 0 ? (
               <tr>
-                <td
-                  colSpan={columns.length + 1}
-                  className="py-16 text-center text-[#64748B] dark:text-slate-400 text-sm"
-                >
-                  No matching records found. Try adjusting search filters.
+                <td colSpan={columns.length + 1} className="py-12 px-6">
+                  <EmptyState
+                    title="No Matching Records Found"
+                    description="No entries correspond to active query or filter criteria. Reset filters to view all telemetry records."
+                    actionText="Reset Search"
+                    onAction={() => {
+                      setQuery("");
+                      setPage(1);
+                    }}
+                  />
                 </td>
               </tr>
             ) : (
@@ -873,16 +878,23 @@ export function EmptyState({
   onSecondaryAction?: () => void;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center p-12 text-center rounded-2xl border border-dashed border-border bg-slate-50/50 dark:bg-slate-900/20">
-      <div className="flex size-14 items-center justify-center rounded-2xl bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-900 text-primary shadow-sm mb-4">
+    <div className="flex flex-col items-center justify-center p-10 text-center rounded-[18px] border border-dashed border-[#0F172A]/[0.12] dark:border-white/[0.12] bg-[#F8FAFC]/60 dark:bg-slate-900/30 shadow-[0_4px_20px_rgba(2,6,23,0.02)]">
+      <div className="flex size-14 items-center justify-center rounded-2xl bg-blue-50 dark:bg-blue-950/50 border border-blue-200/80 dark:border-blue-900/80 text-primary shadow-sm mb-4">
         <Icon className="size-7" />
       </div>
-      <h3 className="text-[17px] font-semibold text-foreground tracking-tight">{title}</h3>
-      <p className="mt-1.5 max-w-sm text-[13px] text-muted-foreground">{description}</p>
+      <h3 className="text-[17px] font-semibold text-[#0F172A] dark:text-white tracking-tight">
+        {title}
+      </h3>
+      <p className="mt-1.5 max-w-sm text-[13px] text-[#64748B] dark:text-slate-400 leading-relaxed">
+        {description}
+      </p>
       {(actionText || secondaryActionText) && (
         <div className="mt-5 flex items-center gap-3">
           {actionText && (
-            <Button onClick={onAction} className="rounded-xl h-9 px-4 text-xs font-semibold">
+            <Button
+              onClick={onAction}
+              className="rounded-xl h-9 px-4 text-xs font-semibold bg-primary hover:bg-blue-700 text-white shadow-sm transition-all duration-150"
+            >
               {actionText}
             </Button>
           )}
@@ -890,7 +902,7 @@ export function EmptyState({
             <Button
               variant="outline"
               onClick={onSecondaryAction}
-              className="rounded-xl h-9 px-4 text-xs font-semibold"
+              className="rounded-xl h-9 px-4 text-xs font-semibold border-[#0F172A]/10 dark:border-white/10"
             >
               {secondaryActionText}
             </Button>
