@@ -277,15 +277,15 @@ export function AppShell({ children }: { children: ReactNode }) {
       <div className="flex min-w-0 flex-1 flex-col overflow-x-hidden">
         {/* Top Enterprise Header */}
         <header className="sticky top-0 z-30 border-b border-[#0F172A]/[0.06] dark:border-white/[0.08] bg-white/95 dark:bg-slate-900/95 transition-colors">
-          <div className="flex h-16 items-center justify-between gap-3 sm:gap-4 px-4 sm:px-6">
-            {/* Left: Mobile Navigation Trigger & Breadcrumb */}
-            <div className="flex items-center gap-2 sm:gap-2.5 min-w-0 shrink">
+          <div className="flex h-16 items-center justify-between gap-2 sm:gap-4 px-3 sm:px-6">
+            {/* Left: Mobile Navigation Trigger & Adaptive Integrated Breadcrumb */}
+            <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
               <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
                 <SheetTrigger asChild>
                   <Button
                     variant="outline"
                     size="icon"
-                    className="md:hidden size-9 rounded-xl border-border hover:bg-slate-100 dark:hover:bg-slate-800 shrink-0"
+                    className="md:hidden size-8 sm:size-9 rounded-xl border-border hover:bg-slate-100 dark:hover:bg-slate-800 shrink-0"
                     aria-label={t("nav.openMobileMenu")}
                   >
                     <Menu className="size-4 text-foreground" />
@@ -337,30 +337,86 @@ export function AppShell({ children }: { children: ReactNode }) {
                       );
                     })}
                   </div>
-                  <div className="border-t border-[#0F172A]/[0.06] dark:border-white/[0.08] p-4 bg-slate-50/50 dark:bg-slate-950/40">
-                    <div className="flex items-center justify-between text-xs font-semibold mb-1.5">
+                  <div className="border-t border-[#0F172A]/[0.06] dark:border-white/[0.08] p-4 bg-slate-50/50 dark:bg-slate-950/40 space-y-2.5">
+                    <div className="flex items-center justify-between text-xs font-semibold">
                       <span className="text-muted-foreground">{t("header.elvGateway")}</span>
                       <span className="text-emerald-600 font-mono flex items-center gap-1.5">
                         <LivePulse tone="ok" size="sm" /> 42ms
                       </span>
                     </div>
-                    <div className="text-[11px] text-muted-foreground">
-                      {t("header.liveTurnstileSync")}
+                    <div className="flex items-center justify-between pt-2 border-t border-border/50">
+                      <button
+                        onClick={toggleTheme}
+                        className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+                      >
+                        {theme === "dark" ? <Sun className="size-3.5 text-amber-500" /> : <Moon className="size-3.5 text-slate-700" />}
+                        <span>{theme === "dark" ? "Light" : "Dark"}</span>
+                      </button>
+                      <button
+                        onClick={toggleLang}
+                        className="flex items-center gap-1.5 text-xs font-semibold text-primary"
+                      >
+                        <Globe className="size-3.5" />
+                        <span>{lang === "en" ? "العربية" : "English"}</span>
+                      </button>
                     </div>
                   </div>
                 </SheetContent>
               </Sheet>
 
-              <nav className="flex items-center gap-1.5 sm:gap-2 text-[13px] font-medium text-muted-foreground min-w-0 overflow-hidden">
-                <span
-                  className="hover:text-foreground cursor-pointer font-semibold text-foreground truncate max-w-[100px] sm:max-w-[150px] md:max-w-[200px]"
-                  title={t("header.hospitalName")}
-                >
-                  {t("header.hospitalName")}
-                </span>
+              {/* Breadcrumbs with Integrated Project Selector Dropdown */}
+              <nav className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-[13px] font-medium text-muted-foreground min-w-0">
+                {/* Project & Context Dropdown */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="flex items-center gap-1.5 rounded-lg sm:rounded-xl border border-border bg-slate-50 dark:bg-slate-900/60 px-2 sm:px-2.5 py-1 text-xs font-semibold hover:border-primary/50 transition-colors shrink-0">
+                      <span className="size-2 rounded-full bg-blue-500 shrink-0" />
+                      <span className="font-bold text-foreground">P875</span>
+                      <span className="hidden sm:inline text-muted-foreground/60">·</span>
+                      <span className="hidden sm:inline text-muted-foreground font-normal">{t("header.phase1a")}</span>
+                      <ChevronDown className="size-3 text-muted-foreground shrink-0 opacity-70" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-64 sm:w-72 rounded-2xl p-2 shadow-xl">
+                    <DropdownMenuLabel className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+                      {t("header.clientSelection")}
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem className="font-semibold text-primary flex items-center justify-between">
+                      <span>{t("header.projectP875")}</span>
+                      <span className="text-[10px] bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 px-1.5 py-0.5 rounded font-bold">Active</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>{t("header.projectP876")}</DropdownMenuItem>
+                    <DropdownMenuItem>{t("header.projectP880")}</DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    {/* Telemetry context inside popover */}
+                    <div className="p-2 space-y-1.5 text-xs bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-border/50">
+                      <div className="flex items-center justify-between text-muted-foreground">
+                        <span>{t("header.clientLabel")}</span>
+                        <span className="font-semibold text-foreground">{t("header.clientValue")}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-muted-foreground">
+                        <span className="flex items-center gap-1.5">
+                          <CloudSun className="size-3.5 text-amber-500 shrink-0" />
+                          <span>{t("common.weather", "Weather")}</span>
+                        </span>
+                        <span className="font-semibold text-foreground">{t("header.weatherDoha")}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-muted-foreground">
+                        <span className="flex items-center gap-1.5">
+                          <Radio className="size-3.5 text-emerald-500 shrink-0" />
+                          <span>{t("header.shiftLabel")}</span>
+                        </span>
+                        <span className="font-semibold text-foreground truncate max-w-[130px]">{shiftPhase}</span>
+                      </div>
+                    </div>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
                 <span className="text-muted-foreground/40 shrink-0">/</span>
+
                 <span
-                  className="text-primary font-semibold truncate max-w-[110px] sm:max-w-[160px] md:max-w-[220px]"
+                  className="text-primary font-semibold truncate max-w-[90px] sm:max-w-[140px] md:max-w-[200px]"
                   title={current?.label}
                 >
                   {current?.label}
@@ -368,65 +424,25 @@ export function AppShell({ children }: { children: ReactNode }) {
               </nav>
             </div>
 
-            {/* Center: Context Badges (visible only on 2XL / ultra-wide viewports to prevent collisions) */}
-            <div className="hidden 2xl:flex items-center gap-2.5 shrink-0 whitespace-nowrap">
-              {/* Project & Client Selector */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button className="flex items-center gap-2 rounded-xl border border-border bg-slate-50 dark:bg-slate-900/60 px-3 py-1.5 text-xs font-semibold hover:border-primary/50 transition-colors shrink-0 whitespace-nowrap">
-                    <span className="size-2 rounded-full bg-blue-500 shrink-0" />
-                    <span>{t("header.phase1a")}</span>
-                    <ChevronDown className="size-3 text-muted-foreground shrink-0" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="center" className="w-64 rounded-xl">
-                  <DropdownMenuLabel>{t("header.clientSelection")}</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem className="font-semibold text-primary">
-                    {t("header.projectP875")}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>{t("header.projectP876")}</DropdownMenuItem>
-                  <DropdownMenuItem>{t("header.projectP880")}</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-
-              {/* Client Badge */}
-              <div className="flex items-center gap-1.5 rounded-xl border border-border bg-slate-50 dark:bg-slate-900/60 px-3 py-1.5 text-xs font-medium text-muted-foreground shrink-0 whitespace-nowrap">
-                <span className="font-semibold text-foreground">{t("header.clientLabel")}</span> {t("header.clientValue")}
-              </div>
-
-              {/* Weather in Doha */}
-              <div className="flex items-center gap-1.5 rounded-xl border border-border bg-slate-50 dark:bg-slate-900/60 px-3 py-1.5 text-xs font-medium text-muted-foreground shrink-0 whitespace-nowrap">
-                <CloudSun className="size-3.5 text-amber-500 shrink-0" />
-                <span>{t("header.weatherDoha")}</span>
-              </div>
-
-              {/* Shift info */}
-              <div className="flex items-center gap-1.5 rounded-xl border border-border bg-slate-50 dark:bg-slate-900/60 px-3 py-1.5 text-xs font-medium text-muted-foreground shrink-0 whitespace-nowrap">
-                <Radio className="size-3.5 text-emerald-500 shrink-0" />
-                <span className="text-foreground font-semibold">{t("header.shiftLabel")}</span>
-                <span className="truncate max-w-[140px]">{shiftPhase}</span>
-              </div>
-            </div>
-
-            {/* Right: Controls Suite */}
-            <div className="flex items-center gap-2 sm:gap-2.5 ms-auto shrink-0 whitespace-nowrap">
+            {/* Right: Adaptive Action Suite */}
+            <div className="flex items-center gap-1.5 sm:gap-2 ms-auto shrink-0">
               {/* Command Palette Trigger */}
               <button
                 onClick={() => setCmdkOpen(true)}
-                className="hidden sm:flex items-center gap-2 rounded-xl border border-border bg-slate-50 dark:bg-slate-900/60 px-2.5 sm:px-3 py-1.5 text-xs text-muted-foreground hover:border-primary/60 hover:text-foreground transition-all shadow-sm shrink-0 whitespace-nowrap"
+                className="flex items-center justify-center gap-2 rounded-xl border border-border bg-slate-50 dark:bg-slate-900/60 size-8 sm:size-9 lg:w-auto lg:px-3 lg:py-1.5 text-xs text-muted-foreground hover:border-primary/60 hover:text-foreground transition-all shadow-sm shrink-0"
+                title={t("header.quickCommand")}
               >
-                <Search className="size-3.5 text-muted-foreground shrink-0" />
-                <span className="font-medium hidden md:inline">{t("header.quickCommand")}</span>
-                <kbd className="hidden md:inline rounded bg-muted border border-border px-1.5 py-0.5 text-[10px] font-mono font-semibold">
+                <Search className="size-3.5 sm:size-4 text-muted-foreground shrink-0" />
+                <span className="font-medium hidden lg:inline">{t("header.quickCommand")}</span>
+                <kbd className="hidden lg:inline rounded bg-muted border border-border px-1.5 py-0.5 text-[10px] font-mono font-semibold">
                   ⌘K
                 </kbd>
               </button>
 
-              {/* Live Telemetry Simulator Toggle */}
+              {/* Live Telemetry Simulator: visible on md+ */}
               <label
                 className={cn(
-                  "hidden lg:flex items-center gap-2 rounded-xl border px-2.5 sm:px-3 py-1.5 text-xs font-medium transition-colors cursor-pointer shrink-0 whitespace-nowrap",
+                  "hidden md:flex items-center gap-2 rounded-xl border px-2.5 py-1.5 text-xs font-medium transition-colors cursor-pointer shrink-0",
                   simulating
                     ? "border-emerald-300 bg-emerald-50/70 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300"
                     : "border-border bg-slate-50 dark:bg-slate-900/60 text-muted-foreground",
@@ -452,11 +468,11 @@ export function AppShell({ children }: { children: ReactNode }) {
                   <Button
                     variant="outline"
                     size="icon"
-                    className="relative size-9 rounded-xl border-border hover:bg-slate-100 dark:hover:bg-slate-800 shrink-0"
+                    className="relative size-8 sm:size-9 rounded-xl border-border hover:bg-slate-100 dark:hover:bg-slate-800 shrink-0"
                     aria-label="View notifications"
                   >
-                    <Bell className="size-4 text-foreground" />
-                    <span className="absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full bg-red-600 text-[9px] font-bold text-white shadow-sm">
+                    <Bell className="size-3.5 sm:size-4 text-foreground" />
+                    <span className="absolute -top-1 -right-1 flex size-3.5 sm:size-4 items-center justify-center rounded-full bg-red-600 text-[8px] sm:text-[9px] font-bold text-white shadow-sm">
                       3
                     </span>
                   </Button>
@@ -511,29 +527,29 @@ export function AppShell({ children }: { children: ReactNode }) {
               {/* Language Switcher */}
               <button
                 onClick={toggleLang}
-                className="flex items-center gap-1.5 rounded-xl border border-border bg-slate-50 dark:bg-slate-900/60 px-2.5 sm:px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shadow-sm shrink-0 whitespace-nowrap"
+                className="flex items-center justify-center gap-1 sm:gap-1.5 rounded-xl border border-border bg-slate-50 dark:bg-slate-900/60 h-8 sm:h-9 px-2 sm:px-2.5 text-xs font-semibold text-foreground hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shadow-sm shrink-0"
                 title={t("header.switchLang")}
               >
-                <Globe className="size-3.5 text-primary shrink-0" />
-                <span>{lang === "en" ? "العربية" : "EN"}</span>
+                <Globe className="size-3 sm:size-3.5 text-primary shrink-0" />
+                <span className="font-bold">{lang === "en" ? "العربية" : "EN"}</span>
               </button>
 
-              {/* Theme Switcher */}
+              {/* Theme Switcher: visible on sm+ */}
               <Button
                 variant="outline"
                 size="icon"
                 onClick={toggleTheme}
-                className="size-9 rounded-xl border-border hover:bg-slate-100 dark:hover:bg-slate-800 shrink-0"
+                className="hidden sm:inline-flex size-8 sm:size-9 rounded-xl border-border hover:bg-slate-100 dark:hover:bg-slate-800 shrink-0"
                 aria-label={t("header.toggleTheme")}
               >
                 {theme === "dark" ? (
-                  <Sun className="size-4 text-amber-500" />
+                  <Sun className="size-3.5 sm:size-4 text-amber-500" />
                 ) : (
-                  <Moon className="size-4 text-slate-700" />
+                  <Moon className="size-3.5 sm:size-4 text-slate-700" />
                 )}
               </Button>
 
-              {/* Live Qatar AST Clock */}
+              {/* Live Qatar AST Clock: visible on xl+ */}
               <div className="hidden xl:flex items-center gap-2 rounded-xl border border-border bg-slate-50 dark:bg-slate-900/60 px-2.5 sm:px-3 py-1.5 text-xs font-mono shrink-0 whitespace-nowrap">
                 <LivePulse tone="ok" size="sm" />
                 <span className="text-muted-foreground">{t("header.astTime")}</span>
@@ -543,15 +559,15 @@ export function AppShell({ children }: { children: ReactNode }) {
               {/* Executive Profile Avatar */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <button className="flex items-center gap-2 rounded-xl border border-border p-1 pe-1.5 sm:pe-2.5 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors shrink-0 whitespace-nowrap">
-                    <div className="size-7 rounded-lg bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white text-xs font-bold shadow-sm shrink-0">
+                  <button className="flex items-center gap-1.5 sm:gap-2 rounded-xl border border-border p-1 pe-1 sm:pe-2 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors shrink-0">
+                    <div className="size-6 sm:size-7 rounded-lg bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white text-[10px] sm:text-xs font-bold shadow-sm shrink-0">
                       JA
                     </div>
-                    <div className="hidden xl:block text-start">
-                      <p className="text-xs font-semibold leading-none text-foreground truncate max-w-[130px]">
+                    <div className="hidden 2xl:block text-start">
+                      <p className="text-xs font-semibold leading-none text-foreground truncate max-w-[120px]">
                         {t("header.directorName")}
                       </p>
-                      <p className="text-[10px] text-muted-foreground leading-tight mt-0.5 truncate max-w-[130px]">
+                      <p className="text-[10px] text-muted-foreground leading-tight mt-0.5 truncate max-w-[120px]">
                         {t("header.directorTitle")}
                       </p>
                     </div>
@@ -588,14 +604,17 @@ export function AppShell({ children }: { children: ReactNode }) {
               {/* Emergency Evacuation Button */}
               <Button
                 size="sm"
-                className="gap-1.5 sm:gap-2 bg-[#EF4444] hover:bg-[#DC2626] text-white font-semibold h-9 sm:h-10 px-3 sm:px-4 rounded-xl shadow-sm hover:shadow-[0_8px_20px_rgba(239,68,68,0.25)] transition-all hover:-translate-y-0.5 active:translate-y-0 shrink-0 whitespace-nowrap"
+                className="gap-1 sm:gap-1.5 bg-[#EF4444] hover:bg-[#DC2626] text-white font-semibold h-8 sm:h-9 px-2 sm:px-3 rounded-xl shadow-sm hover:shadow-[0_8px_20px_rgba(239,68,68,0.25)] transition-all hover:-translate-y-0.5 active:translate-y-0 shrink-0"
                 onClick={() => {
                   startEmergency();
                   navigate({ to: "/muster" });
                 }}
+                title={t("header.emergencyMuster")}
               >
-                <Siren className="size-4 animate-bounce shrink-0" />
-                <span className="text-xs tracking-wide">{t("header.emergencyMuster")}</span>
+                <Siren className="size-3.5 sm:size-4 animate-bounce shrink-0" />
+                <span className="hidden sm:inline text-xs font-bold tracking-wide">
+                  {t("header.emergencyMuster")}
+                </span>
               </Button>
             </div>
           </div>
