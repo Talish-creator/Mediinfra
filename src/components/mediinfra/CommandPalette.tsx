@@ -19,6 +19,7 @@ import {
   ShieldAlert,
   Siren,
   Sun,
+  UserCog,
   Users,
   X,
 } from "lucide-react";
@@ -185,6 +186,14 @@ export function CommandPalette({
                 <BookOpen className="size-4 text-primary" />
                 <span>{t("nav.knowledge")}</span>
                 <span className="ms-auto text-xs text-muted-foreground font-mono">/knowledge</span>
+              </Command.Item>
+              <Command.Item
+                onSelect={() => runAndClose(() => navigate({ to: "/profile" }))}
+                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium text-foreground hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-primary cursor-pointer transition-colors"
+              >
+                <UserCog className="size-4 text-primary" />
+                <span>{t("nav.profile")}</span>
+                <span className="ms-auto text-xs text-muted-foreground font-mono">/profile</span>
               </Command.Item>
             </Command.Group>
 

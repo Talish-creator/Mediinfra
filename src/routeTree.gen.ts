@@ -16,6 +16,7 @@ import { Route as GatesRouteImport } from './routes/gates'
 import { Route as HardwareRouteImport } from './routes/hardware'
 import { Route as KnowledgeRouteImport } from './routes/knowledge'
 import { Route as MusterRouteImport } from './routes/muster'
+import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as ReportsCenterRouteImport } from './routes/reports-center'
 import { Route as SafetyAiRouteImport } from './routes/safety-ai'
@@ -56,6 +57,11 @@ const MusterRoute = MusterRouteImport.update({
   path: '/muster',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ReportsRoute = ReportsRouteImport.update({
   id: '/reports',
   path: '/reports',
@@ -85,6 +91,7 @@ export interface FileRoutesByFullPath {
   '/hardware': typeof HardwareRoute
   '/knowledge': typeof KnowledgeRoute
   '/muster': typeof MusterRoute
+  '/profile': typeof ProfileRoute
   '/reports': typeof ReportsRoute
   '/reports-center': typeof ReportsCenterRoute
   '/safety-ai': typeof SafetyAiRoute
@@ -98,6 +105,7 @@ export interface FileRoutesByTo {
   '/hardware': typeof HardwareRoute
   '/knowledge': typeof KnowledgeRoute
   '/muster': typeof MusterRoute
+  '/profile': typeof ProfileRoute
   '/reports': typeof ReportsRoute
   '/reports-center': typeof ReportsCenterRoute
   '/safety-ai': typeof SafetyAiRoute
@@ -112,6 +120,7 @@ export interface FileRoutesById {
   '/hardware': typeof HardwareRoute
   '/knowledge': typeof KnowledgeRoute
   '/muster': typeof MusterRoute
+  '/profile': typeof ProfileRoute
   '/reports': typeof ReportsRoute
   '/reports-center': typeof ReportsCenterRoute
   '/safety-ai': typeof SafetyAiRoute
@@ -127,6 +136,7 @@ export interface FileRouteTypes {
     | '/hardware'
     | '/knowledge'
     | '/muster'
+    | '/profile'
     | '/reports'
     | '/reports-center'
     | '/safety-ai'
@@ -140,6 +150,7 @@ export interface FileRouteTypes {
     | '/hardware'
     | '/knowledge'
     | '/muster'
+    | '/profile'
     | '/reports'
     | '/reports-center'
     | '/safety-ai'
@@ -153,6 +164,7 @@ export interface FileRouteTypes {
     | '/hardware'
     | '/knowledge'
     | '/muster'
+    | '/profile'
     | '/reports'
     | '/reports-center'
     | '/safety-ai'
@@ -167,6 +179,7 @@ export interface RootRouteChildren {
   HardwareRoute: typeof HardwareRoute
   KnowledgeRoute: typeof KnowledgeRoute
   MusterRoute: typeof MusterRoute
+  ProfileRoute: typeof ProfileRoute
   ReportsRoute: typeof ReportsRoute
   ReportsCenterRoute: typeof ReportsCenterRoute
   SafetyAiRoute: typeof SafetyAiRoute
@@ -224,6 +237,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MusterRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reports': {
       id: '/reports'
       path: '/reports'
@@ -263,6 +283,7 @@ const rootRouteChildren: RootRouteChildren = {
   HardwareRoute: HardwareRoute,
   KnowledgeRoute: KnowledgeRoute,
   MusterRoute: MusterRoute,
+  ProfileRoute: ProfileRoute,
   ReportsRoute: ReportsRoute,
   ReportsCenterRoute: ReportsCenterRoute,
   SafetyAiRoute: SafetyAiRoute,

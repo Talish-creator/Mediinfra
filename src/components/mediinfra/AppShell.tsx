@@ -27,6 +27,7 @@ import {
   Siren,
   Sparkles,
   Sun,
+  UserCog,
   Users,
 } from "lucide-react";
 import { useState, useMemo, type ReactNode } from "react";
@@ -99,6 +100,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       { to: "/reports", label: t("nav.reports"), icon: FileBarChart2 },
       { to: "/reports-center", label: t("nav.reportsCenter"), icon: BarChart3, badge: "BI" },
       { to: "/knowledge", label: t("nav.knowledge"), icon: BookOpen, badge: "DOCS" },
+      { to: "/profile", label: t("nav.profile"), icon: UserCog, badge: "ME" },
     ],
     [t],
   );
@@ -582,6 +584,14 @@ export function AppShell({ children }: { children: ReactNode }) {
                     <p className="font-semibold text-sm">{t("header.directorName")}</p>
                     <p className="text-xs text-muted-foreground">{t("header.directorEmail")}</p>
                   </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={() => navigate({ to: "/profile" })}
+                    className="text-xs py-2 rounded-xl cursor-pointer font-medium flex items-center gap-2 text-primary"
+                  >
+                    <UserCog className="size-3.5" />
+                    <span>{t("nav.profile")}</span>
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuLabel className="text-[11px] font-semibold text-muted-foreground uppercase">
                     {t("header.authorityPerspective")}
