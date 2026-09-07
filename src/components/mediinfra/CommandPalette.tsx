@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import {
   Activity,
   BadgeCheck,
+  BookOpen,
   Boxes,
   Cpu,
   FileBarChart2,
@@ -167,6 +168,14 @@ export function CommandPalette({
                 <FileBarChart2 className="size-4 text-primary" />
                 <span>{t("nav.reports")}</span>
                 <span className="ms-auto text-xs text-muted-foreground font-mono">/reports</span>
+              </Command.Item>
+              <Command.Item
+                onSelect={() => runAndClose(() => navigate({ to: "/knowledge" }))}
+                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium text-foreground hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-primary cursor-pointer transition-colors"
+              >
+                <BookOpen className="size-4 text-primary" />
+                <span>{t("nav.knowledge")}</span>
+                <span className="ms-auto text-xs text-muted-foreground font-mono">/knowledge</span>
               </Command.Item>
             </Command.Group>
 

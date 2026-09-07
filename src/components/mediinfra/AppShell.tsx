@@ -4,6 +4,7 @@ import {
   AlertTriangle,
   BadgeCheck,
   Bell,
+  BookOpen,
   Boxes,
   CheckCircle2,
   ChevronDown,
@@ -95,6 +96,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       { to: "/muster", label: t("nav.muster"), icon: Siren },
       { to: "/hardware", label: t("nav.hardware"), icon: Cpu },
       { to: "/reports", label: t("nav.reports"), icon: FileBarChart2 },
+      { to: "/knowledge", label: t("nav.knowledge"), icon: BookOpen, badge: "DOCS" },
     ],
     [t],
   );

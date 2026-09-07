@@ -14,6 +14,7 @@ import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as DigitalTwinRouteImport } from './routes/digital-twin'
 import { Route as GatesRouteImport } from './routes/gates'
 import { Route as HardwareRouteImport } from './routes/hardware'
+import { Route as KnowledgeRouteImport } from './routes/knowledge'
 import { Route as MusterRouteImport } from './routes/muster'
 import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as SafetyAiRouteImport } from './routes/safety-ai'
@@ -44,6 +45,11 @@ const HardwareRoute = HardwareRouteImport.update({
   path: '/hardware',
   getParentRoute: () => rootRouteImport,
 } as any)
+const KnowledgeRoute = KnowledgeRouteImport.update({
+  id: '/knowledge',
+  path: '/knowledge',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MusterRoute = MusterRouteImport.update({
   id: '/muster',
   path: '/muster',
@@ -71,6 +77,7 @@ export interface FileRoutesByFullPath {
   '/digital-twin': typeof DigitalTwinRoute
   '/gates': typeof GatesRoute
   '/hardware': typeof HardwareRoute
+  '/knowledge': typeof KnowledgeRoute
   '/muster': typeof MusterRoute
   '/reports': typeof ReportsRoute
   '/safety-ai': typeof SafetyAiRoute
@@ -82,6 +89,7 @@ export interface FileRoutesByTo {
   '/digital-twin': typeof DigitalTwinRoute
   '/gates': typeof GatesRoute
   '/hardware': typeof HardwareRoute
+  '/knowledge': typeof KnowledgeRoute
   '/muster': typeof MusterRoute
   '/reports': typeof ReportsRoute
   '/safety-ai': typeof SafetyAiRoute
@@ -94,6 +102,7 @@ export interface FileRoutesById {
   '/digital-twin': typeof DigitalTwinRoute
   '/gates': typeof GatesRoute
   '/hardware': typeof HardwareRoute
+  '/knowledge': typeof KnowledgeRoute
   '/muster': typeof MusterRoute
   '/reports': typeof ReportsRoute
   '/safety-ai': typeof SafetyAiRoute
@@ -107,6 +116,7 @@ export interface FileRouteTypes {
     | '/digital-twin'
     | '/gates'
     | '/hardware'
+    | '/knowledge'
     | '/muster'
     | '/reports'
     | '/safety-ai'
@@ -118,6 +128,7 @@ export interface FileRouteTypes {
     | '/digital-twin'
     | '/gates'
     | '/hardware'
+    | '/knowledge'
     | '/muster'
     | '/reports'
     | '/safety-ai'
@@ -129,6 +140,7 @@ export interface FileRouteTypes {
     | '/digital-twin'
     | '/gates'
     | '/hardware'
+    | '/knowledge'
     | '/muster'
     | '/reports'
     | '/safety-ai'
@@ -141,6 +153,7 @@ export interface RootRouteChildren {
   DigitalTwinRoute: typeof DigitalTwinRoute
   GatesRoute: typeof GatesRoute
   HardwareRoute: typeof HardwareRoute
+  KnowledgeRoute: typeof KnowledgeRoute
   MusterRoute: typeof MusterRoute
   ReportsRoute: typeof ReportsRoute
   SafetyAiRoute: typeof SafetyAiRoute
@@ -184,6 +197,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HardwareRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/knowledge': {
+      id: '/knowledge'
+      path: '/knowledge'
+      fullPath: '/knowledge'
+      preLoaderRoute: typeof KnowledgeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/muster': {
       id: '/muster'
       path: '/muster'
@@ -221,6 +241,7 @@ const rootRouteChildren: RootRouteChildren = {
   DigitalTwinRoute: DigitalTwinRoute,
   GatesRoute: GatesRoute,
   HardwareRoute: HardwareRoute,
+  KnowledgeRoute: KnowledgeRoute,
   MusterRoute: MusterRoute,
   ReportsRoute: ReportsRoute,
   SafetyAiRoute: SafetyAiRoute,
