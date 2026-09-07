@@ -1,0 +1,278 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * MediInfra Enterprise Design System — $500k Commercial Tier
+ * Inspired by Siemens, Honeywell, Azure IoT Operations, Johnson Controls, Procore.
+ * 8px spacing system, soft shadows, 16px card radii, precision enterprise typography.
+ */
+
+@theme inline {
+  --radius-sm: 6px;
+  --radius-md: 12px; /* 12px buttons */
+  --radius-lg: 16px; /* 16px cards */
+  --radius-xl: 20px; /* 20px dialogs */
+  --radius-2xl: 24px;
+  --radius-3xl: 32px;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-cyan: var(--cyan);
+  --color-emerald: var(--ok);
+  --color-amber: var(--warn);
+  --color-crimson: var(--crit);
+  --color-indigo: var(--exec);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --font-sans:
+    "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", "SFMono-Regular", ui-monospace, "Menlo", monospace;
+}
+
+/*
+ * Default is crisp, high-contrast Enterprise Light
+ */
+:root {
+  --radius: 1rem; /* 16px */
+  --background: #f8fafc; /* Slate-50 */
+  --foreground: #0f172a; /* Slate-900 */
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --surface: #ffffff;
+  --surface-2: #f1f5f9; /* Hover / Slate-100 */
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
+
+  --primary: #1f6feb; /* Primary Enterprise Blue */
+  --primary-foreground: #ffffff;
+
+  --secondary: #f1f5f9;
+  --secondary-foreground: #1e293b;
+
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b; /* Slate-500 */
+
+  --accent: #dbeafe; /* Selected Blue */
+  --accent-foreground: #1e40af;
+
+  --destructive: #dc2626; /* Danger */
+  --destructive-foreground: #ffffff;
+
+  --border: #e5e7eb; /* Gray-200 */
+  --input: #e5e7eb;
+  --ring: #1f6feb;
+
+  --cyan: #1f6feb;
+  --ok: #16a34a; /* Success */
+  --warn: #f59e0b; /* Warning */
+  --crit: #dc2626; /* Danger */
+  --exec: #4f46e5; /* Indigo */
+
+  --chart-1: #1f6feb;
+  --chart-2: #16a34a;
+  --chart-3: #f59e0b;
+  --chart-4: #4f46e5;
+  --chart-5: #dc2626;
+
+  --sidebar: #ffffff;
+  --sidebar-foreground: #334155;
+  --sidebar-primary: #1f6feb;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #dbeafe;
+  --sidebar-accent-foreground: #1f6feb;
+  --sidebar-border: #e5e7eb;
+  --sidebar-ring: #1f6feb;
+}
+
+/*
+ * Enterprise Command Center Dark Mode
+ */
+.dark {
+  --background: #0b1120; /* Ultra-deep navy */
+  --foreground: #f8fafc;
+  --card: #131d33;
+  --card-foreground: #f8fafc;
+  --surface: #131d33;
+  --surface-2: #1b2744;
+  --popover: #131d33;
+  --popover-foreground: #f8fafc;
+
+  --primary: #3b82f6;
+  --primary-foreground: #ffffff;
+
+  --secondary: #1b2744;
+  --secondary-foreground: #f8fafc;
+
+  --muted: #1b2744;
+  --muted-foreground: #94a3b8;
+
+  --accent: #1e3a8a;
+  --accent-foreground: #bfdbfe;
+
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+
+  --border: #1e293b;
+  --input: #1e293b;
+  --ring: #3b82f6;
+
+  --cyan: #38bdf8;
+  --ok: #22c55e;
+  --warn: #fbbf24;
+  --crit: #ef4444;
+  --exec: #818cf8;
+
+  --chart-1: #38bdf8;
+  --chart-2: #22c55e;
+  --chart-3: #fbbf24;
+  --chart-4: #818cf8;
+  --chart-5: #ef4444;
+
+  --sidebar: #0e1628;
+  --sidebar-foreground: #cbd5e1;
+  --sidebar-primary: #38bdf8;
+  --sidebar-primary-foreground: #0b1120;
+  --sidebar-accent: #1b2744;
+  --sidebar-accent-foreground: #38bdf8;
+  --sidebar-border: #1e293b;
+  --sidebar-ring: #38bdf8;
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    letter-spacing: -0.011em;
+  }
+}
+
+/* Enterprise glass and panel surfaces */
+@utility glass {
+  background-color: color-mix(in srgb, var(--surface) 90%, transparent);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+@utility panel {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow:
+    0 1px 3px 0 rgb(0 0 0 / 0.04),
+    0 1px 2px -1px rgb(0 0 0 / 0.03);
+}
+
+@utility grid-bg {
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--border) 65%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--border) 65%, transparent) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+@keyframes mi-pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--ok) 65%, transparent);
+  }
+  70% {
+    box-shadow: 0 0 0 7px transparent;
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+@keyframes mi-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes mi-siren {
+  0%,
+  100% {
+    background-color: color-mix(in srgb, var(--crit) 12%, transparent);
+  }
+  50% {
+    background-color: color-mix(in srgb, var(--crit) 30%, transparent);
+  }
+}
+
+.mi-pulse {
+  animation: mi-pulse-ring 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.mi-marquee {
+  animation: mi-marquee 30s linear infinite;
+}
+
+.mi-siren {
+  animation: mi-siren 1s ease-in-out infinite;
+}
+
+.mi-emergency {
+  --ring: var(--crit);
+  --primary: var(--crit);
+  --border: color-mix(in srgb, var(--crit) 45%, var(--border));
+}
+
+/* Custom subtle scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--border) 80%, transparent);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted-foreground);
+}

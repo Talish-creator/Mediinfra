@@ -1,0 +1,330 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { useState, useEffect } from "react";
+import {
+  Activity,
+  AlertTriangle,
+  Camera,
+  CheckCircle2,
+  Cpu,
+  Megaphone,
+  Play,
+  Radio,
+  RefreshCw,
+  ShieldAlert,
+  ShieldX,
+  Sparkles,
+  UserCheck,
+  Volume2,
+} from "lucide-react";
+import { toast } from "sonner";
+
+import { Button } from "@/components/ui/button";
+import { Dot, Mono, PageHeader, Panel, Pill } from "@/components/mediinfra/ui-kit";
+import { AI_CAMERAS, BROADCAST_LOG } from "@/lib/mediinfra-data";
+import { cn } from "@/lib/utils";
+
+export const Route = createFileRoute("/safety-ai")({
+  head: () => ({
+    meta: [
+      { title: "Edge AI Safety Vision & Broadcast — MediInfra" },
+      {
+        name: "description",
+        content:
+          "Edge AI PPE detection, turnstile bypass alerts and automated bilingual loudspeaker broadcast log.",
+      },
+      { property: "og:title", content: "Edge AI Safety Vision & Broadcast — MediInfra" },
+      {
+        property: "og:description",
+        content: "PPE detection and automated site loudspeaker broadcasts.",
+      },
+    ],
+  }),
+  component: SafetyAi,
+});
+
+export function SafetyAi() {
+  const [handled, setHandled] = useState<Record<string, string>>({});
+  const [selectedCam, setSelectedCam] = useState<string>("CAM-01");
+  const [fps, setFps] = useState(30);
+  const [latency, setLatency] = useState(11.4);
+  const [tick, setTick] = useState(0);
+
+  useEffect(() => {
+    const t = setInterval(() => {
+      setTick((v) => (v + 1) % 100);
+      setFps(29 + Math.floor(Math.random() * 3));
+      setLatency(parseFloat((11.2 + Math.random() * 0.6).toFixed(1)));
+    }, 1500);
+    return () => clearInterval(t);
+  }, []);
+
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        title="Edge AI Safety Vision & Broadcast Hub"
+        description="On-device TensorRT neural inference at perimeter gates and hoarding entrances detects PPE compliance and turnstile evasion within 11.4 ms, triggering automated site loudspeaker warnings."
+        actions={
+          <div className="flex items-center gap-2">
+            <Pill tone="ok" className="h-9 px-3 text-xs">
+              <Dot tone="ok" /> 3 Edge Nodes Active · {fps} FPS
+            </Pill>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-2 h-9 rounded-xl text-xs"
+              onClick={() =>
+                toast.success("Thermal recalibration routine triggered on edge cameras")
+              }
+            >
+              <RefreshCw className="size-3.5" /> Recalibrate
+            </Button>
+          </div>
+        }
+      />
+
+      {/* Edge Inference Telemetry Bar */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="rounded-2xl border border-border bg-card p-4 shadow-sm flex items-center gap-3.5">
+          <div className="flex size-11 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-950/50 text-primary border border-blue-200 dark:border-blue-900">
+            <Cpu className="size-5" />
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground font-medium">Edge Compute Unit</p>
+            <p className="text-sm font-bold text-foreground">NVIDIA Jetson AGX Orin</p>
+            <p className="text-[11px] text-muted-foreground">GPU Load: 42% · VRAM 14.8 GB</p>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-border bg-card p-4 shadow-sm flex items-center gap-3.5">
+          <div className="flex size-11 items-center justify-center rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 border border-emerald-200 dark:border-emerald-900">
+            <Activity className="size-5" />
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground font-medium">Inference Latency</p>
+            <p className="text-sm font-bold text-foreground tabular-nums">{latency} ms</p>
+            <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
+              TensorRT INT8 Precision
+            </p>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-border bg-card p-4 shadow-sm flex items-center gap-3.5">
+          <div className="flex size-11 items-center justify-center rounded-xl bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 border border-indigo-200 dark:border-indigo-900">
+            <Sparkles className="size-5" />
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground font-medium">Active AI Models</p>
+            <p className="text-sm font-bold text-foreground">YOLO-PPE + ByteTrack</p>
+            <p className="text-[11px] text-muted-foreground">98.4% Precision on Helmets</p>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-border bg-card p-4 shadow-sm flex items-center gap-3.5">
+          <div className="flex size-11 items-center justify-center rounded-xl bg-amber-50 dark:bg-amber-950/50 text-amber-600 border border-amber-200 dark:border-amber-900">
+            <Volume2 className="size-5" />
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground font-medium">Megaphone Array</p>
+            <p className="text-sm font-bold text-foreground">Acoustic Auto-Broadcast</p>
+            <p className="text-[11px] text-muted-foreground">Arabic · English · Hindi</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Live AI Camera Feeds */}
+      <div className="grid gap-5 lg:grid-cols-3">
+        {AI_CAMERAS.map((cam) => {
+          const isSelected = selectedCam === cam.id;
+          return (
+            <Panel
+              key={cam.id}
+              title={
+                <div className="flex items-center gap-2">
+                  <Camera className="size-4 text-primary" />
+                  <span>{cam.name}</span>
+                </div>
+              }
+              subtitle={`${cam.id} · 1080p RTSP · H.265 stream`}
+              action={
+                <Pill tone="ok" className="text-[10px]">
+                  <Dot tone="ok" /> Online
+                </Pill>
+              }
+              bodyClassName="p-4"
+              className={cn(isSelected && "ring-2 ring-primary/40")}
+            >
+              {/* Synthetic Camera View with Real-time AI Overlays */}
+              <div className="relative aspect-video overflow-hidden rounded-xl border border-slate-800 bg-slate-950 shadow-inner group">
+                {/* HUD Camera Header */}
+                <div className="absolute top-2.5 left-2.5 right-2.5 z-20 flex items-center justify-between text-[10px] font-mono text-white/90">
+                  <span className="flex items-center gap-1.5 rounded-md bg-black/60 px-2 py-0.5 backdrop-blur-sm">
+                    <span className="size-2 rounded-full bg-red-500 mi-pulse" />
+                    <span>REC · LIVE</span>
+                  </span>
+                  <span className="rounded-md bg-black/60 px-2 py-0.5 backdrop-blur-sm">
+                    {fps} FPS · {latency}ms
+                  </span>
+                </div>
+
+                {/* Grid guidelines & Crosshair */}
+                <div className="absolute inset-0 pointer-events-none opacity-25">
+                  <div className="absolute left-1/2 top-0 bottom-0 w-px bg-slate-500 border-r border-dashed" />
+                  <div className="absolute top-1/2 left-0 right-0 h-px bg-slate-500 border-b border-dashed" />
+                </div>
+
+                {/* Animated AI Bounding Boxes */}
+                {cam.detections.map((d, dIdx) => {
+                  const isViolation = d.type === "crit";
+                  const isWarning = d.type === "warn";
+                  const boxBorder = isViolation
+                    ? "border-red-500 text-red-500 bg-red-500/10"
+                    : isWarning
+                      ? "border-amber-500 text-amber-500 bg-amber-500/10"
+                      : "border-emerald-400 text-emerald-400 bg-emerald-400/10";
+                  const confidence = isViolation ? "99.2%" : isWarning ? "94.6%" : "98.7%";
+
+                  return (
+                    <div
+                      key={d.id}
+                      className={cn(
+                        "absolute rounded border-2 transition-transform duration-700 pointer-events-none",
+                        boxBorder,
+                      )}
+                      style={{
+                        left: `${d.x}%`,
+                        top: `${d.y}%`,
+                        width: `${d.w}%`,
+                        height: `${d.h}%`,
+                        transform: `translate(${Math.sin(tick + dIdx) * 2}px, ${Math.cos(tick + dIdx) * 2}px)`,
+                      }}
+                    >
+                      {/* Detection Tag */}
+                      <span
+                        className={cn(
+                          "absolute -top-5 left-0 whitespace-nowrap rounded px-1.5 py-0.2 font-mono text-[9px] font-bold text-white shadow-sm flex items-center gap-1",
+                          isViolation
+                            ? "bg-red-600"
+                            : isWarning
+                              ? "bg-amber-600"
+                              : "bg-emerald-600",
+                        )}
+                      >
+                        <span>{d.label}</span>
+                        <span className="opacity-90">{confidence}</span>
+                      </span>
+
+                      {/* Corner brackets */}
+                      <span className="absolute top-0 left-0 size-1.5 border-t-2 border-l-2 border-white" />
+                      <span className="absolute top-0 right-0 size-1.5 border-t-2 border-r-2 border-white" />
+                      <span className="absolute bottom-0 left-0 size-1.5 border-b-2 border-l-2 border-white" />
+                      <span className="absolute bottom-0 right-0 size-1.5 border-b-2 border-r-2 border-white" />
+                    </div>
+                  );
+                })}
+
+                {/* Bottom Stream Status */}
+                <div className="absolute bottom-2.5 left-2.5 right-2.5 z-20 flex items-center justify-between text-[10px] font-mono text-slate-300">
+                  <span className="rounded bg-black/60 px-2 py-0.5">FOV: 110° · H.265 CBR</span>
+                  <span className="rounded bg-black/60 px-2 py-0.5 text-emerald-400">
+                    Confidence ≥ 92%
+                  </span>
+                </div>
+              </div>
+
+              {/* Detections Chips */}
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {cam.detections.map((d) => (
+                  <Pill key={d.id} tone={d.type} className="text-[11px] font-medium">
+                    {d.label}
+                  </Pill>
+                ))}
+              </div>
+            </Panel>
+          );
+        })}
+      </div>
+
+      {/* Automated Loudspeaker Broadcast Log */}
+      <Panel
+        title="Automated Megaphone Broadcast & Response Log"
+        subtitle="Audible safety alerts triggered dynamically via site array across English, Arabic, and Hindi"
+        action={
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-semibold">
+            <Radio className="size-3.5 text-emerald-500" /> Dispatched within 1.2s of violation
+          </div>
+        }
+        bodyClassName="space-y-3"
+      >
+        {BROADCAST_LOG.map((b) => (
+          <div
+            key={b.ts}
+            className="rounded-2xl border border-border bg-slate-50/60 dark:bg-slate-900/30 p-4 transition-colors"
+          >
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/60 pb-2.5">
+              <div className="flex items-center gap-2.5">
+                <Mono className="text-primary font-bold">[{b.ts}]</Mono>
+                <Pill tone={b.severity} className="text-xs">
+                  <Megaphone className="size-3 mr-1" /> {b.speaker}
+                </Pill>
+                <span className="text-xs font-semibold text-muted-foreground">{b.lang}</span>
+              </div>
+              <span className="text-[11px] font-mono text-muted-foreground">
+                Trigger: AI Vision Stream #01
+              </span>
+            </div>
+
+            <p className="mt-3 text-sm font-medium text-foreground leading-relaxed">
+              &ldquo;{b.text}&rdquo;
+            </p>
+
+            <div className="mt-3.5 flex flex-wrap items-center gap-2 pt-2 border-t border-border/40">
+              {handled[b.ts] ? (
+                <div className="flex items-center gap-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                  <CheckCircle2 className="size-4" />
+                  <span>{handled[b.ts]}</span>
+                </div>
+              ) : (
+                <>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-8 rounded-xl text-xs font-semibold"
+                    onClick={() => {
+                      setHandled((h) => ({ ...h, [b.ts]: "Acknowledged by HSE Command" }));
+                      toast.success("Broadcast acknowledged");
+                    }}
+                  >
+                    Acknowledge
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="h-8 rounded-xl text-xs font-semibold gap-1.5 bg-primary text-primary-foreground"
+                    onClick={() => {
+                      setHandled((h) => ({ ...h, [b.ts]: "HSE Field Marshal Dispatched" }));
+                      toast.warning("HSE Marshal dispatched to perimeter sector");
+                    }}
+                  >
+                    <UserCheck className="size-3.5" /> Dispatch HSE Marshal
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-8 rounded-xl text-xs font-semibold text-red-600 hover:bg-red-50 dark:hover:bg-red-950/50 gap-1.5"
+                    onClick={() => {
+                      setHandled((h) => ({ ...h, [b.ts]: "Subcontractor Penalty Issued" }));
+                      toast.error(
+                        "Subcontractor violation fine logged to Ashghal monthly register",
+                      );
+                    }}
+                  >
+                    <ShieldX className="size-3.5" /> Log Contractor Fine
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
+        ))}
+      </Panel>
+    </div>
+  );
+}
