@@ -117,31 +117,45 @@ export function HardwarePage() {
           {HARDWARE.readers.map((r) => (
             <div
               key={r.id}
-              className="rounded-2xl border border-border bg-slate-50/60 dark:bg-slate-900/30 p-5 transition-all hover:border-primary/40"
+              className="rounded-[18px] border border-[#0F172A]/[0.06] dark:border-white/[0.08] bg-white dark:bg-slate-900 p-5 shadow-[0_12px_40px_rgba(2,6,23,0.05)] transition-all hover:border-primary/40"
             >
               <div className="flex items-center justify-between">
-                <p className="flex items-center gap-2 text-xs font-bold text-foreground">
+                <p className="flex items-center gap-2 text-xs font-bold text-[#0F172A] dark:text-white">
                   <Radio className="size-4 text-primary" /> {r.id} · {r.gate}
                 </p>
                 <Pill tone={r.status === "Online" ? "ok" : "warn"} className="text-[10px]">
                   <Dot tone={r.status === "Online" ? "ok" : "warn"} /> {r.status}
                 </Pill>
               </div>
-              <div className="mt-3 grid grid-cols-4 gap-2 text-xs pt-2.5 border-t border-border/50">
+              <div className="mt-3 grid grid-cols-4 gap-2 text-xs pt-2.5 border-t border-[#0F172A]/[0.05] dark:border-white/[0.06]">
                 <div>
-                  <span className="text-muted-foreground text-[11px] block">IP Address</span>
-                  <Mono className="font-semibold text-foreground text-xs">{r.ip}</Mono>
+                  <span className="text-[#64748B] dark:text-slate-400 text-[11px] block">
+                    IP Address
+                  </span>
+                  <Mono className="font-semibold text-[#0F172A] dark:text-white text-xs">
+                    {r.ip}
+                  </Mono>
                 </div>
                 <div>
-                  <span className="text-muted-foreground text-[11px] block">RF Power</span>
-                  <Mono className="font-semibold text-foreground text-xs">{r.rf} dBm</Mono>
+                  <span className="text-[#64748B] dark:text-slate-400 text-[11px] block">
+                    RF Power
+                  </span>
+                  <Mono className="font-semibold text-[#0F172A] dark:text-white text-xs">
+                    {r.rf} dBm
+                  </Mono>
                 </div>
                 <div>
-                  <span className="text-muted-foreground text-[11px] block">Core Temp</span>
-                  <Mono className="font-semibold text-foreground text-xs">{r.temp}°C</Mono>
+                  <span className="text-[#64748B] dark:text-slate-400 text-[11px] block">
+                    Core Temp
+                  </span>
+                  <Mono className="font-semibold text-[#0F172A] dark:text-white text-xs">
+                    {r.temp}°C
+                  </Mono>
                 </div>
                 <div>
-                  <span className="text-muted-foreground text-[11px] block">Antenna VSWR</span>
+                  <span className="text-[#64748B] dark:text-slate-400 text-[11px] block">
+                    Antenna VSWR
+                  </span>
                   <Mono className="font-bold text-emerald-600 dark:text-emerald-400 text-xs">
                     {r.vswr.toFixed(2)}:1
                   </Mono>
@@ -162,28 +176,30 @@ export function HardwarePage() {
             return (
               <div
                 key={g.id}
-                className="rounded-2xl border border-border bg-slate-50/60 dark:bg-slate-900/30 p-5 transition-all hover:border-primary/40"
+                className="rounded-[18px] border border-[#0F172A]/[0.06] dark:border-white/[0.08] bg-white dark:bg-slate-900 p-5 shadow-[0_12px_40px_rgba(2,6,23,0.05)] transition-all hover:border-primary/40"
               >
                 <div className="flex items-center justify-between">
-                  <p className="flex items-center gap-2 text-xs font-bold text-foreground">
+                  <p className="flex items-center gap-2 text-xs font-bold text-[#0F172A] dark:text-white">
                     <Cpu className="size-4 text-primary" /> {g.id} — {g.gate}
                   </p>
                   <Pill tone={g.queue === 0 ? "ok" : "warn"} className="text-[10px]">
                     <HardDrive className="size-3 mr-1" /> {g.queue} unsynced
                   </Pill>
                 </div>
-                <div className="mt-1 flex items-center gap-2 text-[11px] text-muted-foreground">
+                <div className="mt-1 flex items-center gap-2 text-[11px] text-[#64748B] dark:text-slate-400">
                   <span>Uplink: {g.uplink}</span>
                   <span>·</span>
                   <span>Disk Storage: {g.disk}% used</span>
                 </div>
-                <div className="mt-3 flex items-center gap-3 text-xs pt-2.5 border-t border-border/50">
+                <div className="mt-3 flex items-center gap-3 text-xs pt-2.5 border-t border-[#0F172A]/[0.05] dark:border-white/[0.06]">
                   <BatteryCharging className="size-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                  <span className="w-24 text-muted-foreground text-[11px] truncate">{ups.id}</span>
+                  <span className="w-24 text-[#64748B] dark:text-slate-400 text-[11px] truncate">
+                    {ups.id}
+                  </span>
                   <div className="flex-1">
                     <Bar value={ups.battery} max={100} tone={ups.battery > 90 ? "ok" : "warn"} />
                   </div>
-                  <Mono className="font-bold text-foreground text-xs">
+                  <Mono className="font-bold text-[#0F172A] dark:text-white text-xs">
                     {ups.battery}% ({ups.runtime}m)
                   </Mono>
                 </div>

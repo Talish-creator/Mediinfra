@@ -108,8 +108,8 @@ export function DigitalTwin() {
               className={cn(
                 "flex items-center gap-2.5 rounded-xl border px-4 py-2.5 text-xs font-semibold transition-all shadow-sm",
                 active
-                  ? "border-primary bg-primary text-primary-foreground shadow-primary/20"
-                  : "border-border bg-card text-muted-foreground hover:border-primary/50 hover:text-foreground",
+                  ? "border-[#2563EB] bg-gradient-to-r from-[#2563EB] to-[#1D4ED8] text-white shadow-[0_8px_20px_rgba(37,99,235,0.22)]"
+                  : "border-[#0F172A]/[0.08] dark:border-white/10 bg-white dark:bg-slate-900 text-[#64748B] dark:text-slate-400 hover:border-primary/50 hover:text-[#0F172A] dark:hover:text-white hover:bg-[#F8FAFC]",
               )}
             >
               <Building2 className="size-4" />
@@ -119,7 +119,7 @@ export function DigitalTwin() {
                   "rounded-full px-2 py-0.5 text-[10px] font-mono",
                   active
                     ? "bg-white/20 text-white"
-                    : "bg-slate-100 dark:bg-slate-800 text-muted-foreground",
+                    : "bg-slate-100 dark:bg-slate-800 text-[#64748B] dark:text-slate-400",
                 )}
               >
                 {b.levels.join(" · ")}
@@ -216,19 +216,21 @@ export function DigitalTwin() {
                 key={z.id}
                 onClick={() => setSelected(z)}
                 className={cn(
-                  "w-full rounded-2xl border p-3.5 text-left transition-all hover:border-primary/60 shadow-sm",
+                  "w-full rounded-[18px] border p-4 text-left transition-all hover:border-primary/60 shadow-[0_12px_40px_rgba(2,6,23,0.05)]",
                   isSelected
                     ? "border-primary bg-blue-50/50 dark:bg-blue-950/20"
-                    : "border-border bg-card hover:bg-slate-50 dark:hover:bg-slate-900/40",
+                    : "border-[#0F172A]/[0.06] dark:border-white/[0.08] bg-white dark:bg-slate-900 hover:bg-[#F8FAFC] dark:hover:bg-slate-800/40",
                 )}
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-foreground">{z.id}</span>
+                  <span className="text-xs font-bold text-[#0F172A] dark:text-white">{z.id}</span>
                   <Pill tone={zoneTone(z)} className="text-[11px] py-0 px-2 font-mono font-bold">
                     {z.count}/{z.capacity} ({pct}%)
                   </Pill>
                 </div>
-                <p className="mt-1 text-xs font-medium text-muted-foreground">{z.label}</p>
+                <p className="mt-1 text-xs font-medium text-[#64748B] dark:text-slate-400">
+                  {z.label}
+                </p>
                 <div className="mt-2.5">
                   <Bar value={z.count} max={z.capacity} tone={zoneTone(z)} />
                 </div>
@@ -250,24 +252,30 @@ export function DigitalTwin() {
           }
         >
           <div className="grid gap-4 md:grid-cols-4 pt-1">
-            <div className="rounded-xl border border-border bg-slate-50/60 dark:bg-slate-900/30 p-3.5">
-              <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+            <div className="rounded-xl border border-[#0F172A]/[0.06] dark:border-white/[0.08] bg-[#F8FAFC] dark:bg-slate-900/30 p-4">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-[#64748B] dark:text-slate-400">
                 Active Permit
               </p>
               <Mono className="mt-1.5 block text-sm font-bold text-primary">{selected.permit}</Mono>
-              <p className="text-[11px] text-muted-foreground mt-1">Gated under WO-0142</p>
+              <p className="text-[11px] text-[#64748B] dark:text-slate-400 mt-1">
+                Gated under WO-0142
+              </p>
             </div>
 
-            <div className="rounded-xl border border-border bg-slate-50/60 dark:bg-slate-900/30 p-3.5">
-              <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+            <div className="rounded-xl border border-[#0F172A]/[0.06] dark:border-white/[0.08] bg-[#F8FAFC] dark:bg-slate-900/30 p-4">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-[#64748B] dark:text-slate-400">
                 Responsible Foreman
               </p>
-              <p className="mt-1 text-xs font-bold text-foreground">{selected.foreman}</p>
-              <Mono className="text-muted-foreground text-xs mt-0.5">{selected.foremanPhone}</Mono>
+              <p className="mt-1 text-xs font-bold text-[#0F172A] dark:text-white">
+                {selected.foreman}
+              </p>
+              <Mono className="text-[#64748B] dark:text-slate-400 text-xs mt-0.5">
+                {selected.foremanPhone}
+              </Mono>
             </div>
 
-            <div className="rounded-xl border border-border bg-slate-50/60 dark:bg-slate-900/30 p-3.5">
-              <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+            <div className="rounded-xl border border-[#0F172A]/[0.06] dark:border-white/[0.08] bg-[#F8FAFC] dark:bg-slate-900/30 p-4">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-[#64748B] dark:text-slate-400">
                 Authorized Contractors
               </p>
               <div className="mt-1.5 flex flex-wrap gap-1">

@@ -299,45 +299,46 @@ export function CommandCenter() {
             <AreaChart data={MANPOWER_CURVE} margin={{ top: 16, right: 16, bottom: 0, left: -14 }}>
               <defs>
                 <linearGradient id="gradActual" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#1F6FEB" stopOpacity={0.35} />
-                  <stop offset="95%" stopColor="#1F6FEB" stopOpacity={0.0} />
+                  <stop offset="5%" stopColor="#2563EB" stopOpacity={0.2} />
+                  <stop offset="95%" stopColor="#2563EB" stopOpacity={0.0} />
                 </linearGradient>
                 <linearGradient id="gradScheduled" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#4F46E5" stopOpacity={0.25} />
-                  <stop offset="95%" stopColor="#4F46E5" stopOpacity={0.0} />
+                  <stop offset="5%" stopColor="#7C3AED" stopOpacity={0.15} />
+                  <stop offset="95%" stopColor="#7C3AED" stopOpacity={0.0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid stroke="var(--border)" strokeDasharray="3 3" vertical={false} />
-              <XAxis
-                dataKey="hour"
-                tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
-                interval={2}
+              <CartesianGrid
+                stroke="rgba(15, 23, 42, 0.05)"
+                strokeDasharray="3 3"
+                vertical={false}
               />
-              <YAxis tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} />
+              <XAxis dataKey="hour" tick={{ fontSize: 11, fill: "#64748B" }} interval={2} />
+              <YAxis tick={{ fontSize: 11, fill: "#64748B" }} />
               <Tooltip
                 contentStyle={{
-                  background: "var(--card)",
-                  border: "1px solid var(--border)",
-                  borderRadius: 16,
+                  background: "#FFFFFF",
+                  border: "1px solid rgba(15, 23, 42, 0.08)",
+                  borderRadius: 12,
                   fontSize: 12,
-                  boxShadow: "0 10px 25px -5px rgba(0,0,0,0.1)",
+                  color: "#0F172A",
+                  boxShadow: "0 12px 32px rgba(2,6,23,0.08)",
                 }}
               />
-              <Legend wrapperStyle={{ fontSize: 12 }} />
+              <Legend wrapperStyle={{ fontSize: 12, color: "#64748B" }} />
               <Area
                 type="monotone"
                 dataKey="scheduled"
                 name="Scheduled Manpower"
-                stroke="#4F46E5"
-                strokeWidth={2}
+                stroke="#7C3AED"
+                strokeWidth={2.5}
                 fill="url(#gradScheduled)"
               />
               <Area
                 type="monotone"
                 dataKey="actual"
                 name="Actual Turnstile Attendance"
-                stroke="#1F6FEB"
-                strokeWidth={2.6}
+                stroke="#2563EB"
+                strokeWidth={2.5}
                 fill="url(#gradActual)"
               />
             </AreaChart>

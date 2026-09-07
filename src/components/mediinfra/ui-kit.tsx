@@ -31,29 +31,32 @@ const toneText: Record<Tone, string> = {
 };
 
 const toneBg: Record<Tone, string> = {
-  cyan: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/50 dark:text-blue-300 dark:border-blue-900/60",
-  ok: "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-900/60",
-  warn: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/50 dark:text-amber-300 dark:border-amber-900/60",
-  crit: "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/50 dark:text-red-300 dark:border-red-900/60",
-  exec: "bg-indigo-50 text-indigo-700 border-indigo-200 dark:bg-indigo-950/50 dark:text-indigo-300 dark:border-indigo-900/60",
+  cyan: "bg-blue-50 text-blue-700 border-blue-200/60 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800/40",
+  ok: "bg-emerald-50 text-emerald-700 border-emerald-200/60 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/40",
+  warn: "bg-amber-50 text-amber-700 border-amber-200/60 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/40",
+  crit: "bg-red-50 text-red-700 border-red-200/60 dark:bg-red-950/40 dark:text-red-300 dark:border-red-800/40",
+  exec: "bg-purple-50 text-purple-700 border-purple-200/60 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-800/40",
   muted:
-    "bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700",
+    "bg-slate-100 text-slate-700 border-slate-200/80 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700",
 };
 
 export function Pill({
   tone = "muted",
   children,
   className,
+  glow = false,
 }: {
   tone?: Tone;
   children: ReactNode;
   className?: string | undefined;
+  glow?: boolean;
 }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-semibold tracking-tight transition-colors",
+        "inline-flex items-center gap-1.5 rounded-full border px-3 py-0.5 text-xs font-semibold tracking-tight transition-colors",
         toneBg[tone],
+        glow && "shadow-[0_0_10px_rgba(34,197,94,0.32)]",
         className,
       )}
     >
@@ -62,7 +65,66 @@ export function Pill({
   );
 }
 
-export function Dot({ tone = "ok", pulse = true }: { tone?: Tone; pulse?: boolean }) {
+export type BadgeStatus =
+  | "online"
+  | "success"
+  | "warning"
+  | "error"
+  | "live"
+  | "draft"
+  | "approved"
+  | "queued"
+  | "streaming"
+  | "active";
+
+export function StatusBadge({
+  status,
+  label,
+  className,
+}: {
+  status: BadgeStatus;
+  label?: string;
+  className?: string;
+}) {
+  const config: Record<BadgeStatus, { tone: Tone; text: string; glow?: boolean; pulse?: boolean }> =
+    {
+      online: { tone: "ok", text: "Online", pulse: true },
+      success: { tone: "ok", text: "Success" },
+      warning: { tone: "warn", text: "Warning" },
+      error: { tone: "crit", text: "Error" },
+      live: { tone: "ok", text: "LIVE", glow: true, pulse: true },
+      draft: { tone: "muted", text: "Draft" },
+      approved: { tone: "ok", text: "Approved" },
+      queued: { tone: "warn", text: "Queued" },
+      streaming: { tone: "cyan", text: "Streaming", glow: true, pulse: true },
+      active: { tone: "ok", text: "Active", pulse: true },
+    };
+
+  const item = config[status] ?? config.online;
+  const displayText = label ?? item.text;
+
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1.5 rounded-full border px-3 py-0.5 text-xs font-semibold tracking-tight transition-colors",
+        toneBg[item.tone],
+        item.glow && "shadow-[0_0_10px_rgba(34,197,94,0.32)]",
+        className,
+      )}
+    >
+      <Dot tone={item.tone} pulse={item.pulse ?? false} />
+      <span>{displayText}</span>
+    </span>
+  );
+}
+
+export function Dot({
+  tone = "ok",
+  pulse = true,
+}: {
+  tone?: Tone | undefined;
+  pulse?: boolean | undefined;
+}) {
   const map: Record<Tone, string> = {
     cyan: "var(--primary)",
     ok: "var(--ok)",
@@ -97,20 +159,22 @@ export function Panel({
   return (
     <section
       className={cn(
-        "h-full flex flex-col rounded-2xl border border-border bg-card shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden",
+        "h-full flex flex-col rounded-[18px] border border-[#0F172A]/[0.06] dark:border-white/[0.08] bg-white dark:bg-slate-900 shadow-[0_12px_40px_rgba(2,6,23,0.05)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.3)] hover:shadow-[0_20px_50px_rgba(2,6,23,0.08)] transition-all duration-[180ms] ease-out overflow-hidden",
         className,
       )}
     >
       {(title || action) && (
-        <header className="flex items-center justify-between gap-4 border-b border-border/80 px-6 py-4.5 bg-slate-50/50 dark:bg-slate-900/30 shrink-0">
+        <header className="flex items-center justify-between gap-4 border-b border-[#0F172A]/[0.05] dark:border-white/[0.06] px-6 py-4.5 bg-[#F8FAFC]/60 dark:bg-slate-900/40 shrink-0">
           <div>
             {title && (
-              <h2 className="text-[24px] font-bold text-foreground tracking-tight leading-snug">
+              <h2 className="text-[24px] font-bold text-[#0F172A] dark:text-white tracking-tight leading-snug">
                 {title}
               </h2>
             )}
             {subtitle && (
-              <p className="mt-1 text-sm font-medium text-muted-foreground">{subtitle}</p>
+              <p className="mt-1 text-sm font-normal text-[#64748B] dark:text-slate-400">
+                {subtitle}
+              </p>
             )}
           </div>
           {action}
@@ -154,11 +218,11 @@ export function Avatar({ name, size = 28 }: { name: string; size?: number }) {
 
 export function Spark({ data, tone = "cyan" }: { data: number[]; tone?: Tone }) {
   const map: Record<Tone, string> = {
-    cyan: "#1F6FEB",
-    ok: "#16A34A",
+    cyan: "#2563EB",
+    ok: "#22C55E",
     warn: "#F59E0B",
-    crit: "#DC2626",
-    exec: "#4F46E5",
+    crit: "#EF4444",
+    exec: "#7C3AED",
     muted: "#64748B",
   };
   const color = map[tone];
@@ -170,7 +234,7 @@ export function Spark({ data, tone = "cyan" }: { data: number[]; tone?: Tone }) 
         <AreaChart data={series} margin={{ top: 4, right: 0, bottom: 0, left: 0 }}>
           <defs>
             <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor={color} stopOpacity={0.35} />
+              <stop offset="0%" stopColor={color} stopOpacity={0.2} />
               <stop offset="100%" stopColor={color} stopOpacity={0.0} />
             </linearGradient>
           </defs>
@@ -178,7 +242,7 @@ export function Spark({ data, tone = "cyan" }: { data: number[]; tone?: Tone }) 
             type="monotone"
             dataKey="v"
             stroke={color}
-            strokeWidth={2}
+            strokeWidth={2.5}
             fill={`url(#${id})`}
             isAnimationActive={true}
           />
@@ -212,7 +276,7 @@ export function KpiCard({
   const isPositive = typeof trend === "number" ? trend >= 0 : String(trend).startsWith("+");
 
   return (
-    <div className="group relative h-full rounded-2xl border border-border bg-card p-6 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 overflow-hidden flex flex-col justify-between">
+    <div className="group relative h-full rounded-[18px] border border-[#0F172A]/[0.06] dark:border-white/[0.08] bg-white dark:bg-slate-900 p-6 shadow-[0_12px_40px_rgba(2,6,23,0.05)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.3)] hover:shadow-[0_20px_50px_rgba(2,6,23,0.08)] hover:-translate-y-0.5 transition-all duration-[180ms] ease-out overflow-hidden flex flex-col justify-between">
       {/* Top indicator bar */}
       <div
         className="absolute inset-x-0 top-0 h-1 transition-opacity opacity-80 group-hover:opacity-100"
@@ -223,7 +287,9 @@ export function KpiCard({
 
       <div>
         <div className="flex items-center justify-between gap-2">
-          <p className="text-[16px] font-semibold text-muted-foreground tracking-tight">{label}</p>
+          <p className="text-[15px] sm:text-[16px] font-semibold text-[#64748B] dark:text-slate-400 tracking-tight leading-snug">
+            {label}
+          </p>
           {status && (
             <Pill tone={tone} className="text-[11px] py-0.5 px-2.5">
               {status}
@@ -233,11 +299,7 @@ export function KpiCard({
 
         {/* 42px KPI Value */}
         <div className="mt-3.5 flex items-baseline gap-2">
-          <p
-            className={cn(
-              "text-[42px] font-bold tracking-tight leading-none tabular-nums text-foreground",
-            )}
-          >
+          <p className="text-[42px] font-bold tracking-tight leading-none tabular-nums text-[#0F172A] dark:text-white">
             {typeof value === "string" || typeof value === "number" ? (
               <AnimatedNumber value={value} />
             ) : (
@@ -251,10 +313,10 @@ export function KpiCard({
           <div className="mt-3 flex items-center gap-2 text-xs">
             <span
               className={cn(
-                "inline-flex items-center gap-0.5 rounded-full px-2.5 py-0.5 font-semibold text-[11px]",
+                "inline-flex items-center gap-0.5 rounded-full px-2.5 py-0.5 font-semibold text-[11px] border",
                 isPositive
-                  ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300"
-                  : "bg-red-50 text-red-700 dark:bg-red-950/60 dark:text-red-300",
+                  ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border-emerald-200/60"
+                  : "bg-red-50 text-red-700 dark:bg-red-950/60 dark:text-red-300 border-red-200/60",
               )}
             >
               {isPositive ? (
@@ -264,21 +326,23 @@ export function KpiCard({
               )}
               {typeof trend === "number" ? `${trend > 0 ? "+" : ""}${trend}%` : trend}
             </span>
-            <span className="text-muted-foreground text-xs">{trendLabel}</span>
+            <span className="text-[#64748B] dark:text-slate-400 text-xs">{trendLabel}</span>
           </div>
         )}
 
-        {sub && !trend && <p className="mt-2.5 text-sm font-medium text-muted-foreground">{sub}</p>}
+        {sub && !trend && (
+          <p className="mt-2.5 text-sm font-normal text-[#64748B] dark:text-slate-400">{sub}</p>
+        )}
       </div>
 
       {spark && (
-        <div className="mt-5 pt-2 border-t border-border/40">
+        <div className="mt-5 pt-2 border-t border-[#0F172A]/[0.05] dark:border-white/[0.06]">
           <Spark data={spark} tone={tone} />
         </div>
       )}
 
       {footer && (
-        <div className="mt-4 pt-3 border-t border-border/40 text-xs text-muted-foreground">
+        <div className="mt-4 pt-3 border-t border-[#0F172A]/[0.05] dark:border-white/[0.06] text-xs text-[#64748B] dark:text-slate-400">
           {footer}
         </div>
       )}
@@ -428,12 +492,12 @@ export function EnterpriseDataGrid<T extends { id?: string | number }>({
   };
 
   return (
-    <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
+    <div className="rounded-[18px] border border-[#0F172A]/[0.06] dark:border-white/[0.08] bg-white dark:bg-slate-900 shadow-[0_12px_40px_rgba(2,6,23,0.05)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.3)] overflow-hidden">
       {/* Table Toolbar */}
-      <div className="flex flex-wrap items-center justify-between gap-4 p-6 border-b border-border/80 bg-slate-50/50 dark:bg-slate-900/30">
+      <div className="flex flex-wrap items-center justify-between gap-4 p-6 border-b border-[#0F172A]/[0.06] dark:border-white/[0.06] bg-[#F8FAFC]/50 dark:bg-slate-900/30">
         <div className="flex items-center gap-3 min-w-[280px] flex-1 max-w-md">
           <div className="relative w-full">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-[#64748B] dark:text-slate-400" />
             <Input
               value={query}
               onChange={(e) => {
@@ -441,7 +505,7 @@ export function EnterpriseDataGrid<T extends { id?: string | number }>({
                 setPage(1);
               }}
               placeholder={searchPlaceholder}
-              className="pl-9 h-10 rounded-xl bg-background text-sm"
+              className="pl-9 h-11 rounded-xl bg-background border-[#0F172A]/[0.08] dark:border-white/10 text-sm"
             />
           </div>
           {filterOptions && (
@@ -451,7 +515,7 @@ export function EnterpriseDataGrid<T extends { id?: string | number }>({
                 setFilterVal(e.target.value);
                 setPage(1);
               }}
-              className="h-10 px-3 rounded-xl border border-input bg-background text-sm font-medium text-foreground outline-none focus:ring-2 focus:ring-primary"
+              className="h-11 px-3.5 rounded-xl border border-[#0F172A]/[0.08] dark:border-white/10 bg-background text-sm font-medium text-[#0F172A] dark:text-white outline-none focus:ring-2 focus:ring-primary"
             >
               <option value="all">All categories</option>
               {filterOptions.map((opt) => (
@@ -470,7 +534,7 @@ export function EnterpriseDataGrid<T extends { id?: string | number }>({
               variant="outline"
               size="sm"
               onClick={onExportCsv}
-              className="gap-2 h-10 rounded-xl text-sm"
+              className="gap-2 h-11 rounded-xl text-sm"
             >
               <Download className="size-4" /> Export CSV
             </Button>
@@ -481,7 +545,7 @@ export function EnterpriseDataGrid<T extends { id?: string | number }>({
       {/* Grid Content */}
       <div className="overflow-x-auto">
         <table className="w-full text-sm" role="grid">
-          <thead className="sticky top-0 z-10 border-b border-border/80 bg-slate-50/95 dark:bg-slate-900/95 backdrop-blur-sm text-left uppercase text-[12px] font-semibold tracking-wider text-muted-foreground">
+          <thead className="sticky top-0 z-10 border-b border-[#0F172A]/[0.06] dark:border-white/[0.06] bg-[#F8FAFC] dark:bg-slate-900 text-left uppercase text-[12px] font-semibold tracking-wider text-[#64748B] dark:text-slate-400">
             <tr role="row">
               <th className="w-12 px-6 py-4 text-center" scope="col">
                 <input
@@ -544,12 +608,12 @@ export function EnterpriseDataGrid<T extends { id?: string | number }>({
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-border/60">
+          <tbody className="divide-y divide-[#0F172A]/[0.05] dark:divide-white/[0.06]">
             {paginated.length === 0 ? (
               <tr>
                 <td
                   colSpan={columns.length + 1}
-                  className="py-16 text-center text-muted-foreground text-sm"
+                  className="py-16 text-center text-[#64748B] dark:text-slate-400 text-sm"
                 >
                   No matching records found. Try adjusting search filters.
                 </td>
@@ -562,7 +626,7 @@ export function EnterpriseDataGrid<T extends { id?: string | number }>({
                   <tr
                     key={id}
                     className={cn(
-                      "transition-colors hover:bg-slate-50/80 dark:hover:bg-slate-800/40",
+                      "transition-colors hover:bg-[#F8FAFC]/90 dark:hover:bg-slate-800/50",
                       isSelected && "bg-blue-50/50 dark:bg-blue-950/20",
                     )}
                   >
@@ -583,7 +647,7 @@ export function EnterpriseDataGrid<T extends { id?: string | number }>({
                       <td
                         key={col.key}
                         className={cn(
-                          "px-6 py-4 text-foreground",
+                          "px-6 py-4 text-[#0F172A] dark:text-slate-200",
                           col.align === "right" && "text-right tabular-nums",
                           col.align === "center" && "text-center",
                         )}
@@ -602,17 +666,18 @@ export function EnterpriseDataGrid<T extends { id?: string | number }>({
       </div>
 
       {/* Pagination Footer */}
-      <div className="flex items-center justify-between border-t border-border/80 px-6 py-4 bg-slate-50/50 dark:bg-slate-900/30 text-xs text-muted-foreground">
+      <div className="flex items-center justify-between border-t border-[#0F172A]/[0.06] dark:border-white/[0.06] px-6 py-4 bg-[#F8FAFC]/50 dark:bg-slate-900/30 text-xs text-[#64748B] dark:text-slate-400">
         <div>
           Showing{" "}
-          <span className="font-semibold text-foreground">
+          <span className="font-semibold text-[#0F172A] dark:text-white">
             {sorted.length === 0 ? 0 : (page - 1) * pageSize + 1}
           </span>{" "}
           to{" "}
-          <span className="font-semibold text-foreground">
+          <span className="font-semibold text-[#0F172A] dark:text-white">
             {Math.min(sorted.length, page * pageSize)}
           </span>{" "}
-          of <span className="font-semibold text-foreground">{sorted.length}</span> records
+          of <span className="font-semibold text-[#0F172A] dark:text-white">{sorted.length}</span>{" "}
+          records
           {Object.keys(selectedIds).length > 0 && (
             <span className="ml-3 font-medium text-primary">
               ({Object.keys(selectedIds).length} selected)
@@ -625,11 +690,11 @@ export function EnterpriseDataGrid<T extends { id?: string | number }>({
             size="sm"
             disabled={page <= 1}
             onClick={() => setPage((p) => p - 1)}
-            className="h-8 w-8 p-0 rounded-lg"
+            className="h-9 w-9 p-0 rounded-lg"
           >
             <ChevronLeft className="size-4" />
           </Button>
-          <span className="px-2 font-medium text-foreground">
+          <span className="px-2 font-medium text-[#0F172A] dark:text-white">
             Page {page} of {totalPages}
           </span>
           <Button
@@ -637,7 +702,7 @@ export function EnterpriseDataGrid<T extends { id?: string | number }>({
             size="sm"
             disabled={page >= totalPages}
             onClick={() => setPage((p) => p + 1)}
-            className="h-8 w-8 p-0 rounded-lg"
+            className="h-9 w-9 p-0 rounded-lg"
           >
             <ChevronRight className="size-4" />
           </Button>

@@ -225,19 +225,16 @@ export function GatesPage() {
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.9 }}
                 transition={{ duration: 0.2 }}
-                className={cn(
-                  "rounded-2xl border p-4 shadow-sm transition-all duration-200 flex flex-col justify-between",
-                  ev.status.startsWith("Auth")
-                    ? "border-emerald-200/80 bg-emerald-50/40 dark:border-emerald-900/50 dark:bg-emerald-950/20"
-                    : "border-red-200/80 bg-red-50/40 dark:border-red-900/50 dark:bg-red-950/20",
-                )}
+                className="rounded-[18px] border border-[#0F172A]/[0.06] dark:border-white/[0.08] bg-white dark:bg-slate-900 shadow-[0_12px_40px_rgba(2,6,23,0.05)] p-4 flex flex-col justify-between"
               >
                 <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2.5">
-                    <Avatar name={ev.worker.name} size={30} />
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <Avatar name={ev.worker.name} size={28} />
                     <div className="min-w-0">
-                      <p className="text-xs font-bold text-foreground truncate">{ev.worker.name}</p>
-                      <p className="text-[10px] text-muted-foreground truncate">
+                      <p className="text-xs font-bold text-[#0F172A] dark:text-white truncate">
+                        {ev.worker.name}
+                      </p>
+                      <p className="text-[10px] text-[#64748B] dark:text-slate-400 truncate">
                         {ev.worker.employer}
                       </p>
                     </div>
@@ -250,9 +247,11 @@ export function GatesPage() {
                   </Pill>
                 </div>
 
-                <div className="mt-3 flex items-center justify-between text-[11px] pt-2.5 border-t border-border/50">
-                  <span className="font-mono text-muted-foreground">{ev.gateId}</span>
-                  <span className="font-mono text-foreground font-semibold">{ev.time}</span>
+                <div className="mt-3 flex items-center justify-between text-[11px] pt-2.5 border-t border-[#0F172A]/[0.05] dark:border-white/[0.06]">
+                  <span className="font-mono text-[#64748B] dark:text-slate-400">{ev.gateId}</span>
+                  <span className="font-mono text-[#0F172A] dark:text-white font-semibold">
+                    {ev.time}
+                  </span>
                 </div>
               </motion.div>
             ))}
@@ -352,30 +351,36 @@ export function GatesPage() {
           <div className="h-64 min-h-[250px]">
             <ResponsiveContainer width="100%" height={250}>
               <BarChart data={laneChartData} margin={{ top: 8, right: 8, bottom: 0, left: -16 }}>
-                <CartesianGrid stroke="var(--border)" strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="gate" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} />
-                <YAxis tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} />
+                <CartesianGrid
+                  stroke="rgba(15, 23, 42, 0.05)"
+                  strokeDasharray="3 3"
+                  vertical={false}
+                />
+                <XAxis dataKey="gate" tick={{ fontSize: 11, fill: "#64748B" }} />
+                <YAxis tick={{ fontSize: 11, fill: "#64748B" }} />
                 <Tooltip
                   contentStyle={{
-                    background: "var(--card)",
-                    border: "1px solid var(--border)",
+                    background: "#FFFFFF",
+                    border: "1px solid rgba(15, 23, 42, 0.08)",
                     borderRadius: 12,
                     fontSize: 12,
+                    color: "#0F172A",
+                    boxShadow: "0 12px 32px rgba(2,6,23,0.08)",
                   }}
                 />
                 <RBar
                   dataKey="lane1"
                   name="Lane 1 (Ingress)"
-                  fill="#1F6FEB"
-                  radius={[4, 4, 0, 0]}
-                  isAnimationActive={false}
+                  fill="#2563EB"
+                  radius={[6, 6, 0, 0]}
+                  isAnimationActive={true}
                 />
                 <RBar
                   dataKey="lane2"
                   name="Lane 2 (Egress)"
-                  fill="#64748B"
-                  radius={[4, 4, 0, 0]}
-                  isAnimationActive={false}
+                  fill="#14B8A6"
+                  radius={[6, 6, 0, 0]}
+                  isAnimationActive={true}
                 />
               </BarChart>
             </ResponsiveContainer>
@@ -507,7 +512,7 @@ export function GatesPage() {
           >
             <div ref={parentRef} className="h-[520px] overflow-auto relative">
               <table className="w-full text-xs" role="grid">
-                <thead className="sticky top-0 z-10 border-b border-border/80 bg-slate-50/95 dark:bg-slate-900/95 backdrop-blur-sm text-left uppercase text-[11px] font-semibold tracking-wider text-muted-foreground">
+                <thead className="sticky top-0 z-10 border-b border-[#0F172A]/[0.06] dark:border-white/[0.06] bg-[#F8FAFC] dark:bg-slate-900 text-left uppercase text-[11px] font-semibold tracking-wider text-[#64748B] dark:text-slate-400">
                   <tr role="row">
                     <th scope="col" className="px-4 py-3">
                       Time
@@ -539,7 +544,7 @@ export function GatesPage() {
                   </tr>
                 </thead>
                 <tbody
-                  className="divide-y divide-border/60 relative"
+                  className="divide-y divide-[#0F172A]/[0.05] dark:divide-white/[0.06] relative"
                   style={{ height: `${rowVirtualizer.getTotalSize()}px` }}
                 >
                   {rowVirtualizer.getVirtualItems().map((virtualRow) => {
@@ -549,7 +554,7 @@ export function GatesPage() {
                     return (
                       <tr
                         key={e.id}
-                        className="transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/40 absolute left-0 right-0 flex w-full"
+                        className="transition-colors hover:bg-[#F8FAFC]/90 dark:hover:bg-slate-800/50 absolute left-0 right-0 flex w-full"
                         style={{
                           height: `${virtualRow.size}px`,
                           transform: `translateY(${virtualRow.start}px)`,

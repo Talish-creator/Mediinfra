@@ -84,49 +84,69 @@ export function SafetyAi() {
 
       {/* Edge Inference Telemetry Bar */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 items-stretch">
-        <div className="rounded-2xl border border-border bg-card p-6 shadow-sm flex items-center gap-4">
-          <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-950/50 text-primary border border-blue-200 dark:border-blue-900">
+        <div className="rounded-[18px] border border-[#0F172A]/[0.06] dark:border-white/[0.08] bg-white dark:bg-slate-900 p-6 shadow-[0_12px_40px_rgba(2,6,23,0.05)] hover:shadow-[0_20px_50px_rgba(2,6,23,0.08)] hover:-translate-y-0.5 transition-all duration-[180ms] ease-out flex items-center gap-4">
+          <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-950/50 text-primary border border-blue-200/60 dark:border-blue-900/60">
             <Cpu className="size-5" />
           </div>
           <div>
-            <p className="text-xs text-muted-foreground font-medium">Edge Compute Unit</p>
-            <p className="text-sm font-bold text-foreground">NVIDIA Jetson AGX Orin</p>
-            <p className="text-[11px] text-muted-foreground">GPU Load: 42% · VRAM 14.8 GB</p>
+            <p className="text-xs text-[#64748B] dark:text-slate-400 font-medium">
+              Edge Compute Unit
+            </p>
+            <p className="text-sm font-bold text-[#0F172A] dark:text-white">
+              NVIDIA Jetson AGX Orin
+            </p>
+            <p className="text-[11px] text-[#64748B] dark:text-slate-400">
+              GPU Load: 42% · VRAM 14.8 GB
+            </p>
           </div>
         </div>
 
-        <div className="rounded-2xl border border-border bg-card p-6 shadow-sm flex items-center gap-4">
-          <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 border border-emerald-200 dark:border-emerald-900">
+        <div className="rounded-[18px] border border-[#0F172A]/[0.06] dark:border-white/[0.08] bg-white dark:bg-slate-900 p-6 shadow-[0_12px_40px_rgba(2,6,23,0.05)] hover:shadow-[0_20px_50px_rgba(2,6,23,0.08)] hover:-translate-y-0.5 transition-all duration-[180ms] ease-out flex items-center gap-4">
+          <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 border border-emerald-200/60 dark:border-emerald-900/60">
             <Activity className="size-5" />
           </div>
           <div>
-            <p className="text-xs text-muted-foreground font-medium">Inference Latency</p>
-            <p className="text-sm font-bold text-foreground tabular-nums">{latency} ms</p>
+            <p className="text-xs text-[#64748B] dark:text-slate-400 font-medium">
+              Inference Latency
+            </p>
+            <p className="text-sm font-bold text-[#0F172A] dark:text-white tabular-nums">
+              {latency} ms
+            </p>
             <p className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
               TensorRT INT8 Precision
             </p>
           </div>
         </div>
 
-        <div className="rounded-2xl border border-border bg-card p-6 shadow-sm flex items-center gap-4">
-          <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 border border-indigo-200 dark:border-indigo-900">
+        <div className="rounded-[18px] border border-[#0F172A]/[0.06] dark:border-white/[0.08] bg-white dark:bg-slate-900 p-6 shadow-[0_12px_40px_rgba(2,6,23,0.05)] hover:shadow-[0_20px_50px_rgba(2,6,23,0.08)] hover:-translate-y-0.5 transition-all duration-[180ms] ease-out flex items-center gap-4">
+          <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-purple-50 dark:bg-purple-950/50 text-purple-600 border border-purple-200/60 dark:border-purple-900/60">
             <Sparkles className="size-5" />
           </div>
           <div>
-            <p className="text-xs text-muted-foreground font-medium">Active AI Models</p>
-            <p className="text-sm font-bold text-foreground">YOLO-PPE + ByteTrack</p>
-            <p className="text-[11px] text-muted-foreground">98.4% Precision on Helmets</p>
+            <p className="text-xs text-[#64748B] dark:text-slate-400 font-medium">
+              Active AI Models
+            </p>
+            <p className="text-sm font-bold text-[#0F172A] dark:text-white">YOLO-PPE + ByteTrack</p>
+            <p className="text-[11px] text-[#64748B] dark:text-slate-400">
+              98.4% Precision on Helmets
+            </p>
           </div>
         </div>
 
-        <div className="rounded-2xl border border-border bg-card p-6 shadow-sm flex items-center gap-4">
-          <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-amber-50 dark:bg-amber-950/50 text-amber-600 border border-amber-200 dark:border-amber-900">
+        <div className="rounded-[18px] border border-[#0F172A]/[0.06] dark:border-white/[0.08] bg-white dark:bg-slate-900 p-6 shadow-[0_12px_40px_rgba(2,6,23,0.05)] hover:shadow-[0_20px_50px_rgba(2,6,23,0.08)] hover:-translate-y-0.5 transition-all duration-[180ms] ease-out flex items-center gap-4">
+          <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-amber-50 dark:bg-amber-950/50 text-amber-600 border border-amber-200/60 dark:border-amber-900/60">
             <Volume2 className="size-5" />
           </div>
           <div>
-            <p className="text-xs text-muted-foreground font-medium">Megaphone Array</p>
-            <p className="text-sm font-bold text-foreground">Acoustic Auto-Broadcast</p>
-            <p className="text-[11px] text-muted-foreground">Arabic · English · Hindi</p>
+            <p className="text-xs text-[#64748B] dark:text-slate-400 font-medium">
+              Megaphone Array
+            </p>
+            <p className="text-sm font-bold text-[#0F172A] dark:text-white">
+              Acoustic Auto-Broadcast
+            </p>
+            <p className="text-[11px] text-[#64748B] dark:text-slate-400">
+              Arabic · English · Hindi
+            </p>
           </div>
         </div>
       </div>

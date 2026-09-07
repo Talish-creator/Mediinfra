@@ -103,19 +103,19 @@ export function AppShell({ children }: { children: ReactNode }) {
       {/* Floating Enterprise Sidebar */}
       <aside
         className={cn(
-          "sticky top-0 z-40 hidden h-screen shrink-0 flex-col border-r border-border bg-sidebar transition-all duration-300 md:flex select-none",
+          "sticky top-0 z-40 hidden h-screen shrink-0 flex-col border-r border-[#0F172A]/[0.06] dark:border-white/[0.08] bg-white dark:bg-slate-900 transition-all duration-300 md:flex select-none",
           collapsed ? "w-[78px]" : "w-[280px]",
         )}
       >
         {/* Brand Header */}
-        <div className="flex h-16 items-center justify-between border-b border-border px-4">
+        <div className="flex h-16 items-center justify-between border-b border-[#0F172A]/[0.06] dark:border-white/[0.08] px-4">
           <Link to="/" className="flex items-center gap-3 overflow-hidden">
             <MediInfraLogo collapsed={collapsed} size={collapsed ? "md" : "md"} />
           </Link>
           {!collapsed && (
             <button
               onClick={() => setCollapsed(true)}
-              className="rounded-lg p-1.5 text-muted-foreground hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-foreground transition-colors"
+              className="rounded-lg p-1.5 text-[#64748B] hover:bg-[#F8FAFC] dark:hover:bg-slate-800 hover:text-[#0F172A] dark:hover:text-white transition-colors"
               aria-label="Collapse sidebar"
             >
               <ChevronLeft className="size-4" />
@@ -125,10 +125,10 @@ export function AppShell({ children }: { children: ReactNode }) {
 
         {/* Collapsed expand button */}
         {collapsed && (
-          <div className="flex justify-center py-2 border-b border-border/50">
+          <div className="flex justify-center py-2 border-b border-[#0F172A]/[0.06] dark:border-white/[0.08]">
             <button
               onClick={() => setCollapsed(false)}
-              className="rounded-lg p-1.5 text-muted-foreground hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-foreground transition-colors"
+              className="rounded-lg p-1.5 text-[#64748B] hover:bg-[#F8FAFC] dark:hover:bg-slate-800 hover:text-[#0F172A] dark:hover:text-white transition-colors"
               aria-label="Expand sidebar"
             >
               <ChevronRight className="size-4" />
@@ -149,8 +149,8 @@ export function AppShell({ children }: { children: ReactNode }) {
                 className={cn(
                   "group flex items-center gap-3.5 rounded-xl px-3 py-2.5 text-[13px] font-medium transition-all duration-150",
                   active
-                    ? "bg-primary text-primary-foreground shadow-sm shadow-primary/20 font-semibold"
-                    : "text-muted-foreground hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-foreground",
+                    ? "bg-[#EFF6FF] text-[#2563EB] dark:bg-blue-950/50 dark:text-blue-400 font-semibold shadow-sm border border-blue-200/60 dark:border-blue-800/40"
+                    : "text-[#64748B] hover:bg-[#F8FAFC] dark:hover:bg-slate-800/80 hover:text-[#0F172A] dark:hover:text-white",
                   collapsed && "justify-center px-2",
                 )}
               >
@@ -158,8 +158,8 @@ export function AppShell({ children }: { children: ReactNode }) {
                   className={cn(
                     "size-[18px] shrink-0 transition-transform duration-150 group-hover:scale-110",
                     active
-                      ? "text-primary-foreground"
-                      : "text-muted-foreground group-hover:text-foreground",
+                      ? "text-[#2563EB] dark:text-blue-400"
+                      : "text-[#64748B] group-hover:text-[#0F172A] dark:group-hover:text-white",
                   )}
                 />
                 {!collapsed && (
@@ -168,10 +168,10 @@ export function AppShell({ children }: { children: ReactNode }) {
                     {item.badge && (
                       <span
                         className={cn(
-                          "rounded-full px-1.5 py-0.2 text-[10px] font-bold uppercase tracking-wider",
+                          "rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider",
                           active
-                            ? "bg-white/20 text-white"
-                            : "bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300",
+                            ? "bg-[#2563EB] text-white shadow-[0_0_8px_rgba(37,99,235,0.35)]"
+                            : "bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200/60",
                         )}
                       >
                         {item.badge}
@@ -189,9 +189,9 @@ export function AppShell({ children }: { children: ReactNode }) {
 
         {/* Project & Metrics Status Card */}
         {!collapsed && (
-          <div className="mx-3 mb-3 p-3.5 rounded-2xl border border-border bg-slate-50/70 dark:bg-slate-900/40 space-y-2.5">
+          <div className="mx-3 mb-3 p-4 rounded-[18px] border border-[#0F172A]/[0.06] dark:border-white/[0.08] bg-white dark:bg-slate-900 shadow-[0_12px_40px_rgba(2,6,23,0.05)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.3)] space-y-2.5">
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#64748B] dark:text-slate-400">
                 Active Project
               </span>
               <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
@@ -200,28 +200,30 @@ export function AppShell({ children }: { children: ReactNode }) {
             </div>
 
             <div>
-              <p className="text-xs font-semibold text-foreground truncate">
+              <p className="text-xs font-semibold text-[#0F172A] dark:text-white truncate">
                 P875 — Hamad General Hospital
               </p>
-              <div className="mt-1.5 flex items-center justify-between text-[11px] text-muted-foreground font-medium">
+              <div className="mt-1.5 flex items-center justify-between text-[11px] text-[#64748B] dark:text-slate-400 font-medium">
                 <span>Substructure & MEP</span>
-                <span className="font-semibold text-foreground">76% complete</span>
+                <span className="font-semibold text-[#0F172A] dark:text-white">76% complete</span>
               </div>
-              <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
+              <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
                 <div
-                  className="h-full rounded-full bg-primary transition-all duration-500"
+                  className="h-full rounded-full bg-gradient-to-r from-[#2563EB] to-[#1D4ED8] transition-all duration-500"
                   style={{ width: "76%" }}
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-2 pt-1 border-t border-border/60 text-[11px]">
+            <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[#0F172A]/[0.05] dark:border-white/[0.06] text-[11px]">
               <div>
-                <p className="text-muted-foreground">Workers</p>
-                <p className="font-bold text-foreground tabular-nums">{headcount} on-site</p>
+                <p className="text-[#64748B] dark:text-slate-400">Workers</p>
+                <p className="font-bold text-[#0F172A] dark:text-white tabular-nums">
+                  {headcount} on-site
+                </p>
               </div>
               <div>
-                <p className="text-muted-foreground">Safety Score</p>
+                <p className="text-[#64748B] dark:text-slate-400">Safety Score</p>
                 <p className="font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">
                   98.4%
                 </p>
@@ -231,9 +233,9 @@ export function AppShell({ children }: { children: ReactNode }) {
         )}
 
         {/* Footer info */}
-        <div className="border-t border-border p-3 space-y-2">
+        <div className="border-t border-[#0F172A]/[0.06] dark:border-white/[0.08] p-3 space-y-2">
           {!collapsed ? (
-            <div className="flex items-center justify-between text-[11px] text-muted-foreground px-1">
+            <div className="flex items-center justify-between text-[11px] text-[#64748B] dark:text-slate-400 px-1">
               <span className="flex items-center gap-1.5">
                 <span className="size-2 rounded-full bg-emerald-500 mi-pulse" />
                 <span>ELV Gateway</span>
@@ -256,7 +258,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       {/* Main Container */}
       <div className="flex min-w-0 flex-1 flex-col overflow-x-hidden">
         {/* Top Enterprise Header */}
-        <header className="sticky top-0 z-30 border-b border-border bg-card/95 backdrop-blur-md transition-colors">
+        <header className="sticky top-0 z-30 border-b border-[#0F172A]/[0.06] dark:border-white/[0.08] bg-white/95 dark:bg-slate-900/95 transition-colors">
           <div className="flex items-center justify-between gap-4 px-6 py-3">
             {/* Left: Breadcrumb */}
             <div className="flex items-center gap-3 min-w-0">
@@ -491,14 +493,14 @@ export function AppShell({ children }: { children: ReactNode }) {
               {/* Emergency Evacuation Button */}
               <Button
                 size="sm"
-                className="gap-2 bg-red-600 hover:bg-red-700 text-white font-bold h-9 px-3.5 rounded-xl shadow-sm shadow-red-600/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                className="gap-2 bg-[#EF4444] hover:bg-[#DC2626] text-white font-semibold h-11 px-4 rounded-xl shadow-sm hover:shadow-[0_8px_20px_rgba(239,68,68,0.25)] transition-all hover:-translate-y-0.5 active:translate-y-0"
                 onClick={() => {
                   startEmergency();
                   navigate({ to: "/muster" });
                 }}
               >
                 <Siren className="size-4 animate-bounce" />
-                <span className="hidden sm:inline text-xs">EMERGENCY MUSTER</span>
+                <span className="hidden sm:inline text-xs tracking-wide">EMERGENCY MUSTER</span>
               </Button>
             </div>
           </div>

@@ -262,46 +262,51 @@ export function AnalyticsPage() {
             <AreaChart data={FORECAST_DATA} margin={{ top: 12, right: 12, bottom: 0, left: -10 }}>
               <defs>
                 <linearGradient id="colorActual" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#1F6FEB" stopOpacity={0.4} />
-                  <stop offset="95%" stopColor="#1F6FEB" stopOpacity={0.0} />
+                  <stop offset="5%" stopColor="#2563EB" stopOpacity={0.2} />
+                  <stop offset="95%" stopColor="#2563EB" stopOpacity={0.0} />
                 </linearGradient>
                 <linearGradient id="colorForecast" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#16A34A" stopOpacity={0.4} />
-                  <stop offset="95%" stopColor="#16A34A" stopOpacity={0.0} />
+                  <stop offset="5%" stopColor="#22C55E" stopOpacity={0.15} />
+                  <stop offset="95%" stopColor="#22C55E" stopOpacity={0.0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid stroke="var(--border)" strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="day" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} />
-              <YAxis tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} />
+              <CartesianGrid
+                stroke="rgba(15, 23, 42, 0.05)"
+                strokeDasharray="3 3"
+                vertical={false}
+              />
+              <XAxis dataKey="day" tick={{ fontSize: 11, fill: "#64748B" }} />
+              <YAxis tick={{ fontSize: 11, fill: "#64748B" }} />
               <Tooltip
                 contentStyle={{
-                  background: "var(--card)",
-                  border: "1px solid var(--border)",
-                  borderRadius: 16,
+                  background: "#FFFFFF",
+                  border: "1px solid rgba(15, 23, 42, 0.08)",
+                  borderRadius: 12,
                   fontSize: 12,
-                  boxShadow: "0 10px 25px -5px rgba(0,0,0,0.1)",
+                  color: "#0F172A",
+                  boxShadow: "0 12px 32px rgba(2,6,23,0.08)",
                 }}
               />
-              <Legend wrapperStyle={{ fontSize: 12 }} />
+              <Legend wrapperStyle={{ fontSize: 12, color: "#64748B" }} />
               <Area
                 type="monotone"
                 dataKey="actual"
                 name="Actual RFID Attendance"
-                stroke="#1F6FEB"
+                stroke="#2563EB"
                 strokeWidth={2.5}
                 fill="url(#colorActual)"
-                isAnimationActive={false}
+                isAnimationActive={true}
                 connectNulls={true}
               />
               <Area
                 type="monotone"
                 dataKey="forecast"
                 name="AI Projected Manpower"
-                stroke="#16A34A"
+                stroke="#22C55E"
                 strokeWidth={2}
                 strokeDasharray="4 4"
                 fill="url(#colorForecast)"
-                isAnimationActive={false}
+                isAnimationActive={true}
                 connectNulls={true}
               />
             </AreaChart>
@@ -319,29 +324,35 @@ export function AnalyticsPage() {
           <div className="h-72 min-h-[280px]">
             <ResponsiveContainer width="100%" height={280} minHeight={280}>
               <BarChart data={chart} margin={{ top: 8, right: 8, bottom: 0, left: -16 }}>
-                <CartesianGrid stroke="var(--border)" strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="name" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} />
-                <YAxis tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} />
+                <CartesianGrid
+                  stroke="rgba(15, 23, 42, 0.05)"
+                  strokeDasharray="3 3"
+                  vertical={false}
+                />
+                <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#64748B" }} />
+                <YAxis tick={{ fontSize: 11, fill: "#64748B" }} />
                 <Tooltip
                   contentStyle={{
-                    background: "var(--card)",
-                    border: "1px solid var(--border)",
+                    background: "#FFFFFF",
+                    border: "1px solid rgba(15, 23, 42, 0.08)",
                     borderRadius: 12,
                     fontSize: 12,
+                    color: "#0F172A",
+                    boxShadow: "0 12px 32px rgba(2,6,23,0.08)",
                   }}
                 />
-                <Legend wrapperStyle={{ fontSize: 12 }} />
+                <Legend wrapperStyle={{ fontSize: 12, color: "#64748B" }} />
                 <RBar
                   dataKey="Planned"
                   fill="#64748B"
                   radius={[6, 6, 0, 0]}
-                  isAnimationActive={false}
+                  isAnimationActive={true}
                 />
                 <RBar
                   dataKey="Actual"
-                  fill="#1F6FEB"
+                  fill="#2563EB"
                   radius={[6, 6, 0, 0]}
-                  isAnimationActive={false}
+                  isAnimationActive={true}
                 />
               </BarChart>
             </ResponsiveContainer>
@@ -359,25 +370,31 @@ export function AnalyticsPage() {
                 layout="vertical"
                 margin={{ top: 8, right: 16, bottom: 0, left: 40 }}
               >
-                <CartesianGrid stroke="var(--border)" strokeDasharray="3 3" horizontal={false} />
-                <XAxis type="number" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} />
+                <CartesianGrid
+                  stroke="rgba(15, 23, 42, 0.05)"
+                  strokeDasharray="3 3"
+                  horizontal={false}
+                />
+                <XAxis type="number" tick={{ fontSize: 11, fill: "#64748B" }} />
                 <YAxis
                   type="category"
                   dataKey="band"
                   width={130}
-                  tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
+                  tick={{ fontSize: 11, fill: "#64748B" }}
                 />
                 <Tooltip
                   contentStyle={{
-                    background: "var(--card)",
-                    border: "1px solid var(--border)",
+                    background: "#FFFFFF",
+                    border: "1px solid rgba(15, 23, 42, 0.08)",
                     borderRadius: 12,
                     fontSize: 12,
+                    color: "#0F172A",
+                    boxShadow: "0 12px 32px rgba(2,6,23,0.08)",
                   }}
                 />
-                <RBar dataKey="hours" radius={[0, 6, 6, 0]} isAnimationActive={false}>
+                <RBar dataKey="hours" radius={[0, 6, 6, 0]} isAnimationActive={true}>
                   {DWELL_DISTRIBUTION.map((d, i) => (
-                    <Cell key={d.band} fill={i === 0 ? "#16A34A" : i > 1 ? "#F59E0B" : "#1F6FEB"} />
+                    <Cell key={d.band} fill={i === 0 ? "#22C55E" : i > 1 ? "#F59E0B" : "#2563EB"} />
                   ))}
                 </RBar>
               </BarChart>

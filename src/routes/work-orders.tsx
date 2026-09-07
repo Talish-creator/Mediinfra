@@ -481,17 +481,17 @@ export function WorkOrdersPage() {
             return (
               <div
                 key={stage.id}
-                className="flex flex-col rounded-2xl border border-border bg-slate-50/60 dark:bg-slate-900/30 p-4 shadow-sm min-h-[620px] h-full"
+                className="flex flex-col rounded-[18px] border border-[#0F172A]/[0.06] dark:border-white/[0.08] bg-[#F8FAFC]/50 dark:bg-slate-900/30 p-4 shadow-[0_12px_40px_rgba(2,6,23,0.05)] min-h-[620px] h-full"
               >
                 {/* Column Header */}
-                <div className="flex items-center justify-between pb-3.5 border-b border-border/60">
+                <div className="flex items-center justify-between pb-3.5 border-b border-[#0F172A]/[0.06] dark:border-white/[0.06]">
                   <div className="flex items-center gap-2">
                     <span className={cn("size-2.5 rounded-full", stage.color)} />
-                    <span className="text-xs font-bold text-foreground truncate max-w-[130px]">
+                    <span className="text-xs font-bold text-[#0F172A] dark:text-white truncate max-w-[130px]">
                       {stage.name}
                     </span>
                   </div>
-                  <span className="rounded-full bg-slate-200 dark:bg-slate-800 px-2 py-0.5 text-[11px] font-bold text-muted-foreground">
+                  <span className="rounded-full bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[11px] font-bold text-[#64748B] dark:text-slate-400">
                     {stageOrders.length}
                   </span>
                 </div>
@@ -507,7 +507,7 @@ export function WorkOrdersPage() {
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.94 }}
                         transition={{ duration: 0.22, ease: "easeOut" }}
-                        className="group rounded-xl border border-border bg-card p-4 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
+                        className="group rounded-[18px] border border-[#0F172A]/[0.06] dark:border-white/[0.08] bg-white dark:bg-slate-900 p-4 shadow-[0_12px_40px_rgba(2,6,23,0.05)] hover:shadow-[0_20px_50px_rgba(2,6,23,0.08)] hover:-translate-y-0.5 transition-all duration-[180ms] ease-out cursor-pointer"
                         onClick={() => setActive(o)}
                       >
                         <div className="flex items-center justify-between">
@@ -520,16 +520,16 @@ export function WorkOrdersPage() {
                           </Pill>
                         </div>
 
-                        <h3 className="mt-2 text-[14px] font-semibold text-foreground line-clamp-2 leading-snug">
+                        <h3 className="mt-2 text-[15px] font-semibold text-[#0F172A] dark:text-white line-clamp-2 leading-snug">
                           {o.description}
                         </h3>
 
-                        <div className="mt-2 text-[11px] text-muted-foreground">
+                        <div className="mt-2 text-[11px] text-[#64748B] dark:text-slate-400">
                           <span>{o.contractor}</span>
                         </div>
 
-                        <div className="mt-3 flex items-center justify-between pt-2 border-t border-border/50 text-[11px]">
-                          <span className="font-medium text-muted-foreground flex items-center gap-1">
+                        <div className="mt-3 flex items-center justify-between pt-2 border-t border-[#0F172A]/[0.05] dark:border-white/[0.06] text-[11px]">
+                          <span className="font-medium text-[#64748B] dark:text-slate-400 flex items-center gap-1">
                             <Users className="size-3" />
                             {o.signedOff}/{o.quota}
                           </span>
@@ -555,7 +555,7 @@ export function WorkOrdersPage() {
                   </AnimatePresence>
 
                   {stageOrders.length === 0 && (
-                    <div className="flex flex-col items-center justify-center h-48 border border-dashed border-border/70 rounded-xl p-4 text-center text-muted-foreground text-xs">
+                    <div className="flex flex-col items-center justify-center h-48 border border-dashed border-[#0F172A]/[0.08] dark:border-white/10 rounded-xl p-4 text-center text-[#64748B] dark:text-slate-400 text-xs">
                       No permits in {stage.name}
                     </div>
                   )}

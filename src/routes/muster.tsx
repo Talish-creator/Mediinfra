@@ -68,10 +68,10 @@ export function MusterPage() {
       {/* Emergency Status Banner */}
       <div
         className={cn(
-          "rounded-2xl border p-6 flex flex-wrap items-center justify-between gap-4 transition-all duration-300 shadow-sm",
+          "rounded-[18px] border p-6 flex flex-wrap items-center justify-between gap-4 transition-all duration-300 shadow-[0_12px_40px_rgba(2,6,23,0.05)]",
           emergency
             ? "border-red-500 bg-red-500/10 mi-siren"
-            : "border-emerald-200 dark:border-emerald-900/60 bg-emerald-50/50 dark:bg-emerald-950/20",
+            : "border-emerald-200/60 dark:border-emerald-900/60 bg-emerald-50/40 dark:bg-emerald-950/20",
         )}
       >
         <div className="flex items-center gap-4">
@@ -96,7 +96,7 @@ export function MusterPage() {
                 ? "SITE-WIDE EMERGENCY EVACUATION IN PROGRESS"
                 : "NORMAL SITE OPERATION — ALL ACCESS GATES MONITORED"}
             </p>
-            <p className="mt-1 text-xs text-muted-foreground font-medium">
+            <p className="mt-1 text-xs text-[#64748B] dark:text-slate-400 font-medium">
               {emergency
                 ? "Fail-safe optical turnstiles opened · Acoustic sirens broadcasting · Exterior muster points streaming"
                 : "Continuous RFID perimeter accounting · Qatar Civil Defence integration verified online"}
@@ -109,13 +109,13 @@ export function MusterPage() {
             <Button
               variant="outline"
               onClick={standDown}
-              className="h-10 rounded-xl font-bold text-xs border-slate-300 dark:border-slate-700 hover:bg-card"
+              className="h-11 px-5 rounded-xl font-semibold text-xs border-[#0F172A]/[0.08] dark:border-white/10 hover:bg-card"
             >
               Stand Down Alarm & Restore Gates
             </Button>
           ) : (
             <Button
-              className="h-10 rounded-xl gap-2 bg-red-600 hover:bg-red-700 text-white font-bold text-xs shadow-md shadow-red-600/30"
+              className="h-11 px-5 rounded-xl gap-2 bg-[#EF4444] hover:bg-[#DC2626] text-white font-semibold text-xs shadow-sm hover:shadow-[0_8px_20px_rgba(239,68,68,0.25)] transition-all hover:-translate-y-0.5 active:translate-y-0"
               onClick={startEmergency}
             >
               <Siren className="size-4" /> INITIATE EMERGENCY EVACUATION ALARM
@@ -220,7 +220,7 @@ export function MusterPage() {
       >
         <div className="max-h-[460px] overflow-auto">
           <table className="w-full text-sm" role="grid">
-            <thead className="sticky top-0 z-10 border-b border-border/80 bg-slate-50/95 dark:bg-slate-900/95 backdrop-blur-sm text-left uppercase text-[12px] font-semibold tracking-wider text-muted-foreground">
+            <thead className="sticky top-0 z-10 border-b border-[#0F172A]/[0.06] dark:border-white/[0.06] bg-[#F8FAFC] dark:bg-slate-900 text-left uppercase text-[12px] font-semibold tracking-wider text-[#64748B] dark:text-slate-400">
               <tr role="row">
                 <th className="px-6 py-4">Worker Profile</th>
                 <th className="px-6 py-4">Subcontractor Employer</th>
@@ -229,33 +229,35 @@ export function MusterPage() {
                 <th className="px-6 py-4">Triage Protocol</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-border/60">
+            <tbody className="divide-y divide-[#0F172A]/[0.05] dark:divide-white/[0.06]">
               {filteredMissing.map((w) => (
                 <tr
                   key={w.id}
-                  className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors"
+                  className="hover:bg-[#F8FAFC]/90 dark:hover:bg-slate-800/50 transition-colors"
                 >
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <Avatar name={w.name} size={32} />
                       <div>
-                        <p className="font-bold text-foreground text-sm">{w.name}</p>
-                        <Mono className="text-[11px] text-muted-foreground">QID: {w.qid}</Mono>
+                        <p className="font-bold text-[#0F172A] dark:text-white text-sm">{w.name}</p>
+                        <Mono className="text-[11px] text-[#64748B] dark:text-slate-400">
+                          QID: {w.qid}
+                        </Mono>
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-muted-foreground">{w.employer}</td>
+                  <td className="px-6 py-4 text-[#64748B] dark:text-slate-400">{w.employer}</td>
                   <td className="px-6 py-4">
-                    <span className="rounded-full bg-slate-100 dark:bg-slate-800 px-2.5 py-1 text-xs font-semibold text-foreground">
+                    <span className="rounded-full bg-slate-100 dark:bg-slate-800 px-3 py-1 text-xs font-semibold text-[#0F172A] dark:text-white">
                       {w.trade}
                     </span>
                   </td>
-                  <td className="px-5 py-3">
-                    <Mono className="font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded">
+                  <td className="px-6 py-4">
+                    <Mono className="font-bold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 border border-amber-200/60 dark:border-amber-900/60 px-2.5 py-1 rounded-full">
                       {w.lastSeen}
                     </Mono>
                   </td>
-                  <td className="px-5 py-3">
+                  <td className="px-6 py-4">
                     <Pill tone="crit" className="text-xs font-semibold">
                       <UserX className="size-3 mr-1" /> Unaccounted
                     </Pill>
