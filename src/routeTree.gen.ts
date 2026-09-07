@@ -17,6 +17,7 @@ import { Route as HardwareRouteImport } from './routes/hardware'
 import { Route as KnowledgeRouteImport } from './routes/knowledge'
 import { Route as MusterRouteImport } from './routes/muster'
 import { Route as ReportsRouteImport } from './routes/reports'
+import { Route as ReportsCenterRouteImport } from './routes/reports-center'
 import { Route as SafetyAiRouteImport } from './routes/safety-ai'
 import { Route as WorkOrdersRouteImport } from './routes/work-orders'
 
@@ -60,6 +61,11 @@ const ReportsRoute = ReportsRouteImport.update({
   path: '/reports',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ReportsCenterRoute = ReportsCenterRouteImport.update({
+  id: '/reports-center',
+  path: '/reports-center',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SafetyAiRoute = SafetyAiRouteImport.update({
   id: '/safety-ai',
   path: '/safety-ai',
@@ -80,6 +86,7 @@ export interface FileRoutesByFullPath {
   '/knowledge': typeof KnowledgeRoute
   '/muster': typeof MusterRoute
   '/reports': typeof ReportsRoute
+  '/reports-center': typeof ReportsCenterRoute
   '/safety-ai': typeof SafetyAiRoute
   '/work-orders': typeof WorkOrdersRoute
 }
@@ -92,6 +99,7 @@ export interface FileRoutesByTo {
   '/knowledge': typeof KnowledgeRoute
   '/muster': typeof MusterRoute
   '/reports': typeof ReportsRoute
+  '/reports-center': typeof ReportsCenterRoute
   '/safety-ai': typeof SafetyAiRoute
   '/work-orders': typeof WorkOrdersRoute
 }
@@ -105,6 +113,7 @@ export interface FileRoutesById {
   '/knowledge': typeof KnowledgeRoute
   '/muster': typeof MusterRoute
   '/reports': typeof ReportsRoute
+  '/reports-center': typeof ReportsCenterRoute
   '/safety-ai': typeof SafetyAiRoute
   '/work-orders': typeof WorkOrdersRoute
 }
@@ -119,6 +128,7 @@ export interface FileRouteTypes {
     | '/knowledge'
     | '/muster'
     | '/reports'
+    | '/reports-center'
     | '/safety-ai'
     | '/work-orders'
   fileRoutesByTo: FileRoutesByTo
@@ -131,6 +141,7 @@ export interface FileRouteTypes {
     | '/knowledge'
     | '/muster'
     | '/reports'
+    | '/reports-center'
     | '/safety-ai'
     | '/work-orders'
   id:
@@ -143,6 +154,7 @@ export interface FileRouteTypes {
     | '/knowledge'
     | '/muster'
     | '/reports'
+    | '/reports-center'
     | '/safety-ai'
     | '/work-orders'
   fileRoutesById: FileRoutesById
@@ -156,6 +168,7 @@ export interface RootRouteChildren {
   KnowledgeRoute: typeof KnowledgeRoute
   MusterRoute: typeof MusterRoute
   ReportsRoute: typeof ReportsRoute
+  ReportsCenterRoute: typeof ReportsCenterRoute
   SafetyAiRoute: typeof SafetyAiRoute
   WorkOrdersRoute: typeof WorkOrdersRoute
 }
@@ -218,6 +231,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReportsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/reports-center': {
+      id: '/reports-center'
+      path: '/reports-center'
+      fullPath: '/reports-center'
+      preLoaderRoute: typeof ReportsCenterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/safety-ai': {
       id: '/safety-ai'
       path: '/safety-ai'
@@ -244,6 +264,7 @@ const rootRouteChildren: RootRouteChildren = {
   KnowledgeRoute: KnowledgeRoute,
   MusterRoute: MusterRoute,
   ReportsRoute: ReportsRoute,
+  ReportsCenterRoute: ReportsCenterRoute,
   SafetyAiRoute: SafetyAiRoute,
   WorkOrdersRoute: WorkOrdersRoute,
 }
