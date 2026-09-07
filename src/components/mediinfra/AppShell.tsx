@@ -521,7 +521,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.22, ease: "easeOut" }}
-          className="min-w-0 flex-1 space-y-6 p-6 lg:p-8 max-w-[1680px] mx-auto w-full"
+          className="min-w-0 flex-1 space-y-8 p-8 max-w-[1720px] mx-auto w-full"
         >
           {children}
         </motion.main>

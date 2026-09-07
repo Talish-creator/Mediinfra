@@ -102,12 +102,12 @@ export function ReportsPage() {
   const [preview, setPreview] = useState<(typeof REPORTS)[number] | null>(null);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PageHeader
         title="Audit & Compliance Reports"
         description="Tamper-evident, timestamped returns compiled continuously from RFID turnstile logs and digital work permit sign-offs. Designed for Qatar Civil Defence, Ashghal, and HMC executive audit."
         actions={
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             <Pill tone="ok" className="h-9 px-3 text-xs">
               <ShieldCheck className="size-3.5 mr-1" /> Chain-of-Custody SHA-256 Hashing Active
             </Pill>
@@ -121,16 +121,16 @@ export function ReportsPage() {
         bodyClassName="p-0"
       >
         <div className="overflow-x-auto">
-          <table className="w-full text-xs">
-            <thead className="border-b border-border bg-slate-50 dark:bg-slate-900 text-left uppercase text-[11px] font-semibold tracking-wider text-muted-foreground">
+          <table className="w-full text-sm">
+            <thead className="border-b border-border bg-slate-50 dark:bg-slate-900 text-left uppercase text-[12px] font-semibold tracking-wider text-muted-foreground">
               <tr>
-                <th className="px-5 py-3">Report Ref</th>
-                <th className="px-5 py-3">Document Title</th>
-                <th className="px-5 py-3">Audit Period</th>
-                <th className="px-5 py-3">Issuing Authority</th>
-                <th className="px-5 py-3">Integrity Hash</th>
-                <th className="px-5 py-3">Status</th>
-                <th className="px-5 py-3 text-right">Action</th>
+                <th className="px-6 py-4">Report Ref</th>
+                <th className="px-6 py-4">Document Title</th>
+                <th className="px-6 py-4">Audit Period</th>
+                <th className="px-6 py-4">Issuing Authority</th>
+                <th className="px-6 py-4">Integrity Hash</th>
+                <th className="px-6 py-4">Status</th>
+                <th className="px-6 py-4 text-right">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/60">
@@ -139,22 +139,20 @@ export function ReportsPage() {
                   key={r.id}
                   className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors"
                 >
-                  <td className="px-5 py-3.5 whitespace-nowrap">
+                  <td className="px-6 py-4 whitespace-nowrap">
                     <Mono className="text-primary font-bold">{r.id}</Mono>
                   </td>
-                  <td className="px-5 py-3.5 font-bold text-foreground max-w-sm">{r.name}</td>
-                  <td className="px-5 py-3.5 text-muted-foreground whitespace-nowrap">
-                    {r.period}
-                  </td>
-                  <td className="px-5 py-3.5 text-muted-foreground whitespace-nowrap font-medium">
+                  <td className="px-6 py-4 font-bold text-foreground max-w-sm">{r.name}</td>
+                  <td className="px-6 py-4 text-muted-foreground whitespace-nowrap">{r.period}</td>
+                  <td className="px-6 py-4 text-muted-foreground whitespace-nowrap font-medium">
                     {r.owner}
                   </td>
-                  <td className="px-5 py-3.5 whitespace-nowrap">
-                    <span className="flex items-center gap-1 font-mono text-[11px] text-muted-foreground">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className="flex items-center gap-1 font-mono text-xs text-muted-foreground">
                       <Lock className="size-3 text-emerald-500" /> {r.hash}
                     </span>
                   </td>
-                  <td className="px-5 py-3.5 whitespace-nowrap">
+                  <td className="px-6 py-4 whitespace-nowrap">
                     <Pill
                       tone={r.status === "Ready" || r.status === "Signed" ? "ok" : "warn"}
                       className="text-xs"
@@ -162,7 +160,7 @@ export function ReportsPage() {
                       {r.status}
                     </Pill>
                   </td>
-                  <td className="px-5 py-3.5 text-right whitespace-nowrap">
+                  <td className="px-6 py-4 text-right whitespace-nowrap">
                     <Button
                       size="sm"
                       variant="outline"

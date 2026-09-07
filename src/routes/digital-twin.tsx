@@ -71,16 +71,16 @@ export function DigitalTwin() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PageHeader
         title="3D/2D Building Digital Twin & Macro-Zones"
         description="BIM LOD-400 structural model paired with RFID portal gates and BLE spatial anchors. Tracks live contractor headcount, active work permits, and automated virtual geo-fences."
         actions={
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-3">
             <Button
               variant="outline"
               size="sm"
-              className="gap-2 h-9 rounded-xl font-semibold text-xs border-red-200 hover:bg-red-50 text-red-600 dark:border-red-900/60 dark:hover:bg-red-950/40"
+              className="gap-2 h-10 rounded-xl font-semibold text-xs border-red-200 hover:bg-red-50 text-red-600 dark:border-red-900/60 dark:hover:bg-red-950/40"
               onClick={simulateIntrusion}
             >
               <AlertTriangle className="size-4" /> Simulate Zone Breach
@@ -88,7 +88,7 @@ export function DigitalTwin() {
             <Button
               variant="outline"
               size="sm"
-              className="gap-1.5 h-9 rounded-xl font-semibold text-xs"
+              className="gap-1.5 h-10 rounded-xl font-semibold text-xs"
               onClick={() => toast.success("BIM LOD-400 digital twin geometry refreshed")}
             >
               <RefreshCw className="size-3.5" /> Sync BIM
@@ -98,7 +98,7 @@ export function DigitalTwin() {
       />
 
       {/* Building Switcher Pills */}
-      <div className="flex flex-wrap gap-2.5">
+      <div className="flex flex-wrap gap-3">
         {BUILDINGS.map((b) => {
           const active = building === b.id;
           return (
@@ -130,9 +130,9 @@ export function DigitalTwin() {
       </div>
 
       {/* Main Floorplan & Zone Register Layout */}
-      <div className="grid gap-6 xl:grid-cols-3">
+      <div className="grid gap-6 xl:grid-cols-3 items-stretch">
         <Panel
-          className="xl:col-span-2"
+          className="xl:col-span-2 flex flex-col h-full"
           title={`${building} Spatial Micro-Grid`}
           subtitle="Hover any zone for contractor permits, air quality, and foreman contacts. Click to lock inspection."
           action={
@@ -203,9 +203,10 @@ export function DigitalTwin() {
 
         {/* Macro-Zone Register */}
         <Panel
+          className="flex flex-col h-full"
           title="Macro-Zone Occupancy Register"
           subtitle="Real-time RFID headcount vs permissible capacity"
-          bodyClassName="space-y-3"
+          bodyClassName="space-y-3 flex-1 flex flex-col justify-start"
         >
           {zones.map((z) => {
             const isSelected = selected?.id === z.id;

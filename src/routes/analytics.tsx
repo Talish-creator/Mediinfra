@@ -184,21 +184,21 @@ export function AnalyticsPage() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PageHeader
         title="Executive Manpower & Financial Analytics"
         description="Every billed man-hour is reconciled in real time against RFID turnstile passes. This audit-proof register forms the contractual baseline for monthly Ashghal and HMC labor certification."
         actions={
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-3">
             <Button
-              className="gap-2 h-9 rounded-xl font-semibold text-xs"
+              className="gap-2 h-10 rounded-xl font-semibold text-xs"
               onClick={() => setPdfOpen(true)}
             >
               <FileDown className="size-4" /> Export Ashghal Return (PDF)
             </Button>
             <Button
               variant="outline"
-              className="gap-2 h-9 rounded-xl font-semibold text-xs"
+              className="gap-2 h-10 rounded-xl font-semibold text-xs"
               onClick={csvExport}
             >
               <FileSpreadsheet className="size-4" /> Payroll Timesheet (CSV)
@@ -208,7 +208,7 @@ export function AnalyticsPage() {
       />
 
       {/* 4 Large Executive KPI Cards (42px) */}
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4 items-stretch">
         <KpiCard
           label="Contract Budget Allocation"
           value="QAR 285.4M"
@@ -310,8 +310,9 @@ export function AnalyticsPage() {
       </Panel>
 
       {/* Grid of Planned vs Actual & Zone Dwell Times */}
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-2 items-stretch">
         <Panel
+          className="flex flex-col h-full"
           title="Planned vs Actual Labor Headcount"
           subtitle="Variance comparison across authorized trade contractors"
         >

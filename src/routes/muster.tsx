@@ -51,12 +51,12 @@ export function MusterPage() {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PageHeader
         title="Life Safety & Emergency Evacuation Muster"
         description="High-frequency RFID muster stations at Points A, B and C reconcile evacuated personnel against the morning ingress register. Real-time manifests transmit directly to Qatar Civil Defence and the HMC Disaster Center."
         actions={
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             <Pill tone={emergency ? "crit" : "ok"} className="h-9 px-3 text-xs">
               <Dot tone={emergency ? "crit" : "ok"} pulse={emergency} />
               {emergency ? "EVACUATION ALARM ACTIVE" : "Civil Defence Link Armed"}
@@ -125,7 +125,7 @@ export function MusterPage() {
       </div>
 
       {/* 3 Large KPI Cards (42px) */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-3 items-stretch">
         <KpiCard
           label="Site Population at Alarm"
           value={total.toLocaleString()}
@@ -153,12 +153,13 @@ export function MusterPage() {
       </div>
 
       {/* Muster Points Grid */}
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-6 lg:grid-cols-3 items-stretch">
         {MUSTER_POINTS.map((m) => {
           const share = emergency ? Math.round((accounted * m.accounted) / 831) : 0;
           return (
             <Panel
               key={m.id}
+              className="flex flex-col h-full"
               title={`Muster Station ${m.id}`}
               subtitle={m.name}
               action={
@@ -167,17 +168,20 @@ export function MusterPage() {
                   MSTR-{m.id}-01
                 </Pill>
               }
+              bodyClassName="flex-1 flex flex-col justify-between"
             >
-              <div className="flex items-baseline justify-between">
-                <p className="text-3xl font-bold tabular-nums text-foreground">{share}</p>
-                <span className="text-xs text-muted-foreground font-semibold">
-                  / {m.accounted} expected
-                </span>
+              <div>
+                <div className="flex items-baseline justify-between">
+                  <p className="text-3xl font-bold tabular-nums text-foreground">{share}</p>
+                  <span className="text-xs text-muted-foreground font-semibold">
+                    / {m.accounted} expected
+                  </span>
+                </div>
+                <div className="mt-3">
+                  <Bar value={share} max={m.accounted} tone="ok" />
+                </div>
               </div>
-              <div className="mt-3">
-                <Bar value={share} max={m.accounted} tone="ok" />
-              </div>
-              <p className="mt-3 text-[11px] text-muted-foreground flex items-center gap-1.5 font-medium">
+              <p className="mt-4 text-[12px] text-muted-foreground flex items-center gap-1.5 font-medium pt-3 border-t border-border/40">
                 <CheckCircle2 className="size-3.5 text-emerald-500" /> Antenna beam active · 99.8%
                 capture rate
               </p>
@@ -191,17 +195,17 @@ export function MusterPage() {
         title="Missing Personnel Triage Register"
         subtitle="Last known work zone derived from final portal RFID read — synchronized for Civil Defence rescue squads"
         action={
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-3">
             <input
               type="text"
               placeholder="Search missing worker, trade, or zone…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="h-9 w-64 rounded-xl border border-input bg-background px-3 text-xs outline-none focus:ring-2 focus:ring-primary"
+              className="h-10 w-72 rounded-xl border border-input bg-background px-3.5 text-xs outline-none focus:ring-2 focus:ring-primary"
             />
             <Button
               size="sm"
-              className="gap-2 h-9 rounded-xl font-semibold text-xs"
+              className="gap-2 h-10 rounded-xl font-semibold text-xs"
               onClick={() =>
                 toast.success("Emergency Evacuation Manifest Transmitted", {
                   description: `${missing || MISSING_PERSONNEL.length} personnel profiles dispatched to Qatar Civil Defence & HMC Disaster Operations.`,
@@ -215,52 +219,35 @@ export function MusterPage() {
         bodyClassName="p-0"
       >
         <div className="max-h-[460px] overflow-auto">
-          <table className="w-full text-xs" role="grid">
-            <thead className="sticky top-0 z-10 border-b border-border/80 bg-slate-50/95 dark:bg-slate-900/95 backdrop-blur-sm text-left uppercase text-[11px] font-semibold tracking-wider text-muted-foreground">
+          <table className="w-full text-sm" role="grid">
+            <thead className="sticky top-0 z-10 border-b border-border/80 bg-slate-50/95 dark:bg-slate-900/95 backdrop-blur-sm text-left uppercase text-[12px] font-semibold tracking-wider text-muted-foreground">
               <tr role="row">
-                <th scope="col" className="px-5 py-3">
-                  Personnel Name & QID
-                </th>
-                <th scope="col" className="px-5 py-3">
-                  Subcontractor
-                </th>
-                <th scope="col" className="px-5 py-3">
-                  Trade
-                </th>
-                <th scope="col" className="px-5 py-3">
-                  Emergency Contact
-                </th>
-                <th scope="col" className="px-5 py-3">
-                  Last Known Location
-                </th>
-                <th scope="col" className="px-5 py-3">
-                  Muster Status
-                </th>
+                <th className="px-6 py-4">Worker Profile</th>
+                <th className="px-6 py-4">Subcontractor Employer</th>
+                <th className="px-6 py-4">Assigned Trade</th>
+                <th className="px-6 py-4">Last RFID Portal Read</th>
+                <th className="px-6 py-4">Triage Protocol</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/60">
-              {filteredMissing.slice(0, emergency ? Math.max(1, missing) : 33).map((w) => (
+              {filteredMissing.map((w) => (
                 <tr
                   key={w.id}
                   className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors"
                 >
-                  <td className="px-5 py-3">
+                  <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <Avatar name={w.name} size={28} />
+                      <Avatar name={w.name} size={32} />
                       <div>
-                        <span className="block font-bold text-foreground">{w.name}</span>
-                        <Mono className="text-[11px] text-muted-foreground">{w.qid}</Mono>
+                        <p className="font-bold text-foreground text-sm">{w.name}</p>
+                        <Mono className="text-[11px] text-muted-foreground">QID: {w.qid}</Mono>
                       </div>
                     </div>
                   </td>
-                  <td className="whitespace-nowrap px-5 py-3 text-muted-foreground font-medium">
-                    {w.employer}
-                  </td>
-                  <td className="whitespace-nowrap px-5 py-3 font-medium">{w.trade}</td>
-                  <td className="whitespace-nowrap px-5 py-3">
-                    <span className="flex items-center gap-1.5 font-mono text-muted-foreground">
-                      <Phone className="size-3 text-primary" />
-                      {w.phone}
+                  <td className="px-6 py-4 text-muted-foreground">{w.employer}</td>
+                  <td className="px-6 py-4">
+                    <span className="rounded-full bg-slate-100 dark:bg-slate-800 px-2.5 py-1 text-xs font-semibold text-foreground">
+                      {w.trade}
                     </span>
                   </td>
                   <td className="px-5 py-3">

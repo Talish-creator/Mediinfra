@@ -147,12 +147,12 @@ export function GatesPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PageHeader
         title="Live Gate & Turnstile Telemetry"
         description="Every optical turnstile tap across Gates 01–04 is evaluated against work orders, induction validity, and zone quotas in under 300 ms with edge SQLite caching."
         actions={
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             <Pill tone={simulating ? "ok" : "muted"} className="h-9 px-3 text-xs">
               <Dot tone={simulating ? "ok" : "muted"} pulse={simulating} />
               {simulating ? `Streaming: ${throughputPerMin} taps/min` : "Stream paused"}
@@ -162,7 +162,7 @@ export function GatesPage() {
       />
 
       {/* Real-Time KPI Cards (42px) */}
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4 items-stretch">
         <KpiCard
           label="Active Optical Turnstiles"
           value="4 / 4"
@@ -215,44 +215,42 @@ export function GatesPage() {
           </span>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 items-stretch">
           <AnimatePresence mode="popLayout">
             {latestEvents.map((ev) => (
               <motion.div
                 key={ev.id}
                 layout
-                initial={{ opacity: 0, y: -12, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
+                initial={{ opacity: 0, scale: 0.95, y: -8 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.25, ease: "easeOut" }}
+                transition={{ duration: 0.2 }}
                 className={cn(
-                  "rounded-2xl border p-3.5 bg-card shadow-sm transition-all duration-200 hover:shadow-md",
-                  ev.status === "Authorized"
-                    ? "border-emerald-200/80 dark:border-emerald-900/60"
-                    : "border-red-200/80 dark:border-red-900/60 bg-red-50/20 dark:bg-red-950/10",
+                  "rounded-2xl border p-4 shadow-sm transition-all duration-200 flex flex-col justify-between",
+                  ev.status.startsWith("Auth")
+                    ? "border-emerald-200/80 bg-emerald-50/40 dark:border-emerald-900/50 dark:bg-emerald-950/20"
+                    : "border-red-200/80 bg-red-50/40 dark:border-red-900/50 dark:bg-red-950/20",
                 )}
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Avatar name={ev.worker.name} size={26} />
-                    <div>
-                      <p className="text-xs font-bold text-foreground truncate max-w-[110px]">
-                        {ev.worker.name}
-                      </p>
-                      <p className="text-[10px] text-muted-foreground truncate max-w-[110px]">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2.5">
+                    <Avatar name={ev.worker.name} size={30} />
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-foreground truncate">{ev.worker.name}</p>
+                      <p className="text-[10px] text-muted-foreground truncate">
                         {ev.worker.employer}
                       </p>
                     </div>
                   </div>
                   <Pill
-                    tone={ev.status === "Authorized" ? "ok" : "crit"}
-                    className="text-[10px] py-0 px-1.5"
+                    tone={ev.direction === "IN" ? "ok" : "cyan"}
+                    className="text-[10px] py-0 px-2 font-mono font-bold"
                   >
                     {ev.direction === "IN" ? "IN" : "OUT"}
                   </Pill>
                 </div>
 
-                <div className="mt-2.5 flex items-center justify-between text-[11px] pt-2 border-t border-border/50">
+                <div className="mt-3 flex items-center justify-between text-[11px] pt-2.5 border-t border-border/50">
                   <span className="font-mono text-muted-foreground">{ev.gateId}</span>
                   <span className="font-mono text-foreground font-semibold">{ev.time}</span>
                 </div>
@@ -263,10 +261,10 @@ export function GatesPage() {
       </div>
 
       {/* Queue Visualizer & Lane Utilization Grid */}
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-6 lg:grid-cols-3 items-stretch">
         {/* Real-Time Queue Visualizers for 4 Gates */}
         <Panel
-          className="lg:col-span-2"
+          className="lg:col-span-2 flex flex-col h-full"
           title="Turnstile Portal Queues & Hardware Diagnostics"
           subtitle="Real-time worker queue density and optical lane transit velocity"
           action={

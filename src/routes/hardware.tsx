@@ -38,7 +38,7 @@ export const Route = createFileRoute("/hardware")({
 
 export function HardwarePage() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PageHeader
         title="ELV Hardware & Sensor Telemetry"
         description="Physical low-current bill of quantities deployed across P875 Hamad General Hospital. Monitored via SNMP v3, Zebra IoT Connector, and on-premise industrial gateways."
@@ -46,7 +46,7 @@ export function HardwarePage() {
           <Button
             variant="outline"
             size="sm"
-            className="gap-2 h-9 rounded-xl font-semibold text-xs"
+            className="gap-2 h-10 rounded-xl font-semibold text-xs"
             onClick={() =>
               toast.success("SNMP diagnostic scan poll completed across all 4 gate gateways")
             }
@@ -57,7 +57,7 @@ export function HardwarePage() {
       />
 
       {/* 4 Large KPI Cards (42px) */}
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4 items-stretch">
         <KpiCard
           label="Fixed UHF Readers"
           value="4 / 4"
@@ -107,16 +107,17 @@ export function HardwarePage() {
       </div>
 
       {/* Readers and Edge Gateways Panels */}
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-2 items-stretch">
         <Panel
+          className="flex flex-col h-full"
           title="Fixed RFID Readers (Zebra FXR90)"
           subtitle="Real-time RF transmit power, antenna matching, and thermal core telemetry"
-          bodyClassName="space-y-3.5"
+          bodyClassName="space-y-4 flex-1 flex flex-col justify-between"
         >
           {HARDWARE.readers.map((r) => (
             <div
               key={r.id}
-              className="rounded-2xl border border-border bg-slate-50/60 dark:bg-slate-900/30 p-4 transition-all hover:border-primary/40"
+              className="rounded-2xl border border-border bg-slate-50/60 dark:bg-slate-900/30 p-5 transition-all hover:border-primary/40"
             >
               <div className="flex items-center justify-between">
                 <p className="flex items-center gap-2 text-xs font-bold text-foreground">
@@ -126,7 +127,7 @@ export function HardwarePage() {
                   <Dot tone={r.status === "Online" ? "ok" : "warn"} /> {r.status}
                 </Pill>
               </div>
-              <div className="mt-3 grid grid-cols-4 gap-2 text-xs pt-2 border-t border-border/50">
+              <div className="mt-3 grid grid-cols-4 gap-2 text-xs pt-2.5 border-t border-border/50">
                 <div>
                   <span className="text-muted-foreground text-[11px] block">IP Address</span>
                   <Mono className="font-semibold text-foreground text-xs">{r.ip}</Mono>
@@ -151,16 +152,17 @@ export function HardwarePage() {
         </Panel>
 
         <Panel
+          className="flex flex-col h-full"
           title="Edge Gateways & Industrial UPS"
           subtitle="On-premise store-and-forward buffers with lithium battery autonomy"
-          bodyClassName="space-y-3.5"
+          bodyClassName="space-y-4 flex-1 flex flex-col justify-between"
         >
           {HARDWARE.gateways.map((g, i) => {
             const ups = HARDWARE.ups[i]!;
             return (
               <div
                 key={g.id}
-                className="rounded-2xl border border-border bg-slate-50/60 dark:bg-slate-900/30 p-4 transition-all hover:border-primary/40"
+                className="rounded-2xl border border-border bg-slate-50/60 dark:bg-slate-900/30 p-5 transition-all hover:border-primary/40"
               >
                 <div className="flex items-center justify-between">
                   <p className="flex items-center gap-2 text-xs font-bold text-foreground">
@@ -175,7 +177,7 @@ export function HardwarePage() {
                   <span>·</span>
                   <span>Disk Storage: {g.disk}% used</span>
                 </div>
-                <div className="mt-3 flex items-center gap-3 text-xs pt-2 border-t border-border/50">
+                <div className="mt-3 flex items-center gap-3 text-xs pt-2.5 border-t border-border/50">
                   <BatteryCharging className="size-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
                   <span className="w-24 text-muted-foreground text-[11px] truncate">{ups.id}</span>
                   <div className="flex-1">
@@ -192,8 +194,12 @@ export function HardwarePage() {
       </div>
 
       {/* Bottom Hardware Distribution */}
-      <div className="grid gap-6 lg:grid-cols-3">
-        <Panel title="Antenna Array Specification" subtitle={HARDWARE.antennas.model}>
+      <div className="grid gap-6 lg:grid-cols-3 items-stretch">
+        <Panel
+          className="flex flex-col h-full"
+          title="Antenna Array Specification"
+          subtitle={HARDWARE.antennas.model}
+        >
           <p className="flex items-center gap-2 text-3xl font-bold text-emerald-600 dark:text-emerald-400">
             <Antenna className="size-6" /> {HARDWARE.antennas.online} / {HARDWARE.antennas.total}
           </p>

@@ -59,12 +59,12 @@ export function SafetyAi() {
   }, []);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PageHeader
         title="Edge AI Safety Vision & Broadcast Hub"
         description="On-device TensorRT neural inference at perimeter gates and hoarding entrances detects PPE compliance and turnstile evasion within 11.4 ms, triggering automated site loudspeaker warnings."
         actions={
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             <Pill tone="ok" className="h-9 px-3 text-xs">
               <Dot tone="ok" /> 3 Edge Nodes Active · {fps} FPS
             </Pill>
@@ -83,9 +83,9 @@ export function SafetyAi() {
       />
 
       {/* Edge Inference Telemetry Bar */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="rounded-2xl border border-border bg-card p-4 shadow-sm flex items-center gap-3.5">
-          <div className="flex size-11 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-950/50 text-primary border border-blue-200 dark:border-blue-900">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 items-stretch">
+        <div className="rounded-2xl border border-border bg-card p-6 shadow-sm flex items-center gap-4">
+          <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-950/50 text-primary border border-blue-200 dark:border-blue-900">
             <Cpu className="size-5" />
           </div>
           <div>
@@ -95,8 +95,8 @@ export function SafetyAi() {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-border bg-card p-4 shadow-sm flex items-center gap-3.5">
-          <div className="flex size-11 items-center justify-center rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 border border-emerald-200 dark:border-emerald-900">
+        <div className="rounded-2xl border border-border bg-card p-6 shadow-sm flex items-center gap-4">
+          <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 border border-emerald-200 dark:border-emerald-900">
             <Activity className="size-5" />
           </div>
           <div>
@@ -108,8 +108,8 @@ export function SafetyAi() {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-border bg-card p-4 shadow-sm flex items-center gap-3.5">
-          <div className="flex size-11 items-center justify-center rounded-xl bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 border border-indigo-200 dark:border-indigo-900">
+        <div className="rounded-2xl border border-border bg-card p-6 shadow-sm flex items-center gap-4">
+          <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 border border-indigo-200 dark:border-indigo-900">
             <Sparkles className="size-5" />
           </div>
           <div>
@@ -119,8 +119,8 @@ export function SafetyAi() {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-border bg-card p-4 shadow-sm flex items-center gap-3.5">
-          <div className="flex size-11 items-center justify-center rounded-xl bg-amber-50 dark:bg-amber-950/50 text-amber-600 border border-amber-200 dark:border-amber-900">
+        <div className="rounded-2xl border border-border bg-card p-6 shadow-sm flex items-center gap-4">
+          <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-amber-50 dark:bg-amber-950/50 text-amber-600 border border-amber-200 dark:border-amber-900">
             <Volume2 className="size-5" />
           </div>
           <div>
@@ -132,7 +132,7 @@ export function SafetyAi() {
       </div>
 
       {/* Live AI Camera Feeds */}
-      <div className="grid gap-5 lg:grid-cols-3">
+      <div className="grid gap-6 lg:grid-cols-3 items-stretch">
         {AI_CAMERAS.map((cam) => {
           const isSelected = selectedCam === cam.id;
           return (

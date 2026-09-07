@@ -97,24 +97,26 @@ export function Panel({
   return (
     <section
       className={cn(
-        "rounded-2xl border border-border bg-card shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden",
+        "h-full flex flex-col rounded-2xl border border-border bg-card shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden",
         className,
       )}
     >
       {(title || action) && (
-        <header className="flex items-center justify-between gap-3 border-b border-border/80 px-5 py-4 bg-slate-50/50 dark:bg-slate-900/30">
+        <header className="flex items-center justify-between gap-4 border-b border-border/80 px-6 py-4.5 bg-slate-50/50 dark:bg-slate-900/30 shrink-0">
           <div>
             {title && (
-              <h2 className="text-[15px] font-semibold text-foreground tracking-tight">{title}</h2>
+              <h2 className="text-[24px] font-bold text-foreground tracking-tight leading-snug">
+                {title}
+              </h2>
             )}
             {subtitle && (
-              <p className="mt-0.5 text-[13px] font-medium text-muted-foreground">{subtitle}</p>
+              <p className="mt-1 text-sm font-medium text-muted-foreground">{subtitle}</p>
             )}
           </div>
           {action}
         </header>
       )}
-      <div className={cn("p-5", bodyClassName)}>{children}</div>
+      <div className={cn("p-6 flex-1 flex flex-col", bodyClassName)}>{children}</div>
     </section>
   );
 }
@@ -210,7 +212,7 @@ export function KpiCard({
   const isPositive = typeof trend === "number" ? trend >= 0 : String(trend).startsWith("+");
 
   return (
-    <div className="group relative rounded-2xl border border-border bg-card p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 overflow-hidden flex flex-col justify-between">
+    <div className="group relative h-full rounded-2xl border border-border bg-card p-6 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 overflow-hidden flex flex-col justify-between">
       {/* Top indicator bar */}
       <div
         className="absolute inset-x-0 top-0 h-1 transition-opacity opacity-80 group-hover:opacity-100"
@@ -221,16 +223,16 @@ export function KpiCard({
 
       <div>
         <div className="flex items-center justify-between gap-2">
-          <p className="text-[13px] font-semibold text-muted-foreground tracking-tight">{label}</p>
+          <p className="text-[16px] font-semibold text-muted-foreground tracking-tight">{label}</p>
           {status && (
-            <Pill tone={tone} className="text-[10px] py-0 px-2">
+            <Pill tone={tone} className="text-[11px] py-0.5 px-2.5">
               {status}
             </Pill>
           )}
         </div>
 
         {/* 42px KPI Value */}
-        <div className="mt-3 flex items-baseline gap-2">
+        <div className="mt-3.5 flex items-baseline gap-2">
           <p
             className={cn(
               "text-[42px] font-bold tracking-tight leading-none tabular-nums text-foreground",
@@ -246,10 +248,10 @@ export function KpiCard({
 
         {/* Trend badge and comparison */}
         {trend !== undefined && (
-          <div className="mt-2.5 flex items-center gap-1.5 text-xs">
+          <div className="mt-3 flex items-center gap-2 text-xs">
             <span
               className={cn(
-                "inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 font-semibold text-[11px]",
+                "inline-flex items-center gap-0.5 rounded-full px-2.5 py-0.5 font-semibold text-[11px]",
                 isPositive
                   ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300"
                   : "bg-red-50 text-red-700 dark:bg-red-950/60 dark:text-red-300",
@@ -262,20 +264,24 @@ export function KpiCard({
               )}
               {typeof trend === "number" ? `${trend > 0 ? "+" : ""}${trend}%` : trend}
             </span>
-            <span className="text-muted-foreground text-[12px]">{trendLabel}</span>
+            <span className="text-muted-foreground text-xs">{trendLabel}</span>
           </div>
         )}
 
-        {sub && !trend && <p className="mt-2 text-xs font-medium text-muted-foreground">{sub}</p>}
+        {sub && !trend && <p className="mt-2.5 text-sm font-medium text-muted-foreground">{sub}</p>}
       </div>
 
       {spark && (
-        <div className="mt-4 pt-1 border-t border-border/40">
+        <div className="mt-5 pt-2 border-t border-border/40">
           <Spark data={spark} tone={tone} />
         </div>
       )}
 
-      {footer && <div className="mt-3 text-xs text-muted-foreground">{footer}</div>}
+      {footer && (
+        <div className="mt-4 pt-3 border-t border-border/40 text-xs text-muted-foreground">
+          {footer}
+        </div>
+      )}
     </div>
   );
 }
@@ -312,17 +318,19 @@ export function PageHeader({
   actions?: ReactNode;
 }) {
   return (
-    <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between pb-1 border-b border-border/60">
+    <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between pb-8 border-b border-border/60">
       <div>
         <div className="flex items-center gap-3">
-          <h1 className="text-[32px] font-bold tracking-tight text-foreground">{title}</h1>
+          <h1 className="text-[32px] sm:text-[40px] lg:text-[48px] font-bold tracking-tight leading-tight text-foreground">
+            {title}
+          </h1>
           {badge}
         </div>
-        <p className="mt-1.5 max-w-3xl text-[13px] font-medium text-muted-foreground leading-relaxed">
+        <p className="mt-2.5 max-w-3xl text-sm font-normal text-muted-foreground leading-relaxed">
           {description}
         </p>
       </div>
-      {actions && <div className="flex flex-wrap items-center gap-2 shrink-0">{actions}</div>}
+      {actions && <div className="flex flex-wrap items-center gap-3 shrink-0">{actions}</div>}
     </div>
   );
 }
@@ -422,7 +430,7 @@ export function EnterpriseDataGrid<T extends { id?: string | number }>({
   return (
     <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
       {/* Table Toolbar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 p-4 border-b border-border/80 bg-slate-50/50 dark:bg-slate-900/30">
+      <div className="flex flex-wrap items-center justify-between gap-4 p-6 border-b border-border/80 bg-slate-50/50 dark:bg-slate-900/30">
         <div className="flex items-center gap-3 min-w-[280px] flex-1 max-w-md">
           <div className="relative w-full">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
@@ -433,7 +441,7 @@ export function EnterpriseDataGrid<T extends { id?: string | number }>({
                 setPage(1);
               }}
               placeholder={searchPlaceholder}
-              className="pl-9 h-9 rounded-xl bg-background text-[13px]"
+              className="pl-9 h-10 rounded-xl bg-background text-sm"
             />
           </div>
           {filterOptions && (
@@ -443,7 +451,7 @@ export function EnterpriseDataGrid<T extends { id?: string | number }>({
                 setFilterVal(e.target.value);
                 setPage(1);
               }}
-              className="h-9 px-3 rounded-xl border border-input bg-background text-[13px] font-medium text-foreground outline-none focus:ring-2 focus:ring-primary"
+              className="h-10 px-3 rounded-xl border border-input bg-background text-sm font-medium text-foreground outline-none focus:ring-2 focus:ring-primary"
             >
               <option value="all">All categories</option>
               {filterOptions.map((opt) => (
@@ -455,16 +463,16 @@ export function EnterpriseDataGrid<T extends { id?: string | number }>({
           )}
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           {actions}
           {onExportCsv && (
             <Button
               variant="outline"
               size="sm"
               onClick={onExportCsv}
-              className="gap-2 h-9 rounded-xl text-[13px]"
+              className="gap-2 h-10 rounded-xl text-sm"
             >
-              <Download className="size-3.5" /> Export CSV
+              <Download className="size-4" /> Export CSV
             </Button>
           )}
         </div>
@@ -472,10 +480,10 @@ export function EnterpriseDataGrid<T extends { id?: string | number }>({
 
       {/* Grid Content */}
       <div className="overflow-x-auto">
-        <table className="w-full text-[13px]" role="grid">
-          <thead className="sticky top-0 z-10 border-b border-border/80 bg-slate-50/95 dark:bg-slate-900/95 backdrop-blur-sm text-left uppercase text-[11px] font-semibold tracking-wider text-muted-foreground">
+        <table className="w-full text-sm" role="grid">
+          <thead className="sticky top-0 z-10 border-b border-border/80 bg-slate-50/95 dark:bg-slate-900/95 backdrop-blur-sm text-left uppercase text-[12px] font-semibold tracking-wider text-muted-foreground">
             <tr role="row">
-              <th className="w-10 px-4 py-3 text-center" scope="col">
+              <th className="w-12 px-6 py-4 text-center" scope="col">
                 <input
                   type="checkbox"
                   aria-label="Select all rows"
@@ -513,7 +521,7 @@ export function EnterpriseDataGrid<T extends { id?: string | number }>({
                     }
                   }}
                   className={cn(
-                    "px-4 py-3 whitespace-nowrap",
+                    "px-6 py-4 whitespace-nowrap",
                     col.sortable !== false &&
                       "cursor-pointer select-none hover:text-foreground focus:outline-none focus-visible:ring-1 focus-visible:ring-primary",
                     col.align === "right" && "text-right",
@@ -541,7 +549,7 @@ export function EnterpriseDataGrid<T extends { id?: string | number }>({
               <tr>
                 <td
                   colSpan={columns.length + 1}
-                  className="py-12 text-center text-muted-foreground"
+                  className="py-16 text-center text-muted-foreground text-sm"
                 >
                   No matching records found. Try adjusting search filters.
                 </td>
@@ -558,7 +566,7 @@ export function EnterpriseDataGrid<T extends { id?: string | number }>({
                       isSelected && "bg-blue-50/50 dark:bg-blue-950/20",
                     )}
                   >
-                    <td className="px-4 py-3 text-center">
+                    <td className="px-6 py-4 text-center">
                       <input
                         type="checkbox"
                         checked={isSelected}
@@ -575,7 +583,7 @@ export function EnterpriseDataGrid<T extends { id?: string | number }>({
                       <td
                         key={col.key}
                         className={cn(
-                          "px-4 py-3 text-foreground",
+                          "px-6 py-4 text-foreground",
                           col.align === "right" && "text-right tabular-nums",
                           col.align === "center" && "text-center",
                         )}
@@ -594,7 +602,7 @@ export function EnterpriseDataGrid<T extends { id?: string | number }>({
       </div>
 
       {/* Pagination Footer */}
-      <div className="flex items-center justify-between border-t border-border/80 px-4 py-3 bg-slate-50/50 dark:bg-slate-900/30 text-xs text-muted-foreground">
+      <div className="flex items-center justify-between border-t border-border/80 px-6 py-4 bg-slate-50/50 dark:bg-slate-900/30 text-xs text-muted-foreground">
         <div>
           Showing{" "}
           <span className="font-semibold text-foreground">

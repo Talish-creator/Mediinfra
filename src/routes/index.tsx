@@ -67,21 +67,21 @@ export function CommandCenter() {
   const [building, setBuilding] = useState<"IPT" | "OPT" | "ENG">("IPT");
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PageHeader
         title="Executive Safety & Workforce Command"
         description="P875 Hamad General Hospital expansion & retrofit. Real-time telemetry synchronized across optical turnstile readers, RFID digital twin zones, and Edge AI vision gateways."
         actions={
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <Link
               to="/digital-twin"
-              className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-3.5 py-2 text-xs font-semibold text-foreground hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-sm"
+              className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2.5 text-xs font-semibold text-foreground hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-sm"
             >
               <Boxes className="size-3.5 text-primary" /> 3D Digital Twin
             </Link>
             <Link
               to="/gates"
-              className="inline-flex items-center gap-2 rounded-xl bg-primary px-3.5 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm"
+              className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm"
             >
               <ScanLine className="size-3.5" /> Gate Telemetry
             </Link>
@@ -90,7 +90,7 @@ export function CommandCenter() {
       />
 
       {/* 4 Commercial Enterprise KPI Cards (42px) */}
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4 items-stretch">
         <KpiCard
           label="Total On-Site Headcount"
           value={headcount.toLocaleString()}
@@ -156,10 +156,10 @@ export function CommandCenter() {
       </div>
 
       {/* Digital Twin Overview & Real-Time Gates Hub */}
-      <div className="grid gap-6 xl:grid-cols-3">
+      <div className="grid gap-6 xl:grid-cols-3 items-stretch">
         {/* Digital Twin Floorplan Panel */}
         <Panel
-          className="xl:col-span-2"
+          className="xl:col-span-2 flex flex-col h-full"
           title="Digital Twin — Live Worker Concentration Heatmap"
           subtitle="Real-time macro-zone occupancy computed from RFID portal reads and BLE mesh"
           action={
@@ -170,8 +170,12 @@ export function CommandCenter() {
             </div>
           }
         >
-          <Tabs value={building} onValueChange={(v) => setBuilding(v as typeof building)}>
-            <TabsList className="mb-4 flex-wrap rounded-xl bg-slate-100 dark:bg-slate-900 p-1">
+          <Tabs
+            value={building}
+            onValueChange={(v) => setBuilding(v as typeof building)}
+            className="flex-1 flex flex-col"
+          >
+            <TabsList className="mb-4 flex-wrap rounded-xl bg-slate-100 dark:bg-slate-900 p-1 shrink-0">
               {BUILDINGS.map((b) => (
                 <TabsTrigger
                   key={b.id}
@@ -186,8 +190,8 @@ export function CommandCenter() {
               ))}
             </TabsList>
             {BUILDINGS.map((b) => (
-              <TabsContent key={b.id} value={b.id} className="mt-0">
-                <Floorplan building={b.id} height={520} />
+              <TabsContent key={b.id} value={b.id} className="mt-0 flex-1 flex flex-col">
+                <Floorplan building={b.id} height={540} />
               </TabsContent>
             ))}
           </Tabs>
@@ -195,6 +199,7 @@ export function CommandCenter() {
 
         {/* Real-Time Gate Status Hub */}
         <Panel
+          className="flex flex-col h-full"
           title="Perimeter Access Gate Status"
           subtitle="4 optical turnstile portals · Zebra FXR90 Gen2 readers"
           action={
@@ -205,7 +210,7 @@ export function CommandCenter() {
               View All <ChevronRight className="size-3" />
             </Link>
           }
-          bodyClassName="space-y-3.5"
+          bodyClassName="space-y-4 flex-1 flex flex-col justify-between"
         >
           {GATES.map((gate) => {
             const recent = events.filter((e) => e.gateId === gate.id).slice(0, 3);
@@ -289,9 +294,9 @@ export function CommandCenter() {
           </div>
         }
       >
-        <div className="h-72 w-full min-h-[280px]">
-          <ResponsiveContainer width="100%" height={280} minHeight={280}>
-            <AreaChart data={MANPOWER_CURVE} margin={{ top: 12, right: 12, bottom: 0, left: -14 }}>
+        <div className="h-80 w-full min-h-[320px]">
+          <ResponsiveContainer width="100%" height={320} minHeight={320}>
+            <AreaChart data={MANPOWER_CURVE} margin={{ top: 16, right: 16, bottom: 0, left: -14 }}>
               <defs>
                 <linearGradient id="gradActual" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#1F6FEB" stopOpacity={0.35} />
@@ -347,22 +352,22 @@ export function CommandCenter() {
         action={
           <Link
             to="/analytics"
-            className="flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+            className="flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline"
           >
-            Detailed Manpower Audit <ArrowUpRight className="size-3" />
+            Detailed Manpower Audit <ArrowUpRight className="size-3.5" />
           </Link>
         }
         bodyClassName="p-0"
       >
         <div className="overflow-x-auto">
-          <table className="w-full text-xs">
-            <thead className="border-b border-border bg-slate-50 dark:bg-slate-900 text-left uppercase text-[11px] font-semibold tracking-wider text-muted-foreground">
+          <table className="w-full text-sm">
+            <thead className="border-b border-border bg-slate-50 dark:bg-slate-900 text-left uppercase text-[12px] font-semibold tracking-wider text-muted-foreground">
               <tr>
-                <th className="px-5 py-3">Contractor</th>
-                <th className="px-5 py-3">Trade Package</th>
-                <th className="px-5 py-3">Present / Planned</th>
-                <th className="px-5 py-3">Capacity Utilization</th>
-                <th className="px-5 py-3">Permits</th>
+                <th className="px-6 py-4">Contractor</th>
+                <th className="px-6 py-4">Trade Package</th>
+                <th className="px-6 py-4">Present / Planned</th>
+                <th className="px-6 py-4">Capacity Utilization</th>
+                <th className="px-6 py-4">Permits</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border/60">
@@ -371,12 +376,12 @@ export function CommandCenter() {
                   key={s.id}
                   className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors"
                 >
-                  <td className="px-5 py-3.5 font-bold text-foreground">{s.name}</td>
-                  <td className="px-5 py-3.5 text-muted-foreground">{s.trade}</td>
-                  <td className="px-5 py-3.5 tabular-nums font-semibold">
+                  <td className="px-6 py-4 font-bold text-foreground">{s.name}</td>
+                  <td className="px-6 py-4 text-muted-foreground">{s.trade}</td>
+                  <td className="px-6 py-4 tabular-nums font-semibold">
                     {s.present} / {s.planned}
                   </td>
-                  <td className="w-64 px-5 py-3.5">
+                  <td className="w-64 px-6 py-4">
                     <div className="flex items-center gap-3">
                       <Bar
                         value={s.present}
@@ -388,7 +393,7 @@ export function CommandCenter() {
                       </Mono>
                     </div>
                   </td>
-                  <td className="px-5 py-3.5">
+                  <td className="px-6 py-4">
                     <Pill tone="cyan" className="text-xs">
                       {s.permits} Active
                     </Pill>

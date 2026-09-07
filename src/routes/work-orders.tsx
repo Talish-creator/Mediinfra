@@ -284,7 +284,7 @@ export function WorkOrdersPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <PageHeader
         title="Electronic Work Orders & Permit-to-Work"
         description="Every work order traverses five gated verification steps. Turnstiles at Gates 01–04 deny perimeter access until both consultant clearance and the digital worker briefing are executed."
@@ -295,7 +295,7 @@ export function WorkOrdersPage() {
               <button
                 onClick={() => setViewMode("kanban")}
                 className={cn(
-                  "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors",
+                  "flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-xs font-semibold transition-colors",
                   viewMode === "kanban"
                     ? "bg-card text-foreground shadow-sm"
                     : "text-muted-foreground hover:text-foreground",
@@ -306,7 +306,7 @@ export function WorkOrdersPage() {
               <button
                 onClick={() => setViewMode("table")}
                 className={cn(
-                  "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors",
+                  "flex items-center gap-1.5 rounded-lg px-3.5 py-2 text-xs font-semibold transition-colors",
                   viewMode === "table"
                     ? "bg-card text-foreground shadow-sm"
                     : "text-muted-foreground hover:text-foreground",
@@ -319,7 +319,7 @@ export function WorkOrdersPage() {
             {/* Create Dialog */}
             <Dialog open={createOpen} onOpenChange={setCreateOpen}>
               <DialogTrigger asChild>
-                <Button className="gap-2 rounded-xl h-9 font-semibold text-xs">
+                <Button className="gap-2 rounded-xl h-10 font-semibold text-xs">
                   <Plus className="size-4" /> Create Work Order
                 </Button>
               </DialogTrigger>
@@ -475,16 +475,16 @@ export function WorkOrdersPage() {
 
       {/* KANBAN BOARD VIEW */}
       {viewMode === "kanban" ? (
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 items-stretch">
           {STAGES.map((stage) => {
             const stageOrders = filteredOrders.filter((o) => o.stage === stage.id);
             return (
               <div
                 key={stage.id}
-                className="flex flex-col rounded-2xl border border-border bg-slate-50/60 dark:bg-slate-900/30 p-3 shadow-sm min-h-[550px]"
+                className="flex flex-col rounded-2xl border border-border bg-slate-50/60 dark:bg-slate-900/30 p-4 shadow-sm min-h-[620px] h-full"
               >
                 {/* Column Header */}
-                <div className="flex items-center justify-between pb-3 border-b border-border/60">
+                <div className="flex items-center justify-between pb-3.5 border-b border-border/60">
                   <div className="flex items-center gap-2">
                     <span className={cn("size-2.5 rounded-full", stage.color)} />
                     <span className="text-xs font-bold text-foreground truncate max-w-[130px]">
@@ -497,7 +497,7 @@ export function WorkOrdersPage() {
                 </div>
 
                 {/* Cards Container */}
-                <div className="flex-1 space-y-3 pt-3 overflow-y-auto">
+                <div className="flex-1 space-y-3.5 pt-3.5 overflow-y-auto">
                   <AnimatePresence mode="popLayout">
                     {stageOrders.map((o) => (
                       <motion.div
@@ -520,9 +520,9 @@ export function WorkOrdersPage() {
                           </Pill>
                         </div>
 
-                        <p className="mt-2 text-xs font-semibold text-foreground line-clamp-2 leading-snug">
+                        <h3 className="mt-2 text-[14px] font-semibold text-foreground line-clamp-2 leading-snug">
                           {o.description}
-                        </p>
+                        </h3>
 
                         <div className="mt-2 text-[11px] text-muted-foreground">
                           <span>{o.contractor}</span>
