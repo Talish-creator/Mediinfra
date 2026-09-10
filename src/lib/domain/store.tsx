@@ -97,6 +97,8 @@ import {
   executeScenario4,
   executeScenario5,
   executeScenario6,
+  executeScenario7,
+  executeScenario8,
   type ScenarioStepResult,
   type SimulationContext,
 } from "./simulation";
@@ -170,11 +172,26 @@ interface DomainStoreContextType {
   gateQueues: Record<string, number>;
   throughputPerMin: number;
 
-  // Active Simulation Scenarios
+  // Derived Selectors
+  presentWorkers: Worker[];
+  activeHeadcount: number;
+  zoneOccupancies: Record<string, number>;
+  contractorManpower: Record<string, number>;
+  activeWorkOrdersCount: number;
+  safetyScore: number;
+  canPerformAction: (action: "APPROVE_WORK_ORDER" | "APPROVE_CLAIM" | "DISBURSE_PAYMENT" | "OVERRIDE_GATE" | "TRIGGER_EMERGENCY" | "CLOSE_INCIDENT") => boolean;
+
+  // Active Simulation Scenarios & Stepper Controls
   activeScenarioResult: ScenarioStepResult[] | null;
   activeScenarioNumber: number | null;
+  currentScenarioStepIndex: number;
+  isScenarioPaused: boolean;
   clearScenarioResult: () => void;
-  runScenario: (num: 1 | 2 | 3 | 4 | 5 | 6) => ScenarioStepResult[];
+  runScenario: (num: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8) => ScenarioStepResult[];
+  stepScenario: () => void;
+  pauseScenario: () => void;
+  resumeScenario: () => void;
+  resetSimulation: () => void;
 
   // Operational Domain Mutations
   scanRfid: (gateId: string, workerId?: string, direction?: "IN" | "OUT") => GateEvent;
@@ -361,6 +378,82 @@ export function DomainStoreProvider({ children }: { children: ReactNode }) {
   // Scenario Runner State
   const [activeScenarioResult, setActiveScenarioResult] = useState<ScenarioStepResult[] | null>(null);
   const [activeScenarioNumber, setActiveScenarioNumber] = useState<number | null>(null);
+  const [currentScenarioStepIndex, setCurrentScenarioStepIndex] = useState(0);
+  const [isScenarioPaused, setIsScenarioPaused] = useState(false);
+
+  // Derived Telemetry & Operational Metrics
+  const presentWorkers = useMemo(
+    () => workers.filter((w) => w.status === "On Site"),
+    [workers],
+  );
+
+  const activeHeadcount = useMemo(() => {
+    return presentWorkers.length;
+  }, [presentWorkers]);
+
+  const zoneOccupancies = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const z of zones) counts[z.id] = z.currentOccupancy;
+    for (const w of presentWorkers) {
+      if (w.currentZoneId) {
+        counts[w.currentZoneId] = (counts[w.currentZoneId] || 0) + 1;
+      }
+    }
+    return counts;
+  }, [zones, presentWorkers]);
+
+  const contractorManpower = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const c of contractors) counts[c.id] = c.actualManpower;
+    for (const w of presentWorkers) {
+      counts[w.contractorId] = (counts[w.contractorId] || 0) + 1;
+    }
+    return counts;
+  }, [contractors, presentWorkers]);
+
+  const activeWorkOrdersCount = useMemo(
+    () => workOrders.filter((wo) => wo.status === "Active" || (wo.stage >= 7 && wo.stage <= 10)).length,
+    [workOrders],
+  );
+
+  const safetyScore = useMemo(() => {
+    const openIncidents = incidents.filter((i) => i.status !== "CLOSED").length;
+    const criticalIncidents = incidents.filter((i) => i.status !== "CLOSED" && (i.severity === "Critical" || i.severity === "High")).length;
+    const calculated = 99.4 - openIncidents * 0.8 - criticalIncidents * 1.5;
+    return Math.max(75, Math.min(100, parseFloat(calculated.toFixed(1))));
+  }, [incidents]);
+
+  const canPerformAction = useCallback(
+    (action: "APPROVE_WORK_ORDER" | "APPROVE_CLAIM" | "DISBURSE_PAYMENT" | "OVERRIDE_GATE" | "TRIGGER_EMERGENCY" | "CLOSE_INCIDENT") => {
+      switch (action) {
+        case "APPROVE_WORK_ORDER":
+          return [
+            "Ministry of Public Health (MoPH) Auditor",
+            "Ashghal (PWA) Senior Resident Engineer",
+            "Hamad Medical Corporation (HMC) Safety Inspector",
+            "IMAR-Al Sraiya JV Main Contractor",
+            "HSE Field Marshal",
+          ].includes(role);
+        case "APPROVE_CLAIM":
+          return [
+            "Ashghal (PWA) Senior Resident Engineer",
+            "IMAR-Al Sraiya JV Main Contractor",
+            "Commercial / Quantity Surveyor",
+          ].includes(role);
+        case "DISBURSE_PAYMENT":
+          return ["Commercial / Quantity Surveyor", "Ashghal (PWA) Senior Resident Engineer"].includes(role);
+        case "OVERRIDE_GATE":
+          return ["Security Operations Lead", "HSE Field Marshal"].includes(role);
+        case "TRIGGER_EMERGENCY":
+          return ["HSE Field Marshal", "Security Operations Lead", "Hamad Medical Corporation (HMC) Safety Inspector"].includes(role);
+        case "CLOSE_INCIDENT":
+          return ["HSE Field Marshal", "Hamad Medical Corporation (HMC) Safety Inspector"].includes(role);
+        default:
+          return true;
+      }
+    },
+    [role],
+  );
 
   // Clock
   useEffect(() => {
@@ -484,6 +577,7 @@ export function DomainStoreProvider({ children }: { children: ReactNode }) {
         workOrderId: currentWO?.id,
         zoneId: targetZone?.id,
         transitSpeedSec: parseFloat((1.8 + Math.random() * 1.5).toFixed(1)),
+        checks: evalResult.checks,
       };
 
       setGateEvents((prev) => [event, ...prev].slice(0, 150));
@@ -1103,10 +1197,11 @@ export function DomainStoreProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // ----------------------------------------------------
-  // RUN END-TO-END SCENARIOS (1 to 6)
+  // ----------------------------------------------------
+  // RUN END-TO-END SCENARIOS (1 to 8) & STEPPER CONTROLS
   // ----------------------------------------------------
   const runScenario = useCallback(
-    (num: 1 | 2 | 3 | 4 | 5 | 6): ScenarioStepResult[] => {
+    (num: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8): ScenarioStepResult[] => {
       const currentCtx: SimulationContext = {
         workers,
         workOrders,
@@ -1123,6 +1218,8 @@ export function DomainStoreProvider({ children }: { children: ReactNode }) {
         auditLogs,
         notifications,
         headcount,
+        inspections,
+        musterPoints,
       };
 
       let result: { steps: ScenarioStepResult[]; updatedCtx: Partial<SimulationContext> };
@@ -1146,6 +1243,12 @@ export function DomainStoreProvider({ children }: { children: ReactNode }) {
         case 6:
           result = executeScenario6(currentCtx);
           break;
+        case 7:
+          result = executeScenario7(currentCtx);
+          break;
+        case 8:
+          result = executeScenario8(currentCtx);
+          break;
         default:
           result = { steps: [], updatedCtx: {} };
       }
@@ -1161,9 +1264,14 @@ export function DomainStoreProvider({ children }: { children: ReactNode }) {
       if (result.updatedCtx.changeRequests) setChangeRequests(result.updatedCtx.changeRequests);
       if (result.updatedCtx.auditLogs) setAuditLogs(result.updatedCtx.auditLogs);
       if (result.updatedCtx.notifications) setNotifications(result.updatedCtx.notifications);
+      if (result.updatedCtx.inspections) setInspections(result.updatedCtx.inspections);
+      if (result.updatedCtx.gates) setGates(result.updatedCtx.gates);
+      if (result.updatedCtx.musterPoints) setMusterPoints(result.updatedCtx.musterPoints);
 
       setActiveScenarioResult(result.steps);
       setActiveScenarioNumber(num);
+      setCurrentScenarioStepIndex(result.steps.length);
+      setIsScenarioPaused(false);
 
       toast.success(`Executed Scenario ${num}`, {
         description: `Completed ${result.steps.length} operational steps across domain services.`,
@@ -1187,12 +1295,80 @@ export function DomainStoreProvider({ children }: { children: ReactNode }) {
       auditLogs,
       notifications,
       headcount,
+      inspections,
+      musterPoints,
     ],
   );
 
   const clearScenarioResult = useCallback(() => {
     setActiveScenarioResult(null);
     setActiveScenarioNumber(null);
+    setCurrentScenarioStepIndex(0);
+    setIsScenarioPaused(false);
+  }, []);
+
+  const stepScenario = useCallback(() => {
+    if (!activeScenarioResult || activeScenarioResult.length === 0) {
+      runScenario(1);
+      return;
+    }
+    if (currentScenarioStepIndex < activeScenarioResult.length) {
+      const nextIdx = currentScenarioStepIndex + 1;
+      setCurrentScenarioStepIndex(nextIdx);
+      const step = activeScenarioResult[nextIdx - 1];
+      if (step) {
+        toast.info(`Step ${step.step}: ${step.title}`, {
+          description: step.description,
+        });
+      }
+    } else {
+      toast.success("All steps completed for this scenario.");
+    }
+  }, [activeScenarioResult, currentScenarioStepIndex, runScenario]);
+
+  const pauseScenario = useCallback(() => {
+    setIsScenarioPaused(true);
+    toast.info("Scenario simulation paused");
+  }, []);
+
+  const resumeScenario = useCallback(() => {
+    setIsScenarioPaused(false);
+    toast.info("Scenario simulation resumed");
+  }, []);
+
+  const resetSimulation = useCallback(() => {
+    setProject(INITIAL_PROJECT);
+    setZones(INITIAL_ZONES);
+    setContractors(INITIAL_CONTRACTORS);
+    setWorkers(INITIAL_WORKERS);
+    setWorkerDocuments(INITIAL_DOCUMENTS);
+    setSafetyInductions(INITIAL_INDUCTIONS);
+    setWorkPackages(INITIAL_WORK_PACKAGES);
+    setWorkOrders(INITIAL_WORK_ORDERS);
+    setGates(INITIAL_GATES);
+    setGateEvents(Array.from({ length: 16 }, (_, i) => makeEvent(i)));
+    setAttendance([]);
+    setLocationEvents([]);
+    setCameras(INITIAL_CAMERAS);
+    setIncidents(INITIAL_INCIDENTS);
+    setBroadcasts([]);
+    setInspections(INITIAL_INSPECTIONS);
+    setChangeRequests(INITIAL_CHANGE_REQUESTS);
+    setTimesheets(INITIAL_TIMESHEETS);
+    setClaims(INITIAL_CLAIMS);
+    setPayments(INITIAL_PAYMENTS);
+    setAuditLogs(INITIAL_AUDIT_LOGS);
+    setNotifications(INITIAL_NOTIFICATIONS);
+    setMusterPoints(INITIAL_MUSTER_POINTS);
+    setEmergency(false);
+    setSimulating(false);
+    setActiveScenarioResult(null);
+    setActiveScenarioNumber(null);
+    setCurrentScenarioStepIndex(0);
+    setIsScenarioPaused(false);
+    toast.success("Site simulation reset to deterministic baseline", {
+      description: "All worker rosters, permits, gates, and financial ledgers restored.",
+    });
   }, []);
 
   // Emergency Muster
@@ -1313,10 +1489,25 @@ export function DomainStoreProvider({ children }: { children: ReactNode }) {
       gateQueues,
       throughputPerMin,
 
+      // Derived Selectors
+      presentWorkers,
+      activeHeadcount,
+      zoneOccupancies,
+      contractorManpower,
+      activeWorkOrdersCount,
+      safetyScore,
+      canPerformAction,
+
       activeScenarioResult,
       activeScenarioNumber,
+      currentScenarioStepIndex,
+      isScenarioPaused,
       clearScenarioResult,
       runScenario,
+      stepScenario,
+      pauseScenario,
+      resumeScenario,
+      resetSimulation,
 
       scanRfid,
       submitManualGateOverride,
@@ -1385,10 +1576,23 @@ export function DomainStoreProvider({ children }: { children: ReactNode }) {
       simulating,
       gateQueues,
       throughputPerMin,
+      presentWorkers,
+      activeHeadcount,
+      zoneOccupancies,
+      contractorManpower,
+      activeWorkOrdersCount,
+      safetyScore,
+      canPerformAction,
       activeScenarioResult,
       activeScenarioNumber,
+      currentScenarioStepIndex,
+      isScenarioPaused,
       clearScenarioResult,
       runScenario,
+      stepScenario,
+      pauseScenario,
+      resumeScenario,
+      resetSimulation,
       scanRfid,
       submitManualGateOverride,
       moveWorker,

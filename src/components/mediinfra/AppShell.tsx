@@ -27,15 +27,18 @@ import {
   Menu,
   MessageSquare,
   Moon,
+  Pause,
   Play,
   Radio,
   Receipt,
+  RotateCcw,
   ScanLine,
   Search,
   ShieldAlert,
   Siren,
   Smartphone,
   Sparkles,
+  StepForward,
   Sun,
   UserCog,
   Users,
@@ -117,6 +120,12 @@ export function AppShell({ children }: { children: ReactNode }) {
     notifications,
     markNotificationRead,
     runScenario,
+    stepScenario,
+    pauseScenario,
+    resumeScenario,
+    resetSimulation,
+    isScenarioPaused,
+    currentScenarioStepIndex,
     activeScenarioResult,
     activeScenarioNumber,
     clearScenarioResult,
@@ -179,7 +188,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const current = ALL_NAV_ITEMS.find((n) => n.to === pathname) ?? ALL_NAV_ITEMS[0];
   const unreadNotifsCount = notifications.filter((n) => !n.read).length;
 
-  const handleRunScenario = (num: 1 | 2 | 3 | 4 | 5 | 6) => {
+  const handleRunScenario = (num: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8) => {
     runScenario(num);
     toast.success(`Executed Scenario ${num} successfully. View steps below.`);
   };
@@ -420,9 +429,9 @@ export function AppShell({ children }: { children: ReactNode }) {
               >
                 <Zap className="size-3.5 sm:size-4 animate-pulse text-amber-300 shrink-0" />
                 <span className="hidden sm:inline text-xs font-bold tracking-wide">
-                  Test Scenarios (1–6)
+                  Test Scenarios (1–8)
                 </span>
-                <span className="sm:hidden text-xs font-bold">1–6</span>
+                <span className="sm:hidden text-xs font-bold">1–8</span>
               </Button>
 
               {/* Command Palette Trigger */}
@@ -581,10 +590,10 @@ export function AppShell({ children }: { children: ReactNode }) {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-xl font-bold">
               <Zap className="h-5 w-5 text-amber-500" />
-              <span>Enterprise Simulation Suite (Scenarios 1 – 6)</span>
+              <span>Enterprise Simulation Suite (Scenarios 1 – 8)</span>
             </DialogTitle>
             <DialogDescription className="text-xs text-muted-foreground">
-              Execute comprehensive real-world scenarios across turnstiles, geofencing, AI vision, timesheets, and treasury.
+              Execute comprehensive real-world operational scenarios across turnstiles, spatial geofencing, AI vision, quality gates, emergency muster, timesheets, and treasury.
             </DialogDescription>
           </DialogHeader>
 
@@ -723,6 +732,117 @@ export function AppShell({ children }: { children: ReactNode }) {
                 onClick={() => handleRunScenario(6)}
               >
                 <Play className="h-3.5 w-3.5 mr-1.5" /> Execute Scenario 6
+              </Button>
+            </div>
+
+            {/* Scenario 7 */}
+            <div className="p-4 border rounded-2xl bg-card space-y-2 flex flex-col justify-between">
+              <div>
+                <span className="text-[11px] font-bold text-amber-600 uppercase tracking-wider block">
+                  Scenario 7
+                </span>
+                <h4 className="font-bold text-sm text-foreground">
+                  Quality Handover: Defect Rectification (WO-1027)
+                </h4>
+                <p className="text-xs text-muted-foreground mt-1">
+                  QA Inspector fails duct insulation check. Work order completion blocked until HVAC subcontractor rectifies defects, uploads photos, and passes QA re-inspection.
+                </p>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                className="w-full mt-3 border-amber-200 text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/30"
+                onClick={() => handleRunScenario(7)}
+              >
+                <Play className="h-3.5 w-3.5 mr-1.5" /> Execute Scenario 7
+              </Button>
+            </div>
+
+            {/* Scenario 8 */}
+            <div className="p-4 border rounded-2xl bg-card space-y-2 flex flex-col justify-between">
+              <div>
+                <span className="text-[11px] font-bold text-red-600 uppercase tracking-wider block">
+                  Scenario 8
+                </span>
+                <h4 className="font-bold text-sm text-foreground">
+                  Site-Wide Emergency Evacuation & Muster
+                </h4>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Zone 03 fire alarm triggers Code RED. Turnstiles unlock into fail-safe evacuation mode. Digital twin tracks worker egress to Muster Point B with 100% accounted headcount.
+                </p>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                className="w-full mt-3 border-red-200 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30"
+                onClick={() => handleRunScenario(8)}
+              >
+                <Play className="h-3.5 w-3.5 mr-1.5" /> Execute Scenario 8
+              </Button>
+            </div>
+          </div>
+
+          {/* Stepper & Interactive Simulation Controls */}
+          <div className="mt-4 p-3 rounded-2xl border bg-slate-50 dark:bg-slate-900/50 flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-foreground">Simulation Engine:</span>
+              {activeScenarioNumber ? (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300">
+                  <span className="size-2 rounded-full bg-blue-500 animate-pulse" />
+                  Scenario {activeScenarioNumber} (Step {currentScenarioStepIndex + 1}/{activeScenarioResult?.length || 0})
+                </span>
+              ) : (
+                <span className="text-xs text-muted-foreground">Ready — click any scenario or step through</span>
+              )}
+            </div>
+
+            <div className="flex items-center gap-1.5">
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-8 text-xs gap-1.5"
+                onClick={stepScenario}
+                disabled={!activeScenarioResult || currentScenarioStepIndex >= (activeScenarioResult?.length || 0) - 1}
+              >
+                <StepForward className="size-3.5" />
+                Step Next
+              </Button>
+
+              {isScenarioPaused ? (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-8 text-xs gap-1.5 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/30"
+                  onClick={resumeScenario}
+                  disabled={!activeScenarioResult}
+                >
+                  <Play className="size-3.5" />
+                  Resume
+                </Button>
+              ) : (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-8 text-xs gap-1.5 text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-950/30"
+                  onClick={pauseScenario}
+                  disabled={!activeScenarioResult}
+                >
+                  <Pause className="size-3.5" />
+                  Pause
+                </Button>
+              )}
+
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-8 text-xs gap-1.5 text-muted-foreground hover:text-foreground"
+                onClick={() => {
+                  resetSimulation();
+                  toast.info("Simulation state reset to baseline.");
+                }}
+              >
+                <RotateCcw className="size-3.5" />
+                Reset Baseline
               </Button>
             </div>
           </div>

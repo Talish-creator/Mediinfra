@@ -392,6 +392,7 @@ export interface GateEvent {
   overrideOperator?: string | undefined;
   overrideReason?: string | undefined;
   reason?: string | undefined; // legacy alias
+  checks?: AccessCheckRuleResult[] | undefined;
 }
 
 export interface AttendanceRecord {

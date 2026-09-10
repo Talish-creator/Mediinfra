@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -7,6 +7,7 @@ import {
   Layers,
   RefreshCw,
   ShieldAlert,
+  ShieldCheck,
   Users,
   Wind,
 } from "lucide-react";
@@ -16,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Floorplan, zoneTone } from "@/components/mediinfra/Floorplan";
 import { Bar, Dot, LivePulse, Mono, PageHeader, Panel, Pill } from "@/components/mediinfra/ui-kit";
 import { ZONES, type Zone } from "@/lib/mediinfra-data";
+import { useDomainStore } from "@/lib/domain/store";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/digital-twin")({
@@ -39,6 +41,7 @@ export const Route = createFileRoute("/digital-twin")({
 
 export function DigitalTwin() {
   const { t } = useTranslation();
+  const { workers, zones: domainZones, moveWorker, incidents } = useDomainStore();
   const [building, setBuilding] = useState<"IPT" | "OPT" | "ENG" | "SV">("IPT");
   const [selected, setSelected] = useState<Zone | null>(null);
   const [intruded, setIntruded] = useState(false);
@@ -82,12 +85,13 @@ export function DigitalTwin() {
   const simulateIntrusion = () => {
     setIntruded(true);
     setBuilding("IPT");
-    toast.error("UNAUTHORIZED WORKER IN NON-PERMIT ZONE", {
-      description:
-        "IPT Level 4 Air Handling Unit Room — geo-fence breach, HSE field marshal dispatched.",
-      duration: 9000,
-    });
-    setTimeout(() => setIntruded(false), 12000);
+    moveWorker("W-0245", "IPT-L4-AHU", { x: 18, y: 75 });
+  };
+
+  const resolveIntrusion = () => {
+    setIntruded(false);
+    moveWorker("W-0245", "IPT-L3-East", { x: 22, y: 18 });
+    toast.success("Worker W-0245 returned to authorized zone (IPT-L3-East). Geofence alert cleared.");
   };
 
   return (
@@ -120,6 +124,40 @@ export function DigitalTwin() {
           </div>
         }
       />
+
+      {/* Geofence Breach Active Incident Banner */}
+      {(intruded || incidents.some((i) => i.type === "Geofence Intrusion" && i.status === "OPEN")) && (
+        <div className="p-4 rounded-2xl border-2 border-red-500 bg-red-50 dark:bg-red-950/40 text-red-950 dark:text-red-200 flex flex-wrap items-center justify-between gap-4 shadow-lg animate-in fade-in-0 duration-200">
+          <div className="flex items-center gap-3">
+            <span className="flex size-3 rounded-full bg-red-600 animate-ping" />
+            <div>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-red-600 dark:text-red-400 flex items-center gap-2">
+                <AlertTriangle className="size-4" />
+                CRITICAL GEOFENCE BREACH ACTIVE · ZONE: IPT LEVEL 4 AHU PLANT ROOM
+              </h4>
+              <p className="text-xs text-foreground mt-0.5">
+                Worker Mohammad Rizwan (W-0245) detected in non-permit plant room. Permitted zone: IPT Level 3 East Ward. HSE Field Marshal dispatched.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Link
+              to="/incidents"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-semibold shadow-sm"
+            >
+              <ShieldAlert className="size-3.5" /> View HSE Incident Log
+            </Link>
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-xs font-semibold border-red-300 dark:border-red-800 rounded-xl"
+              onClick={resolveIntrusion}
+            >
+              Evacuate Worker to Permitted Zone
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Building Switcher Pills */}
       <div className="flex flex-wrap gap-3">

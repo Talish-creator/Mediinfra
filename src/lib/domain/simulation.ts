@@ -26,6 +26,8 @@ import type {
   PaymentRecord,
   AuditLogEntry,
   SystemNotification,
+  QualityInspection,
+  MusterPoint,
 } from "./types";
 
 export interface SimulationContext {
@@ -44,6 +46,8 @@ export interface SimulationContext {
   auditLogs: AuditLogEntry[];
   notifications: SystemNotification[];
   headcount: number;
+  inspections?: QualityInspection[];
+  musterPoints?: MusterPoint[];
 }
 
 export interface ScenarioStepResult {
@@ -789,3 +793,239 @@ export function executeScenario6(ctx: SimulationContext): {
     },
   };
 }
+
+// ----------------------------------------------------
+// SCENARIO 7: QUALITY INSPECTION FAILURE & RECTIFICATION PASS
+// ----------------------------------------------------
+export function executeScenario7(ctx: SimulationContext): {
+  steps: ScenarioStepResult[];
+  updatedCtx: Partial<SimulationContext>;
+} {
+  const steps: ScenarioStepResult[] = [];
+  const workOrder = ctx.workOrders.find((wo) => wo.id === "WO-1027") || ctx.workOrders[0]!;
+  const existingInspections = ctx.inspections || [];
+
+  const initialInspection: QualityInspection = {
+    id: `QI-P875-009`,
+    workOrderId: workOrder.id,
+    workOrderTitle: workOrder.title,
+    contractorName: workOrder.contractorName,
+    zoneName: workOrder.zoneName,
+    inspectorName: "Eng. Ahmed Al-Bishri",
+    inspectorRole: "KEO Quality Assurance Engineer",
+    inspectionDate: new Date().toISOString().split("T")[0]!,
+    checklist: [
+      { id: "c1", description: "Brazing joint dye penetration test", passed: false, comments: "Porosity detected on line 4" },
+      { id: "c2", description: "HEPA air containment barrier pressure differential", passed: false, comments: "Seal drop to -8.2 Pa (target -12.5 Pa)" },
+      { id: "c3", description: "Medical gas vacuum purge & particulate count", passed: true },
+      { id: "c4", description: "Clinical cable tray separation distance", passed: true },
+    ],
+    result: "FAIL",
+    defectsCount: 2,
+    defectNotes: "HEPA containment seal failure and copper braze defect. Rectification mandatory before stage 11 handover.",
+    status: "RECTIFICATION_REQUIRED",
+    signedAt: new Date().toISOString(),
+  };
+
+  steps.push({
+    step: 1,
+    time: "10:15:00",
+    title: "Quality Inspection Failed — Rectification Issued",
+    description: `QA Engineer flagged 2 defects on ${workOrder.id} (HEPA seal leak & brazing porosity). Work order handover held at Stage 10.`,
+    entity: "QualityInspection",
+    entityId: initialInspection.id,
+    status: "error",
+  });
+
+  steps.push({
+    step: 2,
+    time: "14:20:00",
+    title: "Subcontractor Rectification Completed",
+    description: `Al Sraiya MEP re-brazed joints, re-gasketed HEPA chamber, and submitted photographic evidence for re-inspection.`,
+    entity: "WorkOrder",
+    entityId: workOrder.id,
+    status: "warning",
+  });
+
+  const passedInspection: QualityInspection = {
+    ...initialInspection,
+    checklist: initialInspection.checklist.map((item) => ({ ...item, passed: true, comments: "Verified passing" })),
+    result: "PASS",
+    defectsCount: 0,
+    defectNotes: "All defects satisfactorily rectified. Hydrostatic and negative pressure verified.",
+    status: "VERIFIED_AND_CLOSED",
+    signedAt: new Date().toISOString(),
+  };
+
+  const completedWO: WorkOrder = {
+    ...workOrder,
+    stage: 11,
+    status: "Completed",
+    progress: 100,
+    actualEnd: new Date().toISOString(),
+    completionEvidence: {
+      notes: "Quality inspection passed 100%. Handover verified by KEO QA/QC.",
+      verifiedBy: "Eng. Ahmed Al-Bishri (KEO QA/QC)",
+      verifiedAt: new Date().toISOString(),
+    },
+  };
+
+  steps.push({
+    step: 3,
+    time: "16:05:00",
+    title: "Re-inspection Verified & Quality Passed",
+    description: `QA Engineer signed off on re-inspection. Zero defects remaining. Quality clearance granted.`,
+    entity: "QualityInspection",
+    entityId: passedInspection.id,
+    status: "success",
+  });
+
+  steps.push({
+    step: 4,
+    time: "16:30:00",
+    title: "Work Order WO-1027 Advanced to COMPLETED (Stage 11)",
+    description: `Work order successfully verified and promoted to Completed status. Handover package prepared for final commercial closure.`,
+    entity: "WorkOrder",
+    entityId: completedWO.id,
+    status: "success",
+  });
+
+  eventBus.emit("INSPECTION_PASSED", passedInspection, "KEO QA Engineer", "Quality Assurance", passedInspection.id, "QualityInspection");
+  eventBus.emit("WORK_COMPLETED", completedWO, "KEO QA Engineer", "Quality Assurance", completedWO.id, "WorkOrder");
+
+  return {
+    steps,
+    updatedCtx: {
+      workOrders: ctx.workOrders.map((wo) => (wo.id === workOrder.id ? completedWO : wo)),
+      inspections: [passedInspection, ...existingInspections.filter((i) => i.id !== passedInspection.id)],
+      auditLogs: [
+        {
+          id: `AUD-${Date.now()}`,
+          timestamp: new Date().toISOString(),
+          actor: "Eng. Ahmed Al-Bishri (KEO)",
+          role: "Quality Assurance",
+          action: "QUALITY_INSPECTION_PASSED",
+          entity: "QualityInspection",
+          entityId: passedInspection.id,
+          description: `Work order ${workOrder.id} re-inspected and approved. Stage 11 completion authorized.`,
+        },
+        ...ctx.auditLogs,
+      ],
+    },
+  };
+}
+
+// ----------------------------------------------------
+// SCENARIO 8: SITE-WIDE EMERGENCY MUSTER EVACUATION
+// ----------------------------------------------------
+export function executeScenario8(ctx: SimulationContext): {
+  steps: ScenarioStepResult[];
+  updatedCtx: Partial<SimulationContext>;
+} {
+  const steps: ScenarioStepResult[] = [];
+  const presentCount = ctx.workers.filter((w) => w.status === "On Site").length || 24;
+
+  const musterPoints: MusterPoint[] = [
+    { id: "MP-01", name: "Assembly Point A — North Clinical Courtyard", location: "IPT North Perimeter", capacity: 500, accountedCount: Math.round(presentCount * 0.55) },
+    { id: "MP-02", name: "Assembly Point B — South Laydown Staging", location: "SV Laydown Yard Gate", capacity: 400, accountedCount: Math.round(presentCount * 0.30) },
+    { id: "MP-03", name: "Assembly Point C — Helipad Perimeter", location: "OPT East Apron", capacity: 300, accountedCount: Math.round(presentCount * 0.15) },
+  ];
+
+  // Optical turnstiles fail-safe open
+  const updatedGates: Gate[] = ctx.gates.map((g) => ({
+    ...g,
+    lanes: g.lanes.map((l) => ({ ...l, opticalTurnstileState: "Open" as const })),
+  }));
+
+  const emergencyBroadcast: BroadcastLog = {
+    id: `BC-EMERGENCY-${Date.now()}`,
+    timestamp: new Date().toLocaleTimeString("en-GB", { hour12: false }),
+    speakerId: "HSE-CMD-PA",
+    speakerName: "HSE Command Control System",
+    zoneId: "ALL-ZONES",
+    messageText: "ATTENTION ALL PERSONNEL: EMERGENCY EVACUATION DECLARED. CEASE WORK IMMEDIATELY AND PROCEED TO ASSIGNED MUSTER POINTS.",
+    languages: "Arabic, English, Hindi, Urdu",
+    severity: "crit",
+    triggeredBy: "EMERGENCY_SYSTEM",
+  };
+
+  const emergencyIncident: SafetyIncident = {
+    id: `INC-EMG-${Date.now().toString().slice(-5)}`,
+    source: "SUPERVISOR",
+    zoneId: "ENG-Plant-01",
+    zoneName: "Central Engineering Plant",
+    type: "Site Emergency Evacuation Drill & Gas Tripping Alarm",
+    severity: "Critical",
+    description: "Simulated hazardous gas release alarm in Central Plant. Total site evacuation triggered for verification.",
+    assignedTo: "Capt. Fahad Al-Naimi (HSE Field Marshal)",
+    status: "OPEN",
+    createdAt: new Date().toISOString(),
+  };
+
+  steps.push({
+    step: 1,
+    time: new Date().toLocaleTimeString("en-GB", { hour12: false }),
+    title: "Site-Wide Emergency Alarm Tripped",
+    description: "Critical gas sensor alarm triggered in Central Engineering Plant. Command center initiated full site evacuation.",
+    entity: "SafetyIncident",
+    entityId: emergencyIncident.id,
+    status: "error",
+  });
+
+  steps.push({
+    step: 2,
+    time: new Date().toLocaleTimeString("en-GB", { hour12: false }),
+    title: "All Perimeter Gates Switched to Fail-Safe Open",
+    description: "Optical turnstiles at Gates 01, 02, 03, 04 released open. Zero transit resistance for rapid egress.",
+    entity: "Gate",
+    entityId: "ALL-GATES",
+    status: "warning",
+  });
+
+  steps.push({
+    step: 3,
+    time: new Date().toLocaleTimeString("en-GB", { hour12: false }),
+    title: "Quad-Lingual PA Loudspeaker Broadcast Emitted",
+    description: `Emergency siren broadcast dispatched to all building wings in Arabic, English, Hindi, and Urdu.`,
+    entity: "BroadcastLog",
+    entityId: emergencyBroadcast.id,
+    status: "warning",
+  });
+
+  steps.push({
+    step: 4,
+    time: new Date().toLocaleTimeString("en-GB", { hour12: false }),
+    title: "Real-Time Headcount Accounted at Muster Points (100%)",
+    description: `All ${presentCount} on-site workers accounted for at Assembly Points A, B, and C. RFID muster scanner verified zero trapped personnel.`,
+    entity: "MusterPoint",
+    entityId: "MP-ALL",
+    status: "success",
+  });
+
+  eventBus.emit("EMERGENCY_ACTIVATED", emergencyIncident, "HSE Field Marshal", "Safety Operations", emergencyIncident.id, "SafetyIncident");
+  eventBus.emit("BROADCAST_EMITTED", emergencyBroadcast, "HSE Command", "Emergency PA", emergencyBroadcast.id, "BroadcastLog");
+
+  return {
+    steps,
+    updatedCtx: {
+      gates: updatedGates,
+      broadcasts: [emergencyBroadcast, ...ctx.broadcasts],
+      incidents: [emergencyIncident, ...ctx.incidents],
+      musterPoints,
+      auditLogs: [
+        {
+          id: `AUD-${Date.now()}`,
+          timestamp: new Date().toISOString(),
+          actor: "Capt. Fahad Al-Naimi",
+          role: "HSE Field Marshal",
+          action: "EMERGENCY_EVACUATION_EXECUTED",
+          entity: "SafetyIncident",
+          entityId: emergencyIncident.id,
+          description: `Full site emergency muster drill executed. 100% headcount accountability verified (${presentCount} operatives).`,
+        },
+        ...ctx.auditLogs,
+      ],
+    },
+  };
+}
+
