@@ -12,23 +12,34 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AnalyticsRouteImport } from './routes/analytics'
+import { Route as AuditRouteImport } from './routes/audit'
+import { Route as ChangesRouteImport } from './routes/changes'
+import { Route as ClaimsRouteImport } from './routes/claims'
 import { Route as CommandRouteImport } from './routes/command'
 import { Route as ContactRouteImport } from './routes/contact'
+import { Route as ContractorsRouteImport } from './routes/contractors'
 import { Route as DigitalTwinRouteImport } from './routes/digital-twin'
 import { Route as GatesRouteImport } from './routes/gates'
 import { Route as HardwareRouteImport } from './routes/hardware'
+import { Route as IncidentsRouteImport } from './routes/incidents'
 import { Route as IndustriesRouteImport } from './routes/industries'
 import { Route as KnowledgeRouteImport } from './routes/knowledge'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as MusterRouteImport } from './routes/muster'
+import { Route as PaymentsRouteImport } from './routes/payments'
 import { Route as PlatformRouteImport } from './routes/platform'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as ProjectsRouteImport } from './routes/projects'
+import { Route as QualityRouteImport } from './routes/quality'
 import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as ReportsCenterRouteImport } from './routes/reports-center'
 import { Route as ResourcesRouteImport } from './routes/resources'
 import { Route as SafetyAiRouteImport } from './routes/safety-ai'
 import { Route as SolutionsRouteImport } from './routes/solutions'
+import { Route as TimesheetsRouteImport } from './routes/timesheets'
 import { Route as WorkOrdersRouteImport } from './routes/work-orders'
+import { Route as WorkerAppRouteImport } from './routes/worker-app'
+import { Route as WorkforceRouteImport } from './routes/workforce'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -45,6 +56,21 @@ const AnalyticsRoute = AnalyticsRouteImport.update({
   path: '/analytics',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuditRoute = AuditRouteImport.update({
+  id: '/audit',
+  path: '/audit',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChangesRoute = ChangesRouteImport.update({
+  id: '/changes',
+  path: '/changes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ClaimsRoute = ClaimsRouteImport.update({
+  id: '/claims',
+  path: '/claims',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CommandRoute = CommandRouteImport.update({
   id: '/command',
   path: '/command',
@@ -53,6 +79,11 @@ const CommandRoute = CommandRouteImport.update({
 const ContactRoute = ContactRouteImport.update({
   id: '/contact',
   path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContractorsRoute = ContractorsRouteImport.update({
+  id: '/contractors',
+  path: '/contractors',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DigitalTwinRoute = DigitalTwinRouteImport.update({
@@ -68,6 +99,11 @@ const GatesRoute = GatesRouteImport.update({
 const HardwareRoute = HardwareRouteImport.update({
   id: '/hardware',
   path: '/hardware',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IncidentsRoute = IncidentsRouteImport.update({
+  id: '/incidents',
+  path: '/incidents',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndustriesRoute = IndustriesRouteImport.update({
@@ -90,6 +126,11 @@ const MusterRoute = MusterRouteImport.update({
   path: '/muster',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PaymentsRoute = PaymentsRouteImport.update({
+  id: '/payments',
+  path: '/payments',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PlatformRoute = PlatformRouteImport.update({
   id: '/platform',
   path: '/platform',
@@ -98,6 +139,16 @@ const PlatformRoute = PlatformRouteImport.update({
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProjectsRoute = ProjectsRouteImport.update({
+  id: '/projects',
+  path: '/projects',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QualityRoute = QualityRouteImport.update({
+  id: '/quality',
+  path: '/quality',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ReportsRoute = ReportsRouteImport.update({
@@ -125,9 +176,24 @@ const SolutionsRoute = SolutionsRouteImport.update({
   path: '/solutions',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TimesheetsRoute = TimesheetsRouteImport.update({
+  id: '/timesheets',
+  path: '/timesheets',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const WorkOrdersRoute = WorkOrdersRouteImport.update({
   id: '/work-orders',
   path: '/work-orders',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WorkerAppRoute = WorkerAppRouteImport.update({
+  id: '/worker-app',
+  path: '/worker-app',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WorkforceRoute = WorkforceRouteImport.update({
+  id: '/workforce',
+  path: '/workforce',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -135,68 +201,101 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/analytics': typeof AnalyticsRoute
+  '/audit': typeof AuditRoute
+  '/changes': typeof ChangesRoute
+  '/claims': typeof ClaimsRoute
   '/command': typeof CommandRoute
   '/contact': typeof ContactRoute
+  '/contractors': typeof ContractorsRoute
   '/digital-twin': typeof DigitalTwinRoute
   '/gates': typeof GatesRoute
   '/hardware': typeof HardwareRoute
+  '/incidents': typeof IncidentsRoute
   '/industries': typeof IndustriesRoute
   '/knowledge': typeof KnowledgeRoute
   '/login': typeof LoginRoute
   '/muster': typeof MusterRoute
+  '/payments': typeof PaymentsRoute
   '/platform': typeof PlatformRoute
   '/profile': typeof ProfileRoute
+  '/projects': typeof ProjectsRoute
+  '/quality': typeof QualityRoute
   '/reports': typeof ReportsRoute
   '/reports-center': typeof ReportsCenterRoute
   '/resources': typeof ResourcesRoute
   '/safety-ai': typeof SafetyAiRoute
   '/solutions': typeof SolutionsRoute
+  '/timesheets': typeof TimesheetsRoute
   '/work-orders': typeof WorkOrdersRoute
+  '/worker-app': typeof WorkerAppRoute
+  '/workforce': typeof WorkforceRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/analytics': typeof AnalyticsRoute
+  '/audit': typeof AuditRoute
+  '/changes': typeof ChangesRoute
+  '/claims': typeof ClaimsRoute
   '/command': typeof CommandRoute
   '/contact': typeof ContactRoute
+  '/contractors': typeof ContractorsRoute
   '/digital-twin': typeof DigitalTwinRoute
   '/gates': typeof GatesRoute
   '/hardware': typeof HardwareRoute
+  '/incidents': typeof IncidentsRoute
   '/industries': typeof IndustriesRoute
   '/knowledge': typeof KnowledgeRoute
   '/login': typeof LoginRoute
   '/muster': typeof MusterRoute
+  '/payments': typeof PaymentsRoute
   '/platform': typeof PlatformRoute
   '/profile': typeof ProfileRoute
+  '/projects': typeof ProjectsRoute
+  '/quality': typeof QualityRoute
   '/reports': typeof ReportsRoute
   '/reports-center': typeof ReportsCenterRoute
   '/resources': typeof ResourcesRoute
   '/safety-ai': typeof SafetyAiRoute
   '/solutions': typeof SolutionsRoute
+  '/timesheets': typeof TimesheetsRoute
   '/work-orders': typeof WorkOrdersRoute
+  '/worker-app': typeof WorkerAppRoute
+  '/workforce': typeof WorkforceRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/analytics': typeof AnalyticsRoute
+  '/audit': typeof AuditRoute
+  '/changes': typeof ChangesRoute
+  '/claims': typeof ClaimsRoute
   '/command': typeof CommandRoute
   '/contact': typeof ContactRoute
+  '/contractors': typeof ContractorsRoute
   '/digital-twin': typeof DigitalTwinRoute
   '/gates': typeof GatesRoute
   '/hardware': typeof HardwareRoute
+  '/incidents': typeof IncidentsRoute
   '/industries': typeof IndustriesRoute
   '/knowledge': typeof KnowledgeRoute
   '/login': typeof LoginRoute
   '/muster': typeof MusterRoute
+  '/payments': typeof PaymentsRoute
   '/platform': typeof PlatformRoute
   '/profile': typeof ProfileRoute
+  '/projects': typeof ProjectsRoute
+  '/quality': typeof QualityRoute
   '/reports': typeof ReportsRoute
   '/reports-center': typeof ReportsCenterRoute
   '/resources': typeof ResourcesRoute
   '/safety-ai': typeof SafetyAiRoute
   '/solutions': typeof SolutionsRoute
+  '/timesheets': typeof TimesheetsRoute
   '/work-orders': typeof WorkOrdersRoute
+  '/worker-app': typeof WorkerAppRoute
+  '/workforce': typeof WorkforceRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -204,90 +303,134 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/analytics'
+    | '/audit'
+    | '/changes'
+    | '/claims'
     | '/command'
     | '/contact'
+    | '/contractors'
     | '/digital-twin'
     | '/gates'
     | '/hardware'
+    | '/incidents'
     | '/industries'
     | '/knowledge'
     | '/login'
     | '/muster'
+    | '/payments'
     | '/platform'
     | '/profile'
+    | '/projects'
+    | '/quality'
     | '/reports'
     | '/reports-center'
     | '/resources'
     | '/safety-ai'
     | '/solutions'
+    | '/timesheets'
     | '/work-orders'
+    | '/worker-app'
+    | '/workforce'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/about'
     | '/analytics'
+    | '/audit'
+    | '/changes'
+    | '/claims'
     | '/command'
     | '/contact'
+    | '/contractors'
     | '/digital-twin'
     | '/gates'
     | '/hardware'
+    | '/incidents'
     | '/industries'
     | '/knowledge'
     | '/login'
     | '/muster'
+    | '/payments'
     | '/platform'
     | '/profile'
+    | '/projects'
+    | '/quality'
     | '/reports'
     | '/reports-center'
     | '/resources'
     | '/safety-ai'
     | '/solutions'
+    | '/timesheets'
     | '/work-orders'
+    | '/worker-app'
+    | '/workforce'
   id:
     | '__root__'
     | '/'
     | '/about'
     | '/analytics'
+    | '/audit'
+    | '/changes'
+    | '/claims'
     | '/command'
     | '/contact'
+    | '/contractors'
     | '/digital-twin'
     | '/gates'
     | '/hardware'
+    | '/incidents'
     | '/industries'
     | '/knowledge'
     | '/login'
     | '/muster'
+    | '/payments'
     | '/platform'
     | '/profile'
+    | '/projects'
+    | '/quality'
     | '/reports'
     | '/reports-center'
     | '/resources'
     | '/safety-ai'
     | '/solutions'
+    | '/timesheets'
     | '/work-orders'
+    | '/worker-app'
+    | '/workforce'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
   AnalyticsRoute: typeof AnalyticsRoute
+  AuditRoute: typeof AuditRoute
+  ChangesRoute: typeof ChangesRoute
+  ClaimsRoute: typeof ClaimsRoute
   CommandRoute: typeof CommandRoute
   ContactRoute: typeof ContactRoute
+  ContractorsRoute: typeof ContractorsRoute
   DigitalTwinRoute: typeof DigitalTwinRoute
   GatesRoute: typeof GatesRoute
   HardwareRoute: typeof HardwareRoute
+  IncidentsRoute: typeof IncidentsRoute
   IndustriesRoute: typeof IndustriesRoute
   KnowledgeRoute: typeof KnowledgeRoute
   LoginRoute: typeof LoginRoute
   MusterRoute: typeof MusterRoute
+  PaymentsRoute: typeof PaymentsRoute
   PlatformRoute: typeof PlatformRoute
   ProfileRoute: typeof ProfileRoute
+  ProjectsRoute: typeof ProjectsRoute
+  QualityRoute: typeof QualityRoute
   ReportsRoute: typeof ReportsRoute
   ReportsCenterRoute: typeof ReportsCenterRoute
   ResourcesRoute: typeof ResourcesRoute
   SafetyAiRoute: typeof SafetyAiRoute
   SolutionsRoute: typeof SolutionsRoute
+  TimesheetsRoute: typeof TimesheetsRoute
   WorkOrdersRoute: typeof WorkOrdersRoute
+  WorkerAppRoute: typeof WorkerAppRoute
+  WorkforceRoute: typeof WorkforceRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -313,6 +456,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AnalyticsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/audit': {
+      id: '/audit'
+      path: '/audit'
+      fullPath: '/audit'
+      preLoaderRoute: typeof AuditRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/changes': {
+      id: '/changes'
+      path: '/changes'
+      fullPath: '/changes'
+      preLoaderRoute: typeof ChangesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/claims': {
+      id: '/claims'
+      path: '/claims'
+      fullPath: '/claims'
+      preLoaderRoute: typeof ClaimsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/command': {
       id: '/command'
       path: '/command'
@@ -325,6 +489,13 @@ declare module '@tanstack/react-router' {
       path: '/contact'
       fullPath: '/contact'
       preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contractors': {
+      id: '/contractors'
+      path: '/contractors'
+      fullPath: '/contractors'
+      preLoaderRoute: typeof ContractorsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/digital-twin': {
@@ -346,6 +517,13 @@ declare module '@tanstack/react-router' {
       path: '/hardware'
       fullPath: '/hardware'
       preLoaderRoute: typeof HardwareRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/incidents': {
+      id: '/incidents'
+      path: '/incidents'
+      fullPath: '/incidents'
+      preLoaderRoute: typeof IncidentsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/industries': {
@@ -376,6 +554,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MusterRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/payments': {
+      id: '/payments'
+      path: '/payments'
+      fullPath: '/payments'
+      preLoaderRoute: typeof PaymentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/platform': {
       id: '/platform'
       path: '/platform'
@@ -388,6 +573,20 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/projects': {
+      id: '/projects'
+      path: '/projects'
+      fullPath: '/projects'
+      preLoaderRoute: typeof ProjectsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/quality': {
+      id: '/quality'
+      path: '/quality'
+      fullPath: '/quality'
+      preLoaderRoute: typeof QualityRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reports': {
@@ -425,11 +624,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SolutionsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/timesheets': {
+      id: '/timesheets'
+      path: '/timesheets'
+      fullPath: '/timesheets'
+      preLoaderRoute: typeof TimesheetsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/work-orders': {
       id: '/work-orders'
       path: '/work-orders'
       fullPath: '/work-orders'
       preLoaderRoute: typeof WorkOrdersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/worker-app': {
+      id: '/worker-app'
+      path: '/worker-app'
+      fullPath: '/worker-app'
+      preLoaderRoute: typeof WorkerAppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/workforce': {
+      id: '/workforce'
+      path: '/workforce'
+      fullPath: '/workforce'
+      preLoaderRoute: typeof WorkforceRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -439,23 +659,34 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   AnalyticsRoute: AnalyticsRoute,
+  AuditRoute: AuditRoute,
+  ChangesRoute: ChangesRoute,
+  ClaimsRoute: ClaimsRoute,
   CommandRoute: CommandRoute,
   ContactRoute: ContactRoute,
+  ContractorsRoute: ContractorsRoute,
   DigitalTwinRoute: DigitalTwinRoute,
   GatesRoute: GatesRoute,
   HardwareRoute: HardwareRoute,
+  IncidentsRoute: IncidentsRoute,
   IndustriesRoute: IndustriesRoute,
   KnowledgeRoute: KnowledgeRoute,
   LoginRoute: LoginRoute,
   MusterRoute: MusterRoute,
+  PaymentsRoute: PaymentsRoute,
   PlatformRoute: PlatformRoute,
   ProfileRoute: ProfileRoute,
+  ProjectsRoute: ProjectsRoute,
+  QualityRoute: QualityRoute,
   ReportsRoute: ReportsRoute,
   ReportsCenterRoute: ReportsCenterRoute,
   ResourcesRoute: ResourcesRoute,
   SafetyAiRoute: SafetyAiRoute,
   SolutionsRoute: SolutionsRoute,
+  TimesheetsRoute: TimesheetsRoute,
   WorkOrdersRoute: WorkOrdersRoute,
+  WorkerAppRoute: WorkerAppRoute,
+  WorkforceRoute: WorkforceRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

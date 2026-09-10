@@ -296,8 +296,8 @@ export function CommandCenter() {
                   <div className="flex items-center gap-1.5">
                     {recent.length ? (
                       recent.map((e) => (
-                        <span key={e.id} title={`${e.worker.name} (${e.worker.employer})`}>
-                          <Avatar name={e.worker.name} size={22} />
+                        <span key={e.id} title={`${e.worker.name || e.worker.fullName || "Worker"} (${e.worker.employer || ""})`}>
+                          <Avatar name={e.worker.name || e.worker.fullName || "Worker"} size={22} />
                         </span>
                       ))
                     ) : (

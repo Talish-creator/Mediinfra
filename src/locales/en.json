@@ -76,7 +76,26 @@
     "openMobileMenu": "Open mobile navigation menu",
     "knowledge": "Knowledge Center",
     "reportsCenter": "Reports & Analytics Center",
-    "profile": "User Profile & Settings"
+    "profile": "User Profile & Settings",
+    "workforce": "Personnel & Workforce",
+    "workerApp": "Worker Field Terminal",
+    "contractors": "Subcontractor Partners",
+    "projects": "Project & Organization",
+    "incidents": "HSE Incidents & Hazards",
+    "quality": "Quality Verification",
+    "timesheets": "Timesheets & Hours",
+    "claims": "Commercial Claims",
+    "payments": "Treasury Disbursements",
+    "changes": "Variation Orders",
+    "audit": "Forensic Audit Trail",
+    "scenarioRunner": "Scenario Simulator",
+    "categories": {
+      "operations": "Operations & Access",
+      "safetyQuality": "Safety & Quality",
+      "commercial": "Commercial & Treasury",
+      "intelligence": "Intelligence & Assets",
+      "governance": "System & Governance"
+    }
   },
   "header": {
     "hospitalName": "P875 Hamad General Hospital",

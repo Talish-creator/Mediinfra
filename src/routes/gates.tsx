@@ -243,10 +243,10 @@ export function GatesPage() {
               >
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <Avatar name={ev.worker.name} size={28} />
+                    <Avatar name={ev.worker.name || ev.worker.fullName || "Worker"} size={28} />
                     <div className="min-w-0">
                       <p className="text-xs font-bold text-[#0F172A] dark:text-white truncate">
-                        {ev.worker.name}
+                        {ev.worker.name || ev.worker.fullName || "Worker"}
                       </p>
                       <p className="text-[10px] text-[#64748B] dark:text-slate-400 truncate">
                         {ev.worker.employer}
@@ -578,9 +578,9 @@ export function GatesPage() {
                         </td>
                         <td className="px-4 py-3 flex-1 min-w-[160px]">
                           <span className="flex items-center gap-2">
-                            <Avatar name={e.worker.name} size={24} />
+                            <Avatar name={e.worker.name || e.worker.fullName || "Worker"} size={24} />
                             <span className="whitespace-nowrap font-bold text-foreground">
-                              {e.worker.name}
+                              {e.worker.name || e.worker.fullName || "Worker"}
                             </span>
                           </span>
                         </td>
