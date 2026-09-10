@@ -215,6 +215,8 @@ export type WorkOrderStatus =
   | "Briefing Pending"
   | "Access Ready"
   | "Active"
+  | "Completion Pending"
+  | "Verification"
   | "Under Inspection"
   | "Completed"
   | "Closed"
@@ -282,6 +284,8 @@ export interface WorkerAcknowledgement {
   safetyBriefingCompleted: boolean;
   acknowledgementText: string;
   signatureDataUrl?: string | undefined;
+  /** Identifies the device/session which captured the electronic signature. */
+  signatureContext?: string | undefined;
   timestamp: string;
 }
 

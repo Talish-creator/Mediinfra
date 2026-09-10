@@ -141,7 +141,7 @@ function QrBlock({ value }: { value: string }) {
   );
 }
 
-function SignatureCanvas({ onSigned }: { onSigned: () => void }) {
+function SignatureCanvas({ onSigned }: { onSigned: (signatureDataUrl: string) => void }) {
   const { t } = useTranslation();
   const ref = useRef<HTMLCanvasElement | null>(null);
   const drawing = useRef(false);
@@ -204,7 +204,8 @@ function SignatureCanvas({ onSigned }: { onSigned: () => void }) {
             size="sm"
             disabled={!dirty}
             onClick={() => {
-              onSigned();
+              const canvas = ref.current;
+              if (canvas) onSigned(canvas.toDataURL("image/png"));
             }}
             className="h-8 rounded-lg text-xs font-semibold"
           >
@@ -916,9 +917,9 @@ export function WorkOrdersPage() {
                   <div>
                     <p className="text-xs font-bold text-slate-800 mb-1.5">Supervisor / Worker Electronic Sign-Off</p>
                     <SignatureCanvas
-                      onSigned={() => {
+                      onSigned={(signatureDataUrl) => {
                         if (assignedWorkers[0]) {
-                          acknowledgeWorkOrder(assignedWorkers[0].id, active.id);
+                          acknowledgeWorkOrder(assignedWorkers[0].id, active.id, signatureDataUrl);
                         } else {
                           toast.success("Toolbox briefing electronically signed and whitelisted");
                         }

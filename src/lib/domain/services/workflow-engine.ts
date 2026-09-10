@@ -41,6 +41,9 @@ export function recordWorkerAcknowledgement(
   qrToken: string,
   signatureDataUrl?: string,
 ): WorkerAcknowledgement {
+  if (!signatureDataUrl) {
+    throw new Error("A signature is required before a worker acknowledgement can be recorded.");
+  }
   return {
     id: `ACK-${Date.now()}-${workerId}`,
     workerId,
@@ -50,6 +53,7 @@ export function recordWorkerAcknowledgement(
     safetyBriefingCompleted: true,
     acknowledgementText: "I understand the assigned task, hazards, mandatory PPE and emergency escape protocol.",
     signatureDataUrl,
+    signatureContext: "worker-mobile-session",
     timestamp: new Date().toISOString(),
   };
 }
@@ -92,6 +96,21 @@ export function transitionWorkOrderStage(
   updatedOrder: WorkOrder;
   approval?: WorkOrderApproval | undefined;
 } {
+  if (targetStage < order.stage || targetStage > order.stage + 1) {
+    throw new Error(`Invalid work-order transition from stage ${order.stage} to ${targetStage}.`);
+  }
+  if (targetStage === 2 && (!order.title || !order.scope || !order.methodStatement || !order.riskAssessment || order.assignedWorkerIds.length === 0)) {
+    throw new Error("A work order must have scope, method statement, risk assessment and assigned workers before submission.");
+  }
+  if (targetStage === 4 && order.stage !== 3) {
+    throw new Error("Consultant approval requires completed main-contractor review.");
+  }
+  if (targetStage === 6 && order.acknowledgedWorkerIds.length !== order.assignedWorkerIds.length) {
+    throw new Error("All assigned workers must complete briefing acknowledgement before access is ready.");
+  }
+  if (targetStage === 10 && order.progress < 100) {
+    throw new Error("Work execution must reach 100% before completion can be requested.");
+  }
   const now = new Date().toISOString();
   let nextStatus: WorkOrderStatus = order.status;
   let approval: WorkOrderApproval | undefined;
@@ -101,10 +120,10 @@ export function transitionWorkOrderStage(
       nextStatus = "Draft";
       break;
     case 2:
-      nextStatus = "Main Contractor Review";
+      nextStatus = "Submitted";
       break;
     case 3:
-      nextStatus = "Pending Consultant";
+      nextStatus = "Main Contractor Review";
       if (details?.approverName) {
         approval = createWorkOrderApproval(
           order.id,
@@ -117,28 +136,29 @@ export function transitionWorkOrderStage(
       }
       break;
     case 4:
-    case 5:
-      nextStatus = "Approved";
+      nextStatus = "Pending Consultant";
       if (details?.approverName) {
-        approval = createWorkOrderApproval(
-          order.id,
-          "Consultant / Engineer",
-          details.approverName,
-          "APPROVED",
-          details.comment || "Consultant Ashghal / KEO sign-off granted. QR token generated.",
-          3,
-        );
+        approval = createWorkOrderApproval(order.id, "Consultant / Engineer", details.approverName, "APPROVED", details.comment || "Consultant review completed.", 4);
       }
       break;
+    case 5:
+      nextStatus = "Approved";
+      break;
     case 6:
+      nextStatus = "Briefing Pending";
+      break;
     case 7:
-      nextStatus = "Active";
+      nextStatus = "Access Ready";
       break;
     case 8:
+      nextStatus = "Active";
+      break;
     case 9:
-      nextStatus = "Under Inspection";
+      nextStatus = "Completion Pending";
       break;
     case 10:
+      nextStatus = "Verification";
+      break;
     case 11:
       nextStatus = "Completed";
       break;

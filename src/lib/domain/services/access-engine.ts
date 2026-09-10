@@ -8,6 +8,7 @@ import type {
   WorkOrder,
   Zone,
   Gate,
+  AccessAuthorization,
   AccessEvaluationResult,
   AccessCheckRuleResult,
   AccessDecision,
@@ -24,6 +25,7 @@ export interface AccessEvaluationInput {
   overrideOperator?: string | undefined;
   overrideReason?: string | undefined;
   now?: Date | undefined;
+  authorizations?: readonly AccessAuthorization[] | undefined;
 }
 
 export function evaluateGateAccess(input: AccessEvaluationInput): AccessEvaluationResult {
@@ -107,7 +109,7 @@ export function evaluateGateAccess(input: AccessEvaluationInput): AccessEvaluati
   runCheck(
     2,
     "Worker Active Status",
-    worker.status !== "Deactivated",
+    worker.status === "Active" || worker.status === "Off Site" || worker.status === "On Site",
     `Worker status is: ${worker.status}`,
     "SUSPENDED_WORKER",
     "Worker profile is deactivated or archived.",
@@ -156,7 +158,8 @@ export function evaluateGateAccess(input: AccessEvaluationInput): AccessEvaluati
     "Worker not authorized for this construction project.",
   );
 
-  // Exits do not require work order checks
+  // An exit is always permitted once identity, project and safety checks have passed.
+  // It must not create a new attendance IN or grant a fresh authorization.
   if (direction === "OUT") {
     return {
       decision: "AUTHORIZED",
@@ -201,13 +204,23 @@ export function evaluateGateAccess(input: AccessEvaluationInput): AccessEvaluati
     "Toolbox safety briefing has not been signed off on the worker mobile app.",
   );
 
-  // 10. Access Authorization Exists?
-  const hasAccessStatus = worker.accessStatus === "Authorized";
+  // 10. A persisted, active and in-window authorization is the source of truth.
+  // worker.accessStatus is only a UI cache and must never authorize entry on its own.
+  const authorization = input.authorizations?.find(
+    (candidate) =>
+      candidate.workerId === worker.id &&
+      candidate.workOrderId === workOrder?.id &&
+      candidate.zoneId === workOrder?.zoneId &&
+      candidate.status === "ACTIVE" &&
+      new Date(candidate.validFrom) <= now &&
+      new Date(candidate.validTo) >= now,
+  );
+  const hasAuthorization = !!authorization;
   runCheck(
     10,
     "Access Authorization Whitelist",
-    hasAccessStatus,
-    `Whitelist State: ${worker.accessStatus}`,
+    hasAuthorization,
+    hasAuthorization ? `Authorization ${authorization.id} is active` : "No active persisted authorization for this worker and work order",
     "ACCESS_AUTHORIZATION_MISSING",
     "Turnstile access authorization record is missing or pending.",
   );

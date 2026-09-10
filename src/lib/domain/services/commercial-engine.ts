@@ -79,6 +79,9 @@ export function createContractorClaim(
   const code = `IPC-${contractor.code}-${Date.now().toString().slice(-4)}`;
   const totalHours = timesheets.reduce((acc, t) => acc + t.totalBillableHours, 0);
   const calculatedAmount = timesheets.reduce((acc, t) => acc + t.totalCost, 0);
+  if (timesheets.length === 0 || calculatedAmount <= 0) {
+    throw new Error("CALCULATION PENDING: no approved operational timesheets are available for this claim.");
+  }
 
   return {
     id: `CLAIM-${Date.now()}`,
@@ -90,25 +93,19 @@ export function createContractorClaim(
     billingPeriod: "Current Operational Shift",
     totalManpowerCount: contractor.actualManpower,
     totalManHours: Math.round(totalHours),
-    calculatedAmount: calculatedAmount > 0 ? calculatedAmount : 124500,
-    approvedAmount: calculatedAmount > 0 ? calculatedAmount : 124500,
+    calculatedAmount,
     verifiedProgressPercentage: progressPct,
     supportingDocumentCount: 8,
-    status: "Approved",
+    status: "Submitted",
     submittedAt: new Date().toISOString(),
-    approvals: [
-      {
-        role: "Commercial QS",
-        approver: "KEO Lead Quantity Surveyor",
-        status: "APPROVED",
-        timestamp: new Date().toISOString(),
-        comment: "Biometric turnstile cross-audit completed. Zero ghost workers detected.",
-      },
-    ],
+    approvals: [],
   };
 }
 
 export function createPaymentFromClaim(claim: ContractorClaim): PaymentRecord {
+  if (claim.status !== "Approved" || claim.approvedAmount === undefined) {
+    throw new Error("Payment can only be created for an approved claim with an approved amount.");
+  }
   const invNumber = `INV-${claim.code.replace("IPC-", "")}-${new Date().getFullYear()}`;
   return {
     id: `PAY-${Date.now()}`,
@@ -117,7 +114,7 @@ export function createPaymentFromClaim(claim: ContractorClaim): PaymentRecord {
     contractorName: claim.contractorName,
     claimId: claim.id,
     claimCode: claim.code,
-    amount: claim.approvedAmount || claim.calculatedAmount,
+    amount: claim.approvedAmount,
     currency: "QAR",
     paymentStatus: "PROCESSED",
     paymentMethod: "Direct Bank Transfer (QNB Corporate)",

@@ -45,6 +45,8 @@ import type {
   AuditLogEntry,
   SystemNotification,
   MusterPoint,
+  WorkerAcknowledgement,
+  AccessAuthorization,
 } from "./types";
 
 import {
@@ -72,6 +74,7 @@ import {
 } from "./seed-data";
 
 import { eventBus } from "./event-bus";
+import { browserDomainRepository } from "./persistence";
 import { evaluateGateAccess } from "./services/access-engine";
 import { updateWorkerLocation } from "./services/location-engine";
 import {
@@ -151,6 +154,8 @@ interface DomainStoreContextType {
   auditLogs: AuditLogEntry[];
   notifications: SystemNotification[];
   musterPoints: MusterPoint[];
+  acknowledgements: WorkerAcknowledgement[];
+  accessAuthorizations: AccessAuthorization[];
 
   // App & Telemetry state
   theme: "dark" | "light";
@@ -360,6 +365,9 @@ export function DomainStoreProvider({ children }: { children: ReactNode }) {
   const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>(INITIAL_AUDIT_LOGS);
   const [notifications, setNotifications] = useState<SystemNotification[]>(INITIAL_NOTIFICATIONS);
   const [musterPoints, setMusterPoints] = useState<MusterPoint[]>(INITIAL_MUSTER_POINTS);
+  // Persisted authorization records are the access source of truth; the worker field is a UI cache.
+  const [acknowledgements, setAcknowledgements] = useState<WorkerAcknowledgement[]>(() => browserDomainRepository.load("site-guardian:acknowledgements", []));
+  const [accessAuthorizations, setAccessAuthorizations] = useState<AccessAuthorization[]>(() => browserDomainRepository.load("site-guardian:access-authorizations", []));
 
   // Live Telemetry simulation state
   const [headcount, setHeadcount] = useState(864);
@@ -393,7 +401,7 @@ export function DomainStoreProvider({ children }: { children: ReactNode }) {
 
   const zoneOccupancies = useMemo(() => {
     const counts: Record<string, number> = {};
-    for (const z of zones) counts[z.id] = z.currentOccupancy;
+    for (const z of zones) counts[z.id] = 0;
     for (const w of presentWorkers) {
       if (w.currentZoneId) {
         counts[w.currentZoneId] = (counts[w.currentZoneId] || 0) + 1;
@@ -462,6 +470,14 @@ export function DomainStoreProvider({ children }: { children: ReactNode }) {
     return () => clearInterval(t);
   }, []);
 
+  useEffect(() => {
+    browserDomainRepository.save("site-guardian:acknowledgements", acknowledgements);
+  }, [acknowledgements]);
+
+  useEffect(() => {
+    browserDomainRepository.save("site-guardian:access-authorizations", accessAuthorizations);
+  }, [accessAuthorizations]);
+
   // Theme
   useEffect(() => {
     if (typeof document === "undefined") return;
@@ -525,6 +541,7 @@ export function DomainStoreProvider({ children }: { children: ReactNode }) {
         zone: targetZone,
         gate,
         direction,
+        authorizations: accessAuthorizations,
       });
 
       const fallbackWorker = workers[0]!;
@@ -594,7 +611,8 @@ export function DomainStoreProvider({ children }: { children: ReactNode }) {
           workOrderId: currentWO?.id,
           source: "RFID_TURNSTILE",
         };
-        setAttendance((prev) => [att, ...prev]);
+        // Duplicate RFID delivery must not create a second attendance record for the same gate event.
+        setAttendance((prev) => (prev.some((record) => record.workerId === att.workerId && record.direction === att.direction && record.timestamp === att.timestamp) ? prev : [att, ...prev]));
 
         // Update Worker status
         setWorkers((prev) =>
@@ -611,6 +629,18 @@ export function DomainStoreProvider({ children }: { children: ReactNode }) {
 
         setHeadcount((h) => Math.min(1000, Math.max(700, h + (direction === "IN" ? 1 : -1))));
 
+        eventBus.emit(direction === "IN" ? "GATE_ENTRY" : "GATE_EXIT", event, selectedWorker.fullName, "Worker", event.id, "GateEvent");
+        eventBus.emit(direction === "IN" ? "ATTENDANCE_IN" : "ATTENDANCE_OUT", att, "Gate Controller", "Security", att.id, "AttendanceRecord");
+
+        if (direction === "OUT" && currentWO) {
+          const entry = attendance.find((record) => record.workerId === selectedWorker.id && record.workOrderId === currentWO.id && record.direction === "IN" && record.date === att.date);
+          if (entry) {
+            const timesheet = generateTimesheetFromAttendance(selectedWorker, currentWO, entry.timestamp, att.timestamp, att.date);
+            setTimesheets((prev) => prev.some((item) => item.workerId === timesheet.workerId && item.workOrderId === timesheet.workOrderId && item.date === timesheet.date) ? prev : [timesheet, ...prev]);
+            eventBus.emit("TIMESHEET_CREATED", timesheet, "Commercial Engine", "Automated Operations", timesheet.id, "Timesheet");
+          }
+        }
+
         toast.success(`Access Authorized · Gate Turnstile Opened`, {
           description: `${selectedWorker.fullName} (${selectedWorker.contractorName}) · ${gate.name}`,
         });
@@ -624,6 +654,8 @@ export function DomainStoreProvider({ children }: { children: ReactNode }) {
           description: `Worker ${selectedWorker.fullName} verified at ${gate.name} (${event.laneId}).`,
         });
       } else {
+        eventBus.emit("ACCESS_DENIED", event, "Access Engine", "Security Controller", event.id, "GateEvent");
+        setNotifications((prev) => [{ id: `NOT-${event.id}`, timestamp: new Date().toISOString(), title: "Gate access denied", message: `${selectedWorker?.fullName || "Unregistered worker"}: ${evalResult.denialMessage || "Access denied"}`, severity: "crit", targetRoute: "/gates", targetEntityId: event.id, read: false }, ...prev]);
         toast.error(`Access Denied: ${evalResult.denialReason}`, {
           description: evalResult.denialMessage,
         });
@@ -640,7 +672,7 @@ export function DomainStoreProvider({ children }: { children: ReactNode }) {
 
       return event;
     },
-    [gates, workers, workOrders, zones, addAuditLog],
+    [gates, workers, workOrders, zones, accessAuthorizations, attendance, addAuditLog],
   );
 
   // Manual Gate Override
@@ -728,6 +760,8 @@ export function DomainStoreProvider({ children }: { children: ReactNode }) {
       const result = updateWorkerLocation(worker, targetZone, coords, authorizedZoneId, authorizedZoneName);
 
       setLocationEvents((prev) => [result.locationEvent, ...prev].slice(0, 100));
+      eventBus.emit("LOCATION_UPDATED", result.locationEvent, "Location Engine", "Spatial Tracking", result.locationEvent.id, "LocationEvent");
+      eventBus.emit("ZONE_ENTERED", { workerId, zoneId: targetZone.id }, "Location Engine", "Spatial Tracking", targetZone.id, "Zone");
 
       setWorkers((prev) =>
         prev.map((w) => {
@@ -762,7 +796,13 @@ export function DomainStoreProvider({ children }: { children: ReactNode }) {
           createdAt: new Date().toISOString(),
         };
 
-        setIncidents((prev) => [incident, ...prev]);
+        const duplicate = incidents.some((item) => item.source === "GEOFENCE_BREACH" && item.workerId === worker.id && item.zoneId === targetZone.id && item.status !== "CLOSED");
+        if (!duplicate) {
+          setIncidents((prev) => [incident, ...prev]);
+          eventBus.emit("GEOFENCE_BREACH", breach, "Geofence Engine", "Spatial Safety", breach.id, "GeofenceBreachEvent");
+          eventBus.emit("SAFETY_INCIDENT_CREATED", incident, "Safety Engine", "Automated HSE", incident.id, "SafetyIncident");
+          setNotifications((prev) => [{ id: `NOT-${breach.id}`, timestamp: new Date().toISOString(), title: "Geofence breach", message: `${worker.fullName} entered ${targetZone.name}.`, severity: "crit", targetRoute: "/incidents", targetEntityId: incident.id, read: false }, ...prev]);
+        }
 
         toast.error("CRITICAL GEOFENCE BREACH DETECTED", {
           description: `${worker.fullName} entered unauthorized zone ${targetZone.name}.`,
@@ -775,11 +815,11 @@ export function DomainStoreProvider({ children }: { children: ReactNode }) {
           action: "GEOFENCE_BREACH",
           entity: "Zone",
           entityId: targetZone.id,
-          description: `Worker ${worker.fullName} breached ${targetZone.name}. Incident ${incident.id} opened.`,
+          description: `Worker ${worker.fullName} breached ${targetZone.name}.${duplicate ? " Existing open incident retained." : ` Incident ${incident.id} opened.`}`,
         });
       }
     },
-    [workers, zones, workOrders, addAuditLog],
+    [workers, zones, workOrders, incidents, addAuditLog],
   );
 
   // ----------------------------------------------------
@@ -793,8 +833,22 @@ export function DomainStoreProvider({ children }: { children: ReactNode }) {
     ) => {
       const wo = workOrders.find((w) => w.id === workOrderId);
       if (!wo) return;
+      if (!canPerformAction("APPROVE_WORK_ORDER")) {
+        toast.error("Permission denied", { description: "Your role cannot approve work-order transitions." });
+        return;
+      }
+      if (targetStage === 11 && !inspections.some((inspection) => inspection.workOrderId === workOrderId && inspection.result === "PASS" && inspection.status === "VERIFIED_AND_CLOSED")) {
+        toast.error("Quality gate blocked", { description: "A verified PASS inspection is required before work completion." });
+        return;
+      }
 
-      const { updatedOrder } = transitionWorkOrderStage(wo, targetStage, details);
+      let updatedOrder: WorkOrder;
+      try {
+        ({ updatedOrder } = transitionWorkOrderStage(wo, targetStage, details));
+      } catch (error) {
+        toast.error("Work-order transition blocked", { description: error instanceof Error ? error.message : "Invalid transition." });
+        return;
+      }
 
       setWorkOrders((prev) => prev.map((w) => (w.id === workOrderId ? updatedOrder : w)));
 
@@ -804,6 +858,8 @@ export function DomainStoreProvider({ children }: { children: ReactNode }) {
         action: "WORK_ORDER_APPROVED",
         entity: "WorkOrder",
         entityId: workOrderId,
+        beforeSnapshot: JSON.stringify({ stage: wo.stage, status: wo.status }),
+        afterSnapshot: JSON.stringify({ stage: updatedOrder.stage, status: updatedOrder.status }),
         description: `Work order ${workOrderId} promoted to Stage ${targetStage} (${updatedOrder.status}).`,
       });
 
@@ -811,7 +867,7 @@ export function DomainStoreProvider({ children }: { children: ReactNode }) {
         description: `Advanced to ${updatedOrder.status} (Stage ${targetStage}).`,
       });
     },
-    [workOrders, addAuditLog],
+    [workOrders, inspections, canPerformAction, addAuditLog],
   );
 
   const acknowledgeWorkOrder = useCallback(
@@ -819,9 +875,23 @@ export function DomainStoreProvider({ children }: { children: ReactNode }) {
       const worker = workers.find((w) => w.id === workerId);
       const wo = workOrders.find((w) => w.id === workOrderId);
       if (!worker || !wo) return;
+      if (!wo.assignedWorkerIds.includes(workerId) || wo.status !== "Approved") {
+        toast.error("Acknowledgement blocked", { description: "Only an assigned worker may sign an approved work order." });
+        return;
+      }
 
-      const ack = recordWorkerAcknowledgement(workerId, workOrderId, wo.qrToken, signatureDataUrl);
+      let ack: WorkerAcknowledgement;
+      try {
+        ack = recordWorkerAcknowledgement(workerId, workOrderId, wo.qrToken, signatureDataUrl);
+      } catch (error) {
+        toast.error("Signature required", { description: error instanceof Error ? error.message : "A valid signature is required." });
+        return;
+      }
       const auth = generateAccessAuthorization(worker, wo);
+      const existingAck = acknowledgements.find((item) => item.workerId === workerId && item.workOrderId === workOrderId);
+      const existingAuth = accessAuthorizations.find((item) => item.workerId === workerId && item.workOrderId === workOrderId && item.status === "ACTIVE");
+      if (!existingAck) setAcknowledgements((prev) => [ack, ...prev]);
+      if (!existingAuth) setAccessAuthorizations((prev) => [auth, ...prev]);
 
       setWorkOrders((prev) =>
         prev.map((w) => {
@@ -830,8 +900,8 @@ export function DomainStoreProvider({ children }: { children: ReactNode }) {
           return {
             ...w,
             acknowledgedWorkerIds: nextAckList,
-            stage: nextAckList.length >= w.assignedWorkerIds.length ? 5 : w.stage,
-            status: nextAckList.length >= w.assignedWorkerIds.length ? "Approved" : w.status,
+            stage: w.stage === 5 && nextAckList.length >= w.assignedWorkerIds.length ? 6 : w.stage,
+            status: w.stage === 5 && nextAckList.length >= w.assignedWorkerIds.length ? "Briefing Pending" : w.status,
           };
         }),
       );
@@ -841,7 +911,7 @@ export function DomainStoreProvider({ children }: { children: ReactNode }) {
           if (w.id !== workerId) return w;
           return {
             ...w,
-            accessStatus: "Authorized",
+            accessStatus: "Authorized", // synchronized cache; evaluateGateAccess checks accessAuthorizations.
             currentWorkOrderId: workOrderId,
           };
         }),
@@ -853,14 +923,17 @@ export function DomainStoreProvider({ children }: { children: ReactNode }) {
         action: "WORKER_SIGNED",
         entity: "WorkerAcknowledgement",
         entityId: workerId,
-        description: `Worker ${worker.fullName} signed toolbox briefing for ${workOrderId}. RFID whitelisted.`,
+        description: `Worker ${worker.fullName} signed toolbox briefing for ${workOrderId}. Authorization ${existingAuth?.id || auth.id} persisted.`,
       });
+
+      eventBus.emit("WORKER_ACKNOWLEDGED", existingAck || ack, worker.fullName, "Worker", (existingAck || ack).id, "WorkerAcknowledgement");
+      eventBus.emit("ACCESS_AUTHORIZED", existingAuth || auth, "Workflow Engine", "Automated Operations", (existingAuth || auth).id, "AccessAuthorization");
 
       toast.success("Toolbox Briefing Signed", {
         description: `Access authorization generated. RFID ${worker.rfid} whitelisted for Gate entry.`,
       });
     },
-    [workers, workOrders, addAuditLog],
+    [workers, workOrders, acknowledgements, accessAuthorizations, addAuditLog],
   );
 
   const assignWorkerToWorkOrder = useCallback(
@@ -897,8 +970,8 @@ export function DomainStoreProvider({ children }: { children: ReactNode }) {
           return {
             ...wo,
             progress,
-            stage: progress >= 100 ? 10 : 7,
-            status: progress >= 100 ? "Under Inspection" : "Active",
+            stage: progress >= 100 ? 9 : 8,
+            status: progress >= 100 ? "Completion Pending" : "Active",
           };
         }),
       );
@@ -911,6 +984,11 @@ export function DomainStoreProvider({ children }: { children: ReactNode }) {
     (workOrderId: string, evidenceNotes?: string) => {
       const wo = workOrders.find((w) => w.id === workOrderId);
       if (!wo) return;
+      const passedInspection = inspections.some((inspection) => inspection.workOrderId === workOrderId && inspection.result === "PASS" && inspection.status === "VERIFIED_AND_CLOSED");
+      if (wo.stage !== 10 || !passedInspection) {
+        toast.error("Completion blocked", { description: "A verified PASS inspection and supervisor verification are required before completion." });
+        return;
+      }
 
       setWorkOrders((prev) =>
         prev.map((w) => {
@@ -918,7 +996,7 @@ export function DomainStoreProvider({ children }: { children: ReactNode }) {
           return {
             ...w,
             status: "Completed",
-            stage: 10,
+            stage: 11,
             progress: 100,
             actualEnd: new Date().toISOString(),
             completionEvidence: {
@@ -941,7 +1019,7 @@ export function DomainStoreProvider({ children }: { children: ReactNode }) {
 
       toast.success(`Work Order ${workOrderId} Verified & Completed`);
     },
-    [workOrders, addAuditLog],
+    [workOrders, inspections, addAuditLog],
   );
 
   // ----------------------------------------------------
@@ -1097,6 +1175,8 @@ export function DomainStoreProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const approveChangeRequest = useCallback((changeRequestId: string, approverRole: string, approverName: string) => {
+    const change = changeRequests.find((item) => item.id === changeRequestId);
+    if (!change || change.status === "Approved") return;
     setChangeRequests((prev) =>
       prev.map((cr) => {
         if (cr.id !== changeRequestId) return cr;
@@ -1111,8 +1191,14 @@ export function DomainStoreProvider({ children }: { children: ReactNode }) {
         };
       }),
     );
+    setProject((current) => ({ ...current, budget: current.budget + change.costImpact, targetDate: new Date(new Date(current.targetDate).getTime() + change.scheduleImpactDays * 86_400_000).toISOString().slice(0, 10) }));
+    if (change.workOrderId) {
+      setWorkOrders((prev) => prev.map((order) => order.id === change.workOrderId ? { ...order, description: `${order.description} [Approved change ${change.code}]` } : order));
+    }
+    addAuditLog({ actor: approverName, role: approverRole, action: "CHANGE_APPROVED", entity: "ChangeRequest", entityId: changeRequestId, beforeSnapshot: JSON.stringify({ status: change.status }), afterSnapshot: JSON.stringify({ status: "Approved", costImpact: change.costImpact, scheduleImpactDays: change.scheduleImpactDays }), description: `Change ${change.code} approved; project budget and schedule were updated.` });
+    eventBus.emit("CHANGE_APPROVED", { ...change, status: "Approved" }, approverName, approverRole, changeRequestId, "ChangeRequest");
     toast.success(`Change Request Approved by ${approverRole}`);
-  }, []);
+  }, [changeRequests, addAuditLog]);
 
   const approveTimesheet = useCallback((timesheetId: string, signature: string) => {
     setTimesheets((prev) =>
@@ -1177,18 +1263,33 @@ export function DomainStoreProvider({ children }: { children: ReactNode }) {
 
   const disbursePayment = useCallback((claimId: string) => {
     const claim = claims.find((c) => c.id === claimId);
-    if (!claim) return;
+    if (!claim || !canPerformAction("DISBURSE_PAYMENT")) {
+      toast.error("Payment blocked", { description: !claim ? "Claim was not found." : "Your role cannot release payments." });
+      return;
+    }
+    if (payments.some((payment) => payment.claimId === claimId)) {
+      toast.info("Payment already exists for this claim.");
+      return;
+    }
 
-    const payment = createPaymentFromClaim(claim);
+    let payment: PaymentRecord;
+    try {
+      payment = createPaymentFromClaim(claim);
+    } catch (error) {
+      toast.error("Payment blocked", { description: error instanceof Error ? error.message : "Claim is not payable." });
+      return;
+    }
     setPayments((prev) => [payment, ...prev]);
     setClaims((prev) =>
       prev.map((c) => (c.id === claimId ? { ...c, status: "Paid" } : c)),
     );
+    eventBus.emit("PAYMENT_RELEASED", payment, "Treasury", "Finance", payment.id, "PaymentRecord");
+    addAuditLog({ actor: "Treasury", role: "Finance", action: "PAYMENT_RELEASED", entity: "PaymentRecord", entityId: payment.id, beforeSnapshot: JSON.stringify({ claimStatus: claim.status }), afterSnapshot: JSON.stringify({ paymentStatus: payment.paymentStatus, amount: payment.amount }), description: `Payment released for approved claim ${claim.code}.` });
 
     toast.success(`Payment Disbursed: QAR ${payment.amount.toLocaleString()}`, {
       description: `Treasury Batch: ${payment.treasuryBatchRef}`,
     });
-  }, [claims]);
+  }, [claims, payments, canPerformAction, addAuditLog]);
 
   const markNotificationRead = useCallback((id: string) => {
     setNotifications((prev) =>
@@ -1360,6 +1461,8 @@ export function DomainStoreProvider({ children }: { children: ReactNode }) {
     setAuditLogs(INITIAL_AUDIT_LOGS);
     setNotifications(INITIAL_NOTIFICATIONS);
     setMusterPoints(INITIAL_MUSTER_POINTS);
+    setAcknowledgements([]);
+    setAccessAuthorizations([]);
     setEmergency(false);
     setSimulating(false);
     setActiveScenarioResult(null);
@@ -1458,6 +1561,8 @@ export function DomainStoreProvider({ children }: { children: ReactNode }) {
       auditLogs,
       notifications,
       musterPoints,
+      acknowledgements,
+      accessAuthorizations,
 
       theme,
       toggleTheme,
@@ -1560,6 +1665,8 @@ export function DomainStoreProvider({ children }: { children: ReactNode }) {
       auditLogs,
       notifications,
       musterPoints,
+      acknowledgements,
+      accessAuthorizations,
       theme,
       toggleTheme,
       lang,
