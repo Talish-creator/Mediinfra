@@ -36,6 +36,7 @@ export type DomainEventType =
   | "INSPECTION_FAILED"
   | "INSPECTION_PASSED"
   | "CHANGE_REQUESTED"
+  | "CHANGE_TIER_APPROVED"
   | "CHANGE_APPROVED"
   | "CHANGE_REJECTED"
   | "WORK_STARTED"
@@ -51,6 +52,7 @@ export type DomainEventType =
   | "PAYMENT_RELEASED"
   | "EMERGENCY_ACTIVATED"
   | "EMERGENCY_STOOD_DOWN"
+  | "WORKER_MUSTERED"
   | "BROADCAST_EMITTED";
 
 export interface DomainEvent<T = any> {

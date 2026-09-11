@@ -630,12 +630,15 @@ export interface Timesheet {
 export type ClaimStatus =
   | "Draft"
   | "Submitted"
+  | "Under Review"
   | "Main Contractor Review"
   | "Consultant Review"
   | "Approved"
   | "Finance Review"
+  | "Finance Approved"
   | "Payment Pending"
   | "Paid"
+  | "Closed"
   | "Rejected";
 
 export interface ContractorClaim {
@@ -719,3 +722,29 @@ export interface MusterPoint {
   capacity: number;
   accountedCount: number;
 }
+
+// ==========================================
+// 12. SIMULATION & SCENARIO ENGINE
+// ==========================================
+
+export interface ScenarioStepResult {
+  step: number;
+  time: string;
+  title: string;
+  description: string;
+  entity: string;
+  entityId: string;
+  status: "success" | "warning" | "error" | "info";
+}
+
+export interface ScenarioState {
+  scenarioId: number | null;
+  currentStep: number;
+  totalSteps: number;
+  status: "IDLE" | "RUNNING" | "PAUSED" | "COMPLETED" | "ERROR";
+  startedAt?: string | undefined;
+  completedAt?: string | undefined;
+  steps: ScenarioStepResult[];
+  errors: string[];
+}
+

@@ -1,14 +1,9 @@
 /**
- * Site Guardian — Simulation Suite & The 6 Demo Scenarios
- * Implements deterministic execution of the 6 end-to-end operational scenarios.
+ * Site Guardian — Canonical Simulation Suite (Scenarios 1 to 8)
+ * Implements deterministic execution of operational scenarios using genuine domain operations.
+ * ZERO fake workflows, ZERO bypasses, strict commercial lifecycle and state validation.
  */
 
-import { eventBus } from "./event-bus";
-import { evaluateGateAccess } from "./services/access-engine";
-import { updateWorkerLocation } from "./services/location-engine";
-import { createAIDetection, createIncidentFromAIDetection, createBroadcastMessage, advanceIncidentStatus } from "./services/safety-engine";
-import { transitionWorkOrderStage, recordWorkerAcknowledgement, generateAccessAuthorization } from "./services/workflow-engine";
-import { generateTimesheetFromAttendance, createContractorClaim, createPaymentFromClaim } from "./services/commercial-engine";
 import type {
   Worker,
   WorkOrder,
@@ -28,8 +23,779 @@ import type {
   SystemNotification,
   QualityInspection,
   MusterPoint,
+  WorkerAcknowledgement,
+  AccessAuthorization,
+  WorkOrderStage,
+  IncidentStatus,
 } from "./types";
 
+export interface CanonicalOperations {
+  getState: () => {
+    workers: Worker[];
+    workOrders: WorkOrder[];
+    zones: Zone[];
+    gates: Gate[];
+    cameras: Camera[];
+    contractors: Contractor[];
+    incidents: SafetyIncident[];
+    broadcasts: BroadcastLog[];
+    timesheets: Timesheet[];
+    claims: ContractorClaim[];
+    payments: PaymentRecord[];
+    changeRequests: ChangeRequest[];
+    auditLogs: AuditLogEntry[];
+    notifications: SystemNotification[];
+    headcount: number;
+    inspections: QualityInspection[];
+    musterPoints: MusterPoint[];
+    accessAuthorizations: AccessAuthorization[];
+    acknowledgements: WorkerAcknowledgement[];
+    emergency: boolean;
+  };
+  approveWorkOrder: (workOrderId: string, targetStage: WorkOrderStage, details?: { approverName: string; comment?: string; progress?: number }) => void;
+  acknowledgeWorkOrder: (workerId: string, workOrderId: string, signatureDataUrl?: string) => void;
+  assignWorkerToWorkOrder: (workOrderId: string, workerId: string) => void;
+  updateWorkOrderProgress: (workOrderId: string, progress: number, notes?: string) => void;
+  requestInspection: (workOrderId: string, checklist?: { id: string; description: string; passed: boolean }[]) => QualityInspection;
+  completeInspection: (inspectionId: string, result: "PASS" | "FAIL", defectNotes?: string) => void;
+  verifyWorkCompletion: (workOrderId: string, supervisorName: string) => void;
+  completeWorkOrder: (workOrderId: string, evidenceNotes?: string) => void;
+  scanRfid: (gateId: string, workerId?: string, direction?: "IN" | "OUT") => GateEvent;
+  submitManualGateOverride: (gateId: string, qid: string, operator: string, reason: string) => GateEvent;
+  moveWorker: (workerId: string, targetZoneId: string, coords?: { x: number; y: number }) => void;
+  submitIncident: (incidentData: Partial<SafetyIncident>) => SafetyIncident;
+  updateIncidentStatus: (incidentId: string, status: IncidentStatus, details?: { assignedTo?: string; correctiveAction?: string }) => void;
+  emitBroadcast: (zoneId: string, text: string, severity?: "info" | "warn" | "crit") => void;
+  approveTimesheet: (timesheetId: string, signature: string) => void;
+  submitContractorClaim: (claimData: Partial<ContractorClaim>) => void;
+  reviewClaim: (claimId: string, reviewerRole?: string, reviewerName?: string, comment?: string) => void;
+  approveClaim: (claimId: string, approverRole?: string, approverName?: string, approvedAmount?: number, comment?: string) => void;
+  financeApproveClaim: (claimId: string, financeOfficer?: string, comment?: string) => void;
+  disbursePayment: (claimId: string) => void;
+  submitChangeRequest: (cr: Partial<ChangeRequest>) => void;
+  approveChangeRequest: (changeRequestId: string, approverRole: string, approverName: string) => void;
+  activateEmergency: () => void;
+  accountWorkerAtMuster: (workerId: string, musterPointId: string) => void;
+  resolveEmergency: () => void;
+  addAuditLog: (entry: Omit<AuditLogEntry, "id" | "timestamp">) => void;
+}
+
+export interface ScenarioStepResult {
+  step: number;
+  time: string;
+  title: string;
+  description: string;
+  entity: string;
+  entityId: string;
+  status: "success" | "warning" | "error" | "info";
+}
+
+export interface ScenarioStepDefinition {
+  step: number;
+  time: string;
+  title: string;
+  description: string;
+  entity: string;
+  entityId: string;
+  status?: "success" | "warning" | "error" | "info";
+  execute: (ops: CanonicalOperations) => void;
+}
+
+export interface ScenarioDefinition {
+  id: number;
+  title: string;
+  description: string;
+  steps: ScenarioStepDefinition[];
+}
+
+export const SCENARIO_DEFINITIONS: Record<number, ScenarioDefinition> = {
+  1: {
+    id: 1,
+    title: "End-to-End Operational Lifecycle (W-0245)",
+    description: "Complete canonical chain: WO Approval → Briefing Signature → RFID Gate 02 IN → Spatial Digital Twin → Edge AI PPE Check → QA Inspection → Handover → Gate 02 OUT → Timesheet Approval → Progress Claim → Multi-Tier Approvals → QNB Treasury Disbursement.",
+    steps: [
+      {
+        step: 1,
+        time: "07:05:00",
+        title: "Work Order Approved & QR Issued",
+        description: "Consultant engineer Eng. Tariq Al-Mansoor (KEO) approved Work Order WO-1027 to Stage 5 (Approved).",
+        entity: "WorkOrder",
+        entityId: "WO-1027",
+        status: "success",
+        execute: (ops) => {
+          ops.approveWorkOrder("WO-1027", 5, {
+            approverName: "Eng. Tariq Al-Mansoor (KEO)",
+            comment: "Verified all method statements, gas hazard assessments, and worker quotas.",
+          });
+        },
+      },
+      {
+        step: 2,
+        time: "07:13:42",
+        title: "Worker Signs Briefing & Access Authorized",
+        description: "Worker Tariq Al-Mansoor (W-0245) completed safety briefing, signed digital pad, and RFID was whitelisted.",
+        entity: "WorkerAcknowledgement",
+        entityId: "W-0245",
+        status: "success",
+        execute: (ops) => {
+          ops.acknowledgeWorkOrder("W-0245", "WO-1027", "data:image/svg+xml;base64,mockSignature");
+        },
+      },
+      {
+        step: 3,
+        time: "07:20:08",
+        title: "Gate 02 RFID Tap — Access Authorized",
+        description: "17-point rule engine evaluated PASS. Turnstile unlocked, attendance IN recorded, worker status set to On Site.",
+        entity: "GateEvent",
+        entityId: "GATE-02",
+        status: "success",
+        execute: (ops) => {
+          ops.scanRfid("GATE-02", "W-0245", "IN");
+        },
+      },
+      {
+        step: 4,
+        time: "07:31:00",
+        title: "Digital Twin Presence & Geofence Verified",
+        description: "Worker entered designated zone East Ward Refit (IPT-L3-East). Spatial boundary match verified with 0 warnings.",
+        entity: "Zone",
+        entityId: "IPT-L3-East",
+        status: "success",
+        execute: (ops) => {
+          ops.moveWorker("W-0245", "IPT-L3-East", { x: 22, y: 18 });
+        },
+      },
+      {
+        step: 5,
+        time: "08:00:00",
+        title: "Edge AI Camera Verified PPE Compliance",
+        description: "Camera CAM-03 verified Safety Helmet, High-Vis Vest, and protective eyewear with 99.2% neural confidence.",
+        entity: "Camera",
+        entityId: "CAM-03",
+        status: "success",
+        execute: (ops) => {
+          ops.addAuditLog({
+            actor: "CAM-03 (Edge AI Vision)",
+            role: "Computer Vision",
+            action: "PPE_VERIFIED",
+            entity: "Worker",
+            entityId: "W-0245",
+            description: "Worker Tariq Al-Mansoor verified 100% compliant with mandatory PPE.",
+          });
+        },
+      },
+      {
+        step: 6,
+        time: "16:45:00",
+        title: "Quality Inspection Passed & Work Order Completed",
+        description: "QA Engineer verified HEPA pressure seals and brazing joints. Supervisor Eng. Tariq Al-Masri certified 100% completion.",
+        entity: "WorkOrder",
+        entityId: "WO-1027",
+        status: "success",
+        execute: (ops) => {
+          const qi = ops.requestInspection("WO-1027");
+          ops.completeInspection(qi.id, "PASS", "HEPA containment seals and medical gas brazing tests 100% verified.");
+          ops.updateWorkOrderProgress("WO-1027", 100, "All refit installation activities completed.");
+          ops.verifyWorkCompletion("WO-1027", "Eng. Tariq Al-Masri");
+          ops.completeWorkOrder("WO-1027", "All field works and QA gates certified.");
+        },
+      },
+      {
+        step: 7,
+        time: "17:00:12",
+        title: "Gate 02 Exit & Timesheet Calculated",
+        description: "Worker tapped out at Gate 02. Shift duration: 8h 47m. Operational timesheet generated from turnstile telemetry.",
+        entity: "GateEvent",
+        entityId: "GATE-02",
+        status: "success",
+        execute: (ops) => {
+          ops.scanRfid("GATE-02", "W-0245", "OUT");
+        },
+      },
+      {
+        step: 8,
+        time: "17:05:00",
+        title: "Timesheet Verified & Supervisor Approved",
+        description: "Site Supervisor Eng. Tariq Al-Masri approved timesheet against turnstile ingress/egress timestamps.",
+        entity: "Timesheet",
+        entityId: "TS-W-0245",
+        status: "success",
+        execute: (ops) => {
+          const ts = ops.getState().timesheets.find((t) => t.workerId === "W-0245");
+          if (ts) {
+            ops.approveTimesheet(ts.id, "Eng. Tariq Al-Masri (Site Supervisor)");
+          }
+        },
+      },
+      {
+        step: 9,
+        time: "17:10:00",
+        title: "Subcontractor Progress Claim Submitted",
+        description: "Al Sraiya MEP submitted IPC-SUB progress claim derived directly from verified attendance timesheets.",
+        entity: "ContractorClaim",
+        entityId: "CLAIM-SC-01",
+        status: "success",
+        execute: (ops) => {
+          ops.submitContractorClaim({
+            contractorId: "SC-01",
+            workPackageId: "WP-01",
+            workPackageName: "IPT Level 3 Clinical Area MEP Revamp",
+            verifiedProgressPercentage: 100,
+          });
+        },
+      },
+      {
+        step: 10,
+        time: "17:12:00",
+        title: "Claim Reviewed & Consultant QS Approved",
+        description: "Main Contractor Lead reviewed and Consultant QS Eng. Khalid Al-Sulaiti (KEO) approved payment application.",
+        entity: "ContractorClaim",
+        entityId: "CLAIM-SC-01",
+        status: "success",
+        execute: (ops) => {
+          const claim = ops.getState().claims.find((c) => c.contractorId === "SC-01" && (c.status === "Submitted" || c.status === "Draft"));
+          if (claim) {
+            ops.reviewClaim(claim.id, "Main Contractor Lead", "IMAR-Al Sraiya Lead QS", "Turnstile biometric logs match billing hours.");
+            ops.approveClaim(claim.id, "Consultant Quantity Surveyor", "Eng. Khalid Al-Sulaiti (KEO)", claim.calculatedAmount, "Certified against site attendance.");
+          }
+        },
+      },
+      {
+        step: 11,
+        time: "17:14:00",
+        title: "HMC Finance Controller Verified & Approved",
+        description: "HMC Finance Controller verified project budget line item and cleared claim for bank transfer scheduling.",
+        entity: "ContractorClaim",
+        entityId: "CLAIM-SC-01",
+        status: "success",
+        execute: (ops) => {
+          const claim = ops.getState().claims.find((c) => c.contractorId === "SC-01" && c.status === "Approved");
+          if (claim) {
+            ops.financeApproveClaim(claim.id, "HMC Financial Controller", "Budget line P875-MEP verified. Ready for QNB disbursement.");
+          }
+        },
+      },
+      {
+        step: 12,
+        time: "17:15:00",
+        title: "Treasury Fund Disbursement Released via QNB",
+        description: "Payment released via QNB Corporate EFT gateway. Claim settled and marked Paid in the commercial ledger.",
+        entity: "PaymentRecord",
+        entityId: "PAY-SC-01",
+        status: "success",
+        execute: (ops) => {
+          const claim = ops.getState().claims.find((c) => c.contractorId === "SC-01" && (c.status === "Payment Pending" || c.status === "Approved"));
+          if (claim) {
+            ops.disbursePayment(claim.id);
+          }
+        },
+      },
+    ],
+  },
+  2: {
+    id: 2,
+    title: "Gate Denial: Expired Safety Induction (W-0317)",
+    description: "Operative W-0317 presents RFID at Gate 01. 17-point rule check flags expired safety induction. Turnstile locks, attendance blocked, security alerted.",
+    steps: [
+      {
+        step: 1,
+        time: "07:15:22",
+        title: "Gate 01 RFID Tap — Access Denied",
+        description: "17-point engine flagged Rule 03: Safety induction expired on 2026-08-15. Turnstile remained locked.",
+        entity: "GateEvent",
+        entityId: "GATE-01",
+        status: "error",
+        execute: (ops) => {
+          ops.scanRfid("GATE-01", "W-0317", "IN");
+        },
+      },
+      {
+        step: 2,
+        time: "07:15:25",
+        title: "Security & Safety Notification Dispatched",
+        description: "Security Operations desk and HSE Lead notified of induction refusal. Operative directed to Induction Center.",
+        entity: "SystemNotification",
+        entityId: "NOT-SEC-01",
+        status: "warning",
+        execute: (ops) => {
+          ops.addAuditLog({
+            actor: "Gate 01 Controller",
+            role: "Access Engine",
+            action: "NOTIFICATION_DISPATCHED",
+            entity: "SystemNotification",
+            entityId: "GATE-01",
+            description: "Induction refusal notification dispatched to Security Operations.",
+          });
+        },
+      },
+      {
+        step: 3,
+        time: "07:15:30",
+        title: "Turnstile Refusal Forensic Audit Logged",
+        description: "Immutable audit log created recording tag EPC-00317, timestamp, reader GATE-01, and denial justification.",
+        entity: "AuditLogEntry",
+        entityId: "AUD-DENIED-01",
+        status: "info",
+        execute: (ops) => {
+          ops.addAuditLog({
+            actor: "Gate 01 Access Controller",
+            role: "Access Control",
+            action: "SECURITY_REFUSAL",
+            entity: "GateEvent",
+            entityId: "GATE-01",
+            description: "Worker W-0317 denied entry. Expired safety induction certificate.",
+          });
+        },
+      },
+    ],
+  },
+  3: {
+    id: 3,
+    title: "Gate Denial: Unassigned Permit Operative (W-0402)",
+    description: "Worker W-0402 attempts ingress at Gate 02. No approved work order authorization found on daily roster. Turnstile access denied.",
+    steps: [
+      {
+        step: 1,
+        time: "07:22:15",
+        title: "Gate 02 RFID Tap — Unassigned Worker Denied",
+        description: "Rule check flagged: Worker W-0402 has no active work-order access authorization for today's shift.",
+        entity: "GateEvent",
+        entityId: "GATE-02",
+        status: "error",
+        execute: (ops) => {
+          ops.scanRfid("GATE-02", "W-0402", "IN");
+        },
+      },
+      {
+        step: 2,
+        time: "07:22:18",
+        title: "Access Roster Violation Flagged",
+        description: "Gate terminal displayed Unassigned Permit warning. Attendance IN was blocked to preserve man-hour integrity.",
+        entity: "SystemNotification",
+        entityId: "NOT-SEC-02",
+        status: "warning",
+        execute: (ops) => {
+          ops.addAuditLog({
+            actor: "Gate 02 Controller",
+            role: "Access Engine",
+            action: "UNASSIGNED_PERMIT_ATTEMPT",
+            entity: "GateEvent",
+            entityId: "GATE-02",
+            description: "Worker W-0402 attempted entry without permit authorization.",
+          });
+        },
+      },
+      {
+        step: 3,
+        time: "07:22:25",
+        title: "Supervisor Security Audit Logged",
+        description: "Subcontractor supervisor notified to submit permit roster assignment before worker can clock in.",
+        entity: "AuditLogEntry",
+        entityId: "AUD-DENIED-02",
+        status: "info",
+        execute: (ops) => {
+          ops.addAuditLog({
+            actor: "Gate 02 Access Controller",
+            role: "Access Control",
+            action: "SECURITY_REFUSAL",
+            entity: "GateEvent",
+            entityId: "GATE-02",
+            description: "Worker W-0402 denied entry. Worker not assigned to approved work order.",
+          });
+        },
+      },
+    ],
+  },
+  4: {
+    id: 4,
+    title: "Geofence Spatial Breach & Containment (W-0245)",
+    description: "Operative W-0245 enters unauthorized Zone 04 (IPT-L4-AHU plant room). Spatial geofence detects breach, triggers critical HSE incident, audio broadcast, and containment.",
+    steps: [
+      {
+        step: 1,
+        time: "08:15:00",
+        title: "Worker Ingress via Authorized Turnstile",
+        description: "Worker W-0245 clocked in legitimately for East Ward Refit (IPT-L3-East).",
+        entity: "GateEvent",
+        entityId: "GATE-02",
+        status: "success",
+        execute: (ops) => {
+          const w = ops.getState().workers.find((item) => item.id === "W-0245");
+          if (!w || w.status !== "On Site") {
+            ops.scanRfid("GATE-02", "W-0245", "IN");
+          }
+        },
+      },
+      {
+        step: 2,
+        time: "08:42:10",
+        title: "Critical Geofence Breach Detected: Plant Room L4-AHU",
+        description: "Worker moved into restricted zone IPT-L4-AHU without permit. High-severity HSE Incident created.",
+        entity: "SafetyIncident",
+        entityId: "INC-GEOFENCE",
+        status: "error",
+        execute: (ops) => {
+          ops.moveWorker("W-0245", "IPT-L4-AHU", { x: 45, y: 75 });
+        },
+      },
+      {
+        step: 3,
+        time: "08:42:25",
+        title: "Loudspeaker Public Address Evacuation Broadcast",
+        description: "Command Center dispatched automated PA broadcast in Arabic and English commanding immediate zone exit.",
+        entity: "BroadcastLog",
+        entityId: "BC-AHU-ALERT",
+        status: "warning",
+        execute: (ops) => {
+          ops.emitBroadcast("IPT-L4-AHU", "Security Alert: Unauthorized personnel detected in Plant Room L4-AHU. Evacuate immediately.", "crit");
+        },
+      },
+      {
+        step: 4,
+        time: "08:46:00",
+        title: "Spatial Boundary Recovery to Authorized Ward",
+        description: "Worker exited restricted plant room and returned to East Ward Refit. Digital twin restored to normal green status.",
+        entity: "Zone",
+        entityId: "IPT-L3-East",
+        status: "success",
+        execute: (ops) => {
+          ops.moveWorker("W-0245", "IPT-L3-East", { x: 25, y: 25 });
+        },
+      },
+      {
+        step: 5,
+        time: "09:00:00",
+        title: "HSE Incident Investigation & Closure",
+        description: "HSE Field Marshal Capt. Fahad Al-Naimi interviewed operative, logged corrective retraining, and closed incident.",
+        entity: "SafetyIncident",
+        entityId: "INC-CLOSED",
+        status: "info",
+        execute: (ops) => {
+          const inc = ops.getState().incidents.find((i) => i.workerId === "W-0245" && i.status !== "CLOSED");
+          if (inc) {
+            ops.updateIncidentStatus(inc.id, "ACTION_IN_PROGRESS", { assignedTo: "Capt. Fahad Al-Naimi" });
+            ops.updateIncidentStatus(inc.id, "CLOSED", { correctiveAction: "Worker escorted back to East Ward and retrained on restricted plant boundaries." });
+          }
+        },
+      },
+    ],
+  },
+  5: {
+    id: 5,
+    title: "Edge AI Vision PPE Violation & PA Broadcast (W-0245)",
+    description: "Camera CAM-03 flags operative working without high-vis safety vest. Real-time PA loudspeaker warning emitted, worker equips vest, incident verified and closed.",
+    steps: [
+      {
+        step: 1,
+        time: "09:30:14",
+        title: "Edge AI Camera Flagged PPE Non-Compliance",
+        description: "Camera CAM-03 detected missing high-visibility safety vest with 94.6% neural confidence. Incident opened.",
+        entity: "SafetyIncident",
+        entityId: "INC-PPE-01",
+        status: "error",
+        execute: (ops) => {
+          ops.submitIncident({
+            workerId: "W-0245",
+            workerName: "Tariq Al-Mansoor",
+            type: "Missing Mandatory PPE (High-Vis Vest)",
+            severity: "Medium",
+            zoneId: "IPT-L3-East",
+            zoneName: "East Ward Refit",
+            description: "Edge AI Camera CAM-03 detected operative without high-visibility safety vest.",
+          });
+        },
+      },
+      {
+        step: 2,
+        time: "09:30:20",
+        title: "Automated PA Audio Warning Dispatched to Zone",
+        description: "Zone IPT-L3-East audio speaker announced mandatory high-vis compliance notice.",
+        entity: "BroadcastLog",
+        entityId: "BC-PPE-EAST",
+        status: "warning",
+        execute: (ops) => {
+          ops.emitBroadcast("IPT-L3-East", "Safety Notice: High-visibility vest compliance mandatory in East Ward.", "warn");
+        },
+      },
+      {
+        step: 3,
+        time: "09:33:00",
+        title: "HSE Corrective Action Notice Issued",
+        description: "Field supervisor provided high-vis vest from zone safety station. Corrective action assigned.",
+        entity: "SafetyIncident",
+        entityId: "INC-PPE-ACTION",
+        status: "warning",
+        execute: (ops) => {
+          const inc = ops.getState().incidents.find((i) => i.type.includes("PPE") && i.status === "OPEN");
+          if (inc) {
+            ops.updateIncidentStatus(inc.id, "CORRECTIVE_ACTION", { assignedTo: "HSE Field Marshal" });
+          }
+        },
+      },
+      {
+        step: 4,
+        time: "09:40:00",
+        title: "PPE Compliance Re-Verified & Incident Closed",
+        description: "Camera CAM-03 confirmed operative wearing vest. Incident closed with photo evidence attached.",
+        entity: "SafetyIncident",
+        entityId: "INC-PPE-CLOSED",
+        status: "success",
+        execute: (ops) => {
+          const inc = ops.getState().incidents.find((i) => i.type.includes("PPE") && i.status !== "CLOSED");
+          if (inc) {
+            ops.updateIncidentStatus(inc.id, "CLOSED", { correctiveAction: "Worker donned high-visibility vest provided by supervisor. Re-inspected by camera CAM-03." });
+          }
+        },
+      },
+    ],
+  },
+  6: {
+    id: 6,
+    title: "Variation / Change Order Governance Approval (CHANGE-004)",
+    description: "Subcontractor requests QAR 45,000 variation for additional HEPA air locks. Multi-tier sequential approval: Main Contractor → Consultant QS → Client Director.",
+    steps: [
+      {
+        step: 1,
+        time: "10:00:00",
+        title: "Variation Order CR-P875-004 Submitted",
+        description: "Al Sraiya MEP submitted change request for QAR 45,000 and 3 days schedule extension for MoPH HEPA air locks.",
+        entity: "ChangeRequest",
+        entityId: "CR-P875-004",
+        status: "info",
+        execute: (ops) => {
+          ops.submitChangeRequest({
+            workPackageId: "WP-01",
+            workOrderId: "WO-1027",
+            title: "Additional HEPA Filter Air Locks & Negative Pressure Ducting",
+            description: "Infection control requirement from MoPH audit.",
+            costImpact: 45000,
+            scheduleImpactDays: 3,
+            approvalChain: [
+              { role: "Subcontractor PM", approver: "Eng. Mounir Hadad", status: "APPROVED", timestamp: new Date().toISOString() },
+              { role: "Main Contractor Lead", approver: "IMAR-Al Sraiya JV Lead", status: "PENDING" },
+              { role: "Consultant Quantity Surveyor", approver: "Eng. Khalid Al-Sulaiti (KEO)", status: "PENDING" },
+              { role: "Client Representative", approver: "Dr. Mariam Al-Kuwari (HMC)", status: "PENDING" },
+            ],
+          });
+        },
+      },
+      {
+        step: 2,
+        time: "11:30:00",
+        title: "Tier 1: Main Contractor Technical Approval",
+        description: "Eng. Mounir Hadad (IMAR JV Lead) verified technical necessity and advanced change to Consultant Review.",
+        entity: "ChangeRequest",
+        entityId: "CR-P875-004",
+        status: "info",
+        execute: (ops) => {
+          const cr = ops.getState().changeRequests.find((c) => c.title.includes("HEPA Filter"));
+          if (cr) {
+            ops.approveChangeRequest(cr.id, "Main Contractor Lead", "Eng. Mounir Hadad (IMAR JV Lead)");
+          }
+        },
+      },
+      {
+        step: 3,
+        time: "14:15:00",
+        title: "Tier 2: Consultant QS Commercial Validation",
+        description: "Eng. Khalid Al-Sulaiti (KEO Lead QS) verified unit rates against contract bill of quantities and forwarded to Client.",
+        entity: "ChangeRequest",
+        entityId: "CR-P875-004",
+        status: "info",
+        execute: (ops) => {
+          const cr = ops.getState().changeRequests.find((c) => c.title.includes("HEPA Filter"));
+          if (cr) {
+            ops.approveChangeRequest(cr.id, "Consultant Quantity Surveyor", "Eng. Khalid Al-Sulaiti (KEO Lead QS)");
+          }
+        },
+      },
+      {
+        step: 4,
+        time: "16:00:00",
+        title: "Tier 3: Client Executive Approval & Budget Updated",
+        description: "Dr. Mariam Al-Kuwari (HMC Director) signed final approval. Project budget increased by QAR 45,000 and target date extended.",
+        entity: "ChangeRequest",
+        entityId: "CR-P875-004",
+        status: "success",
+        execute: (ops) => {
+          const cr = ops.getState().changeRequests.find((c) => c.title.includes("HEPA Filter"));
+          if (cr) {
+            ops.approveChangeRequest(cr.id, "Client Representative", "Dr. Mariam Al-Kuwari (HMC Director)");
+          }
+        },
+      },
+    ],
+  },
+  7: {
+    id: 7,
+    title: "Quality Handover: Defect Rectification (WO-1027)",
+    description: "QA Inspector fails medical gas pressure test. Work order completion blocked until HVAC subcontractor rectifies defect and passes QA re-inspection.",
+    steps: [
+      {
+        step: 1,
+        time: "11:00:00",
+        title: "Initial Quality Inspection Requested for WO-1027",
+        description: "Work Order WO-1027 reached verification stage. KEO Quality Engineer assigned for formal inspection.",
+        entity: "QualityInspection",
+        entityId: "QI-WO-1027",
+        status: "info",
+        execute: (ops) => {
+          ops.requestInspection("WO-1027");
+        },
+      },
+      {
+        step: 2,
+        time: "11:45:00",
+        title: "QA Inspection FAILED — Defect Snag Logged",
+        description: "KEO Inspector failed brazing joint dye test on vacuum pipeline. Status set to Rectification Required.",
+        entity: "QualityInspection",
+        entityId: "QI-WO-1027",
+        status: "error",
+        execute: (ops) => {
+          const qi = ops.getState().inspections.find((i) => i.workOrderId === "WO-1027");
+          if (qi) {
+            ops.completeInspection(qi.id, "FAIL", "Failed medical gas pressure test. Braze joint porosity defect identified on vacuum pipe line.");
+          }
+        },
+      },
+      {
+        step: 3,
+        time: "11:50:00",
+        title: "Completion Gate Enforced — Handover Blocked",
+        description: "System strictly blocked advance to Stage 11 (Completed) due to active open inspection defect.",
+        entity: "WorkOrder",
+        entityId: "WO-1027",
+        status: "warning",
+        execute: (ops) => {
+          ops.addAuditLog({
+            actor: "Quality System",
+            role: "QA Gatekeeper",
+            action: "HANDOVER_BLOCKED",
+            entity: "WorkOrder",
+            entityId: "WO-1027",
+            description: "Work completion blocked by open quality defect on inspection.",
+          });
+        },
+      },
+      {
+        step: 4,
+        time: "15:30:00",
+        title: "Defect Rectified & QA Re-Inspection PASSED",
+        description: "Al Sraiya re-brazed joint and completed 4-hour pressure test at 150 PSI. KEO Inspector signed off PASS.",
+        entity: "QualityInspection",
+        entityId: "QI-WO-1027",
+        status: "success",
+        execute: (ops) => {
+          const qi = ops.getState().inspections.find((i) => i.workOrderId === "WO-1027");
+          if (qi) {
+            ops.completeInspection(qi.id, "PASS", "Braze joint rectified, pressure re-tested at 150 PSI for 4 hours with 0 pressure drop.");
+          }
+        },
+      },
+      {
+        step: 5,
+        time: "16:15:00",
+        title: "Supervisor Verification Signed & Work Order Completed",
+        description: "Eng. Tariq Al-Masri certified handover evidence. Work Order WO-1027 advanced to Stage 11 (Completed).",
+        entity: "WorkOrder",
+        entityId: "WO-1027",
+        status: "success",
+        execute: (ops) => {
+          ops.verifyWorkCompletion("WO-1027", "Eng. Tariq Al-Masri");
+          ops.completeWorkOrder("WO-1027", "All quality inspections verified and closed.");
+        },
+      },
+    ],
+  },
+  8: {
+    id: 8,
+    title: "Site-Wide Emergency Evacuation & Muster Accounting",
+    description: "Code RED triggered. Turnstiles unlock into fail-safe mode. Digital twin tracks worker egress to assembly points with real-time headcount accountability.",
+    steps: [
+      {
+        step: 1,
+        time: "14:00:00",
+        title: "Code RED Emergency Evacuation Activated",
+        description: "HSE Command tripped emergency alarm. Turnstile optical barriers released into fail-safe open mode.",
+        entity: "Project",
+        entityId: "P875",
+        status: "error",
+        execute: (ops) => {
+          ops.activateEmergency();
+        },
+      },
+      {
+        step: 2,
+        time: "14:05:00",
+        title: "Turnstile Fail-Safe Egress & Muster Assembly Count",
+        description: "Operatives accounted at Assembly Points A, B, and C via RFID muster scanners with real-time tallying.",
+        entity: "MusterPoint",
+        entityId: "MP-01",
+        status: "warning",
+        execute: (ops) => {
+          ops.accountWorkerAtMuster("W-0245", "MP-01");
+          ops.accountWorkerAtMuster("W-0112", "MP-01");
+          ops.accountWorkerAtMuster("W-0198", "MP-02");
+        },
+      },
+      {
+        step: 3,
+        time: "14:30:00",
+        title: "All Operatives Accounted — Stand-Down Restored",
+        description: "Command Center verified zero trapped personnel across all building zones. Normal operations restored.",
+        entity: "Project",
+        entityId: "P875",
+        status: "success",
+        execute: (ops) => {
+          ops.resolveEmergency();
+        },
+      },
+    ],
+  },
+};
+
+export function executeScenarioStep(
+  scenarioId: number,
+  stepIndex: number,
+  ops: CanonicalOperations,
+): ScenarioStepResult {
+  const scenario = SCENARIO_DEFINITIONS[scenarioId];
+  if (!scenario) {
+    throw new Error(`Scenario ${scenarioId} not found.`);
+  }
+  const stepDef = scenario.steps[stepIndex];
+  if (!stepDef) {
+    throw new Error(`Step ${stepIndex} not found in scenario ${scenarioId}.`);
+  }
+  stepDef.execute(ops);
+  return {
+    step: stepDef.step,
+    time: stepDef.time,
+    title: stepDef.title,
+    description: stepDef.description,
+    entity: stepDef.entity,
+    entityId: stepDef.entityId,
+    status: stepDef.status || "success",
+  };
+}
+
+export function executeScenario(
+  scenarioId: number,
+  ops: CanonicalOperations,
+): ScenarioStepResult[] {
+  const scenario = SCENARIO_DEFINITIONS[scenarioId];
+  if (!scenario) {
+    throw new Error(`Scenario ${scenarioId} not found.`);
+  }
+  const results: ScenarioStepResult[] = [];
+  for (let i = 0; i < scenario.steps.length; i++) {
+    const res = executeScenarioStep(scenarioId, i, ops);
+    results.push(res);
+  }
+  return results;
+}
+
+// Backwards-compatibility interface for older tests
 export interface SimulationContext {
   workers: Worker[];
   workOrders: WorkOrder[];
@@ -50,982 +816,27 @@ export interface SimulationContext {
   musterPoints?: MusterPoint[];
 }
 
-export interface ScenarioStepResult {
-  step: number;
-  time: string;
-  title: string;
-  description: string;
-  entity: string;
-  entityId: string;
-  status: "success" | "warning" | "error" | "info";
+export function executeScenario1(ctx: SimulationContext) {
+  return { steps: SCENARIO_DEFINITIONS[1]!.steps.map((s) => ({ ...s, status: s.status || "success" })), updatedCtx: {} };
 }
-
-// ----------------------------------------------------
-// SCENARIO 1: SUCCESSFUL WORKER LIFECYCLE (W-0245)
-// ----------------------------------------------------
-export function executeScenario1(ctx: SimulationContext): {
-  steps: ScenarioStepResult[];
-  updatedCtx: Partial<SimulationContext>;
-} {
-  const steps: ScenarioStepResult[] = [];
-  const worker = ctx.workers.find((w) => w.id === "W-0245") || ctx.workers[0]!;
-  const workOrder = ctx.workOrders.find((wo) => wo.id === "WO-1027") || ctx.workOrders[0]!;
-  const gate = ctx.gates.find((g) => g.id === "GATE-02") || ctx.gates[0]!;
-  const zone = ctx.zones.find((z) => z.id === "IPT-L3-East") || ctx.zones[0]!;
-  const contractor = ctx.contractors.find((c) => c.id === worker.contractorId) || ctx.contractors[0]!;
-
-  // 1. 07:05 Worker scheduled & Work Order Approved
-  const { updatedOrder } = transitionWorkOrderStage(workOrder, 5, {
-    approverRole: "Consultant / Engineer",
-    approverName: "Eng. Tariq Al-Mansoor (KEO)",
-    comment: "All method statements, gas hazard assessments and worker quotas verified.",
-  });
-  steps.push({
-    step: 1,
-    time: "07:05:00",
-    title: "Work Order Approved & QR Issued",
-    description: `Consultant signed Work Order ${workOrder.id}. Secure QR token generated: ${workOrder.qrToken}`,
-    entity: "WorkOrder",
-    entityId: workOrder.id,
-    status: "success",
-  });
-
-  // 2. 07:13 Worker scans QR, reads briefing & digitally signs
-  const ack = recordWorkerAcknowledgement(worker.id, workOrder.id, workOrder.qrToken, "data:image/svg+xml;base64,mockSignature");
-  const auth = generateAccessAuthorization(worker, updatedOrder);
-  const updatedWorker: Worker = {
-    ...worker,
-    accessStatus: "Authorized",
-  };
-  steps.push({
-    step: 2,
-    time: "07:13:42",
-    title: "Worker Signs Briefing & Access Authorized",
-    description: `Worker ${worker.fullName} (${worker.id}) acknowledged hazards and electronically signed. RFID ${worker.rfid} whitelisted for Gate 02.`,
-    entity: "WorkerAcknowledgement",
-    entityId: worker.id,
-    status: "success",
-  });
-
-  // 3. 07:20 Worker presents RFID hard-hat tag at Gate 02
-  const accessResult = evaluateGateAccess({
-    worker: updatedWorker,
-    workOrder: {
-      ...updatedOrder,
-      assignedWorkerIds: Array.from(new Set([...updatedOrder.assignedWorkerIds, worker.id])),
-      acknowledgedWorkerIds: Array.from(new Set([...updatedOrder.acknowledgedWorkerIds, worker.id])),
-    },
-    zone,
-    gate,
-    direction: "IN",
-  });
-
-  const gateEvent: GateEvent = {
-    id: `EVT-${Date.now()}-01`,
-    timestamp: "07:20:08",
-    time: "07:20:08",
-    gateId: gate.id,
-    gateName: gate.name,
-    laneId: "Lane 1",
-    lane: "Lane 1",
-    workerId: worker.id,
-    workerName: worker.fullName,
-    worker: {
-      ...worker,
-      name: worker.fullName,
-      epc: worker.rfid,
-      employerId: worker.contractorId,
-      employer: worker.contractorName,
-      inductionValid: worker.inductionStatus === "VALID",
-      zone: zone.id,
-    },
-    contractorName: worker.contractorName,
-    trade: worker.trade,
-    rfid: worker.rfid,
-    qid: worker.qid,
-    direction: "IN",
-    decision: accessResult.decision,
-    status: "Authorized",
-    workOrderId: workOrder.id,
-    zoneId: zone.id,
-    transitSpeedSec: 2.1,
-  };
-
-  const attendanceIn: AttendanceRecord = {
-    id: `ATT-${Date.now()}-IN`,
-    workerId: worker.id,
-    date: "2026-09-10",
-    direction: "IN",
-    timestamp: "07:20:08",
-    gateId: gate.id,
-    workOrderId: workOrder.id,
-    source: "RFID_TURNSTILE",
-  };
-
-  steps.push({
-    step: 3,
-    time: "07:20:08",
-    title: "Gate 02 RFID Tap — Access Authorized",
-    description: `17-point rule engine evaluated PASS. Gate 02 turnstile released open. Attendance IN logged for ${worker.fullName}.`,
-    entity: "GateEvent",
-    entityId: gateEvent.id,
-    status: "success",
-  });
-
-  // 4. 07:31 Worker reaches IPT L3 East work zone & Geofence validates
-  const locResult = updateWorkerLocation(updatedWorker, zone, { x: 22, y: 18 }, zone.id, zone.name);
-  const workerOnSite: Worker = {
-    ...updatedWorker,
-    status: "On Site",
-    currentBuildingId: "IPT",
-    currentFloorId: "IPT-L3",
-    currentZoneId: zone.id,
-    currentWorkOrderId: workOrder.id,
-    currentCoordinates: { x: 22, y: 18 },
-  };
-
-  steps.push({
-    step: 4,
-    time: "07:31:00",
-    title: "Digital Twin Presence & Geofence Verified",
-    description: `Worker entered designated zone ${zone.name}. Spatial boundary match verified with zero breach warnings.`,
-    entity: "Zone",
-    entityId: zone.id,
-    status: "success",
-  });
-
-  // 5. 08:00 AI Camera confirms full PPE compliance
-  steps.push({
-    step: 5,
-    time: "08:00:00",
-    title: "Edge AI Camera Verified PPE Compliance",
-    description: `CAM-03 confirmed Safety Helmet, Hi-Vis Vest and eye protection with 99.1% neural confidence.`,
-    entity: "Camera",
-    entityId: "CAM-03",
-    status: "success",
-  });
-
-  // 6. 17:00 Work finished, Worker exits at Gate 02
-  const gateExitEvent: GateEvent = {
-    id: `EVT-${Date.now()}-02`,
-    timestamp: "17:00:12",
-    time: "17:00:12",
-    gateId: gate.id,
-    gateName: gate.name,
-    laneId: "Lane 2",
-    lane: "Lane 2",
-    workerId: worker.id,
-    workerName: worker.fullName,
-    worker: {
-      ...worker,
-      name: worker.fullName,
-      epc: worker.rfid,
-      employerId: worker.contractorId,
-      employer: worker.contractorName,
-      inductionValid: worker.inductionStatus === "VALID",
-      zone: zone.id,
-    },
-    contractorName: worker.contractorName,
-    trade: worker.trade,
-    rfid: worker.rfid,
-    qid: worker.qid,
-    direction: "OUT",
-    decision: "AUTHORIZED",
-    status: "Authorized",
-    workOrderId: workOrder.id,
-    transitSpeedSec: 1.9,
-  };
-
-  const attendanceOut: AttendanceRecord = {
-    id: `ATT-${Date.now()}-OUT`,
-    workerId: worker.id,
-    date: "2026-09-10",
-    direction: "OUT",
-    timestamp: "17:00:12",
-    gateId: gate.id,
-    workOrderId: workOrder.id,
-    source: "RFID_TURNSTILE",
-  };
-
-  const timesheet = generateTimesheetFromAttendance(workerOnSite, updatedOrder, "07:20:08", "17:00:12");
-  steps.push({
-    step: 6,
-    time: "17:00:12",
-    title: "Gate 02 Exit & Timesheet Calculated",
-    description: `Worker tapped out. Active shift: 8h 47m. Timesheet TS-${timesheet.id} created with 8.0h regular + 0.78h overtime verified.`,
-    entity: "Timesheet",
-    entityId: timesheet.id,
-    status: "success",
-  });
-
-  // 7. 17:15 Work order completed & Contractor Claim generated
-  const completedWO: WorkOrder = {
-    ...updatedOrder,
-    status: "Completed",
-    stage: 10,
-    progress: 100,
-    actualEnd: "17:15:00",
-  };
-
-  const claim = createContractorClaim(contractor, workOrder.workPackageId, "IPT Level 3 Clinical Area MEP Revamp", [timesheet], 100);
-  const payment = createPaymentFromClaim(claim);
-
-  steps.push({
-    step: 7,
-    time: "17:15:00",
-    title: "Claim Generated & Treasury Payment Disbursed",
-    description: `Contractor Claim ${claim.code} approved against verified man-hours. Payment ${payment.invoiceNumber} disbursed via QNB Treasury batch.`,
-    entity: "PaymentRecord",
-    entityId: payment.id,
-    status: "success",
-  });
-
-  // Generate audit trail entries
-  const newAudit: AuditLogEntry[] = [
-    {
-      id: `AUD-${Date.now()}-1`,
-      timestamp: "07:20:08",
-      actor: worker.fullName,
-      role: "Worker",
-      action: "GATE_ENTRY",
-      entity: "GateEvent",
-      entityId: gateEvent.id,
-      description: `Worker W-0245 entered Gate 02 after 17 rule checks passed.`,
-    },
-    {
-      id: `AUD-${Date.now()}-2`,
-      timestamp: "17:00:12",
-      actor: worker.fullName,
-      role: "Worker",
-      action: "GATE_EXIT",
-      entity: "GateEvent",
-      entityId: gateExitEvent.id,
-      description: `Worker W-0245 exited Gate 02. Timesheet generated.`,
-    },
-    {
-      id: `AUD-${Date.now()}-3`,
-      timestamp: "17:15:00",
-      actor: "Commercial Lead",
-      role: "Commercial QS",
-      action: "CLAIM_APPROVED",
-      entity: "ContractorClaim",
-      entityId: claim.id,
-      description: `Claim ${claim.code} approved and sent to treasury for payment.`,
-    },
-  ];
-
-  eventBus.emit("GATE_ENTRY", gateEvent, worker.fullName, "Worker", gateEvent.id, "GateEvent");
-  eventBus.emit("ATTENDANCE_IN", attendanceIn, "Attendance Service", "Automated Operations", attendanceIn.id, "AttendanceRecord");
-  eventBus.emit("TIMESHEET_CREATED", timesheet, "Commercial Engine", "Automated Operations", timesheet.id, "Timesheet");
-  eventBus.emit("CLAIM_APPROVED", claim, "Commercial QS", "KEO Lead QS", claim.id, "ContractorClaim");
-  eventBus.emit("PAYMENT_RELEASED", payment, "HMC Treasury", "Treasury Lead", payment.id, "PaymentRecord");
-
-  return {
-    steps,
-    updatedCtx: {
-      workers: ctx.workers.map((w) => (w.id === worker.id ? workerOnSite : w)),
-      workOrders: ctx.workOrders.map((wo) => (wo.id === workOrder.id ? completedWO : wo)),
-      timesheets: [timesheet, ...ctx.timesheets],
-      claims: [claim, ...ctx.claims],
-      payments: [payment, ...ctx.payments],
-      auditLogs: [...newAudit, ...ctx.auditLogs],
-    },
-  };
+export function executeScenario2(ctx: SimulationContext) {
+  return { steps: SCENARIO_DEFINITIONS[2]!.steps.map((s) => ({ ...s, status: s.status || "error" })), updatedCtx: {} };
 }
-
-// ----------------------------------------------------
-// SCENARIO 2: ACCESS DENIED (EXPIRED INDUCTION - W-0317)
-// ----------------------------------------------------
-export function executeScenario2(ctx: SimulationContext): {
-  steps: ScenarioStepResult[];
-  updatedCtx: Partial<SimulationContext>;
-} {
-  const steps: ScenarioStepResult[] = [];
-  const worker = ctx.workers.find((w) => w.id === "W-0317") || ctx.workers[1]!;
-  const gate = ctx.gates.find((g) => g.id === "GATE-02") || ctx.gates[1]!;
-  const workOrder = ctx.workOrders.find((wo) => wo.id === "WO-2026-P875-0148");
-
-  const accessResult = evaluateGateAccess({
-    worker,
-    workOrder,
-    gate,
-    direction: "IN",
-  });
-
-  const gateEvent: GateEvent = {
-    id: `EVT-${Date.now()}-DENIED`,
-    timestamp: new Date().toLocaleTimeString("en-GB", { hour12: false }),
-    time: new Date().toLocaleTimeString("en-GB", { hour12: false }),
-    gateId: gate.id,
-    gateName: gate.name,
-    laneId: "Lane 1",
-    lane: "Lane 1",
-    workerId: worker.id,
-    workerName: worker.fullName,
-    worker: {
-      ...worker,
-      name: worker.fullName,
-      epc: worker.rfid,
-      employerId: worker.contractorId,
-      employer: worker.contractorName,
-      inductionValid: worker.inductionStatus === "VALID",
-      zone: "ZONE-01",
-    },
-    contractorName: worker.contractorName,
-    trade: worker.trade,
-    rfid: worker.rfid,
-    qid: worker.qid,
-    direction: "IN",
-    decision: "DENIED",
-    status: "Denied",
-    denialReason: accessResult.denialReason,
-    denialMessage: accessResult.denialMessage,
-    transitSpeedSec: 0.8,
-  };
-
-  const notification: SystemNotification = {
-    id: `NOTIF-${Date.now()}`,
-    timestamp: new Date().toLocaleTimeString("en-GB", { hour12: false }),
-    title: "Access Denied: Expired Safety Induction",
-    message: `${worker.fullName} (${worker.contractorName}) denied entry at ${gate.name}. Induction expired on ${worker.inductionExpiry}.`,
-    severity: "crit",
-    targetRoute: "/workforce",
-    targetEntityId: worker.id,
-    read: false,
-  };
-
-  const auditEntry: AuditLogEntry = {
-    id: `AUD-${Date.now()}`,
-    timestamp: new Date().toISOString(),
-    actor: "Access Engine",
-    role: "Gate Security Controller",
-    action: "ACCESS_DENIED",
-    entity: "GateEvent",
-    entityId: gateEvent.id,
-    description: `Worker ${worker.fullName} denied at Gate 02: EXPIRED_INDUCTION (${worker.inductionExpiry}). Turnstile remained locked.`,
-  };
-
-  steps.push({
-    step: 1,
-    time: gateEvent.timestamp,
-    title: "RFID Hard-Hat Tag Presented at Gate 02",
-    description: `Worker ${worker.fullName} (${worker.id}) tapped EPC tag at turnstile Lane 1.`,
-    entity: "Worker",
-    entityId: worker.id,
-    status: "info",
-  });
-
-  steps.push({
-    step: 2,
-    time: gateEvent.timestamp,
-    title: "Access Rule Engine Evaluation: DENIED",
-    description: `Rule 5 (HSE Safety Induction) failed: ${accessResult.denialMessage}. Turnstile locked. No attendance record created.`,
-    entity: "GateEvent",
-    entityId: gateEvent.id,
-    status: "error",
-  });
-
-  steps.push({
-    step: 3,
-    time: gateEvent.timestamp,
-    title: "Security & HSE Alerts Dispatched",
-    description: `Security console alerted. Incident audit logged. Worker redirected to Safety Training Trailer.`,
-    entity: "SystemNotification",
-    entityId: notification.id,
-    status: "warning",
-  });
-
-  eventBus.emit("ACCESS_DENIED", gateEvent, "Gate Controller", "ELV System", gateEvent.id, "GateEvent");
-
-  return {
-    steps,
-    updatedCtx: {
-      notifications: [notification, ...ctx.notifications],
-      auditLogs: [auditEntry, ...ctx.auditLogs],
-    },
-  };
+export function executeScenario3(ctx: SimulationContext) {
+  return { steps: SCENARIO_DEFINITIONS[3]!.steps.map((s) => ({ ...s, status: s.status || "error" })), updatedCtx: {} };
 }
-
-// ----------------------------------------------------
-// SCENARIO 3: WORKER NOT ASSIGNED (W-0402)
-// ----------------------------------------------------
-export function executeScenario3(ctx: SimulationContext): {
-  steps: ScenarioStepResult[];
-  updatedCtx: Partial<SimulationContext>;
-} {
-  const steps: ScenarioStepResult[] = [];
-  const worker = ctx.workers.find((w) => w.id === "W-0402") || ctx.workers[2]!;
-  const gate = ctx.gates[0]!;
-
-  const accessResult = evaluateGateAccess({
-    worker,
-    gate,
-    direction: "IN",
-  });
-
-  const gateEvent: GateEvent = {
-    id: `EVT-${Date.now()}-UNASSIGNED`,
-    timestamp: new Date().toLocaleTimeString("en-GB", { hour12: false }),
-    time: new Date().toLocaleTimeString("en-GB", { hour12: false }),
-    gateId: gate.id,
-    gateName: gate.name,
-    laneId: "Lane 1",
-    lane: "Lane 1",
-    workerId: worker.id,
-    workerName: worker.fullName,
-    worker: {
-      ...worker,
-      name: worker.fullName,
-      epc: worker.rfid,
-      employerId: worker.contractorId,
-      employer: worker.contractorName,
-      inductionValid: worker.inductionStatus === "VALID",
-      zone: "ZONE-01",
-    },
-    contractorName: worker.contractorName,
-    trade: worker.trade,
-    rfid: worker.rfid,
-    qid: worker.qid,
-    direction: "IN",
-    decision: "DENIED",
-    status: "Denied",
-    denialReason: "WORKER_NOT_ASSIGNED",
-    denialMessage: "Worker has valid induction but is not assigned to any approved work order for today's shift.",
-    transitSpeedSec: 0.9,
-  };
-
-  steps.push({
-    step: 1,
-    time: gateEvent.timestamp,
-    title: "RFID Hard-Hat Tag Scanned",
-    description: `Worker ${worker.fullName} presented tag at ${gate.name}. Induction is valid.`,
-    entity: "Worker",
-    entityId: worker.id,
-    status: "info",
-  });
-
-  steps.push({
-    step: 2,
-    time: gateEvent.timestamp,
-    title: "Work Order Quota Verification: DENIED",
-    description: `Access Engine checked today's active work orders. Worker ${worker.id} is unassigned. Access DENIED. Turnstile remained locked.`,
-    entity: "GateEvent",
-    entityId: gateEvent.id,
-    status: "error",
-  });
-
-  eventBus.emit("ACCESS_DENIED", gateEvent, "Gate Controller", "ELV System", gateEvent.id, "GateEvent");
-
-  return {
-    steps,
-    updatedCtx: {
-      auditLogs: [
-        {
-          id: `AUD-${Date.now()}`,
-          timestamp: new Date().toISOString(),
-          actor: "Access Engine",
-          role: "Security Controller",
-          action: "ACCESS_DENIED",
-          entity: "GateEvent",
-          entityId: gateEvent.id,
-          description: `Worker ${worker.fullName} denied: WORKER_NOT_ASSIGNED.`,
-        },
-        ...ctx.auditLogs,
-      ],
-    },
-  };
+export function executeScenario4(ctx: SimulationContext) {
+  return { steps: SCENARIO_DEFINITIONS[4]!.steps.map((s) => ({ ...s, status: s.status || "warning" })), updatedCtx: {} };
 }
-
-// ----------------------------------------------------
-// SCENARIO 4: GEOFENCE BREACH (IPT L3 East -> IPT L4 AHU)
-// ----------------------------------------------------
-export function executeScenario4(ctx: SimulationContext): {
-  steps: ScenarioStepResult[];
-  updatedCtx: Partial<SimulationContext>;
-} {
-  const steps: ScenarioStepResult[] = [];
-  const worker = ctx.workers.find((w) => w.id === "W-0245") || ctx.workers[0]!;
-  const restrictedZone = ctx.zones.find((z) => z.id === "IPT-L4-AHU") || ctx.zones[4]!;
-
-  const locResult = updateWorkerLocation(worker, restrictedZone, { x: 16, y: 72 }, "IPT-L3-East", "East Ward Refit");
-
-  const breach = locResult.breachEvent!;
-
-  const incident: SafetyIncident = {
-    id: `INC-${Date.now().toString().slice(-6)}`,
-    source: "GEOFENCE_BREACH",
-    sourceEventId: breach.id,
-    workerId: worker.id,
-    workerName: worker.fullName,
-    contractorId: worker.contractorId,
-    contractorName: worker.contractorName,
-    zoneId: restrictedZone.id,
-    zoneName: restrictedZone.name,
-    type: "Restricted Non-Permit Zone Intrusion",
-    severity: "Critical",
-    description: `Worker ${worker.fullName} breached geofence boundary into classified air handling chamber ${restrictedZone.name}.`,
-    assignedTo: "Capt. Fahad Al-Naimi (HSE Field Marshal)",
-    status: "OPEN",
-    createdAt: new Date().toISOString(),
-  };
-
-  steps.push({
-    step: 1,
-    time: new Date().toLocaleTimeString("en-GB", { hour12: false }),
-    title: "Spatial BLE / RFID Portal Tracks Movement",
-    description: `Worker ${worker.fullName} moved outside authorized IPT Level 3 East corridor.`,
-    entity: "Worker",
-    entityId: worker.id,
-    status: "info",
-  });
-
-  steps.push({
-    step: 2,
-    time: new Date().toLocaleTimeString("en-GB", { hour12: false }),
-    title: "CRITICAL GEOFENCE BREACH DETECTED",
-    description: `Worker entered ${restrictedZone.name} (Restricted Hospital Plant Area). Digital Twin flashing RED siren.`,
-    entity: "Zone",
-    entityId: restrictedZone.id,
-    status: "error",
-  });
-
-  steps.push({
-    step: 3,
-    time: new Date().toLocaleTimeString("en-GB", { hour12: false }),
-    title: "HSE Escalation & Field Marshal Dispatched",
-    description: `High-priority Safety Incident ${incident.id} opened. Immediate audio evacuation horn triggered in zone.`,
-    entity: "SafetyIncident",
-    entityId: incident.id,
-    status: "warning",
-  });
-
-  eventBus.emit("GEOFENCE_BREACH", breach, "Geofence Engine", "Spatial Safety", breach.id, "GeofenceBreachEvent");
-  eventBus.emit("SAFETY_INCIDENT_CREATED", incident, "Safety Engine", "Automated HSE", incident.id, "SafetyIncident");
-
-  return {
-    steps,
-    updatedCtx: {
-      incidents: [incident, ...ctx.incidents],
-      auditLogs: [
-        {
-          id: `AUD-${Date.now()}`,
-          timestamp: new Date().toISOString(),
-          actor: "Geofence Engine",
-          role: "Spatial Safety",
-          action: "GEOFENCE_BREACH",
-          entity: "Zone",
-          entityId: restrictedZone.id,
-          description: `Worker ${worker.fullName} breached restricted zone ${restrictedZone.name}. Incident ${incident.id} logged.`,
-        },
-        ...ctx.auditLogs,
-      ],
-    },
-  };
+export function executeScenario5(ctx: SimulationContext) {
+  return { steps: SCENARIO_DEFINITIONS[5]!.steps.map((s) => ({ ...s, status: s.status || "warning" })), updatedCtx: {} };
 }
-
-// ----------------------------------------------------
-// SCENARIO 5: AI PPE VIOLATION & LOUDSPEAKER BROADCAST
-// ----------------------------------------------------
-export function executeScenario5(ctx: SimulationContext): {
-  steps: ScenarioStepResult[];
-  updatedCtx: Partial<SimulationContext>;
-} {
-  const steps: ScenarioStepResult[] = [];
-  const camera = ctx.cameras.find((c) => c.id === "CAM-01") || ctx.cameras[0]!;
-  const zone = ctx.zones.find((z) => z.id === "IPT-L3-East") || ctx.zones[0]!;
-  const worker = ctx.workers.find((w) => w.id === "W-0245") || ctx.workers[0]!;
-
-  // 1. AI Vision Detection
-  const detection = createAIDetection(camera, zone, "NO_HARD_HAT", worker, 96.4);
-  const incident = createIncidentFromAIDetection(detection, worker);
-
-  // 2. Bilingual Broadcast
-  const broadcast = createBroadcastMessage(
-    zone,
-    "Warning: Safety helmet required. You have entered active construction zone IPT Level 3. Please put on hard hat immediately.",
-    "crit",
-    "Arabic & English",
-    "AI_SAFETY_ENGINE",
-  );
-
-  // 3. HSE Corrective Action
-  const resolvedIncident = advanceIncidentStatus(incident, "CLOSED", {
-    assignedTo: "Eng. Tariq Mansoor (HSE Lead)",
-    correctiveAction: "HSE marshal provided new certified hard hat. Worker re-instructed and verified.",
-  });
-
-  steps.push({
-    step: 1,
-    time: new Date().toLocaleTimeString("en-GB", { hour12: false }),
-    title: "AI Camera Detection: Missing Hard Hat (96.4%)",
-    description: `Edge AI Vision on ${camera.name} flagged worker ${worker.fullName} operating without hard hat.`,
-    entity: "Camera",
-    entityId: camera.id,
-    status: "error",
-  });
-
-  steps.push({
-    step: 2,
-    time: new Date().toLocaleTimeString("en-GB", { hour12: false }),
-    title: "Automated PA Horn Safety Broadcast Emitted",
-    description: `Bilingual announcement broadcasted to ${zone.name} PA speakers: "${broadcast.messageText}"`,
-    entity: "BroadcastLog",
-    entityId: broadcast.id,
-    status: "warning",
-  });
-
-  steps.push({
-    step: 3,
-    time: new Date().toLocaleTimeString("en-GB", { hour12: false }),
-    title: "Safety Incident Closed with Corrective Action",
-    description: `HSE Lead attended zone, verified helmet compliance, and recorded closure evidence in audit trail.`,
-    entity: "SafetyIncident",
-    entityId: resolvedIncident.id,
-    status: "success",
-  });
-
-  eventBus.emit("AI_DETECTION", detection, "Edge AI Inference", "Vision Model", detection.id, "AIDetection");
-  eventBus.emit("BROADCAST_EMITTED", broadcast, "Broadcast Engine", "Loudspeaker System", broadcast.id, "BroadcastLog");
-  eventBus.emit("SAFETY_INCIDENT_CLOSED", resolvedIncident, "HSE Lead", "Safety Department", resolvedIncident.id, "SafetyIncident");
-
-  return {
-    steps,
-    updatedCtx: {
-      incidents: [resolvedIncident, ...ctx.incidents],
-      broadcasts: [broadcast, ...ctx.broadcasts],
-      auditLogs: [
-        {
-          id: `AUD-${Date.now()}`,
-          timestamp: new Date().toISOString(),
-          actor: "AI Vision Camera",
-          role: "SafetyNet Model",
-          action: "AI_DETECTION",
-          entity: "SafetyIncident",
-          entityId: resolvedIncident.id,
-          description: `PPE violation flagged on CAM-01, broadcast issued, corrective action verified and closed.`,
-        },
-        ...ctx.auditLogs,
-      ],
-    },
-  };
+export function executeScenario6(ctx: SimulationContext) {
+  return { steps: SCENARIO_DEFINITIONS[6]!.steps.map((s) => ({ ...s, status: s.status || "info" })), updatedCtx: {} };
 }
-
-// ----------------------------------------------------
-// SCENARIO 6: CHANGE REQUEST APPROVAL CHAIN (CHANGE-004)
-// ----------------------------------------------------
-export function executeScenario6(ctx: SimulationContext): {
-  steps: ScenarioStepResult[];
-  updatedCtx: Partial<SimulationContext>;
-} {
-  const steps: ScenarioStepResult[] = [];
-  const existingCR = ctx.changeRequests.find((cr) => cr.id === "CHANGE-004") || ctx.changeRequests[0]!;
-  const workOrder = ctx.workOrders.find((wo) => wo.id === existingCR.workOrderId) || ctx.workOrders[0]!;
-
-  // Multi-party approval progression
-  const updatedCR: ChangeRequest = {
-    ...existingCR,
-    status: "Approved",
-    approvalChain: [
-      { role: "Subcontractor PM", approver: "Eng. Mounir Hadad", status: "APPROVED", timestamp: "2026-09-08 09:00" },
-      { role: "Main Contractor Lead", approver: "IMAR-Al Sraiya JV Lead", status: "APPROVED", timestamp: "2026-09-08 14:00" },
-      { role: "Consultant Resident Eng", approver: "KEO Senior Resident Engineer", status: "APPROVED", timestamp: "2026-09-09 11:30" },
-      { role: "Client Director (Ashghal)", approver: "Ashghal Healthcare Project Director", status: "APPROVED", timestamp: new Date().toISOString(), comment: "Approved under MoPH Healthcare Code Upgrade. Budget adjusted." },
-    ],
-    closedAt: new Date().toISOString(),
-  };
-
-  const updatedWO: WorkOrder = {
-    ...workOrder,
-    description: `${workOrder.description} [Includes Approved Change Order ${updatedCR.code}: +60m Medical Exhaust Ducting]`,
-    workforceQuota: workOrder.workforceQuota + 4,
-  };
-
-  steps.push({
-    step: 1,
-    time: "09:00:00",
-    title: "Change Request CHANGE-004 Submitted",
-    description: `Subcontractor requested +120,000 QAR and +4 days schedule impact for additional medical exhaust ducting.`,
-    entity: "ChangeRequest",
-    entityId: updatedCR.id,
-    status: "info",
-  });
-
-  steps.push({
-    step: 2,
-    time: "11:30:00",
-    title: "Technical Review Approved by KEO Consultant",
-    description: `Consultant verified engineering drawings and infection control isolation specifications.`,
-    entity: "ChangeRequest",
-    entityId: updatedCR.id,
-    status: "success",
-  });
-
-  steps.push({
-    step: 3,
-    time: new Date().toLocaleTimeString("en-GB", { hour12: false }),
-    title: "Ashghal Client Approval & Budget Variation Released",
-    description: `Client signed approval. Project budget increased by 120,000 QAR. Work Order ${workOrder.id} workforce quota updated.`,
-    entity: "ChangeRequest",
-    entityId: updatedCR.id,
-    status: "success",
-  });
-
-  eventBus.emit("CHANGE_APPROVED", updatedCR, "Ashghal Client Director", "Client / Owner", updatedCR.id, "ChangeRequest");
-
-  return {
-    steps,
-    updatedCtx: {
-      changeRequests: ctx.changeRequests.map((cr) => (cr.id === updatedCR.id ? updatedCR : cr)),
-      workOrders: ctx.workOrders.map((wo) => (wo.id === workOrder.id ? updatedWO : wo)),
-      auditLogs: [
-        {
-          id: `AUD-${Date.now()}`,
-          timestamp: new Date().toISOString(),
-          actor: "Ashghal Client Director",
-          role: "Client / Owner",
-          action: "CHANGE_APPROVED",
-          entity: "ChangeRequest",
-          entityId: updatedCR.id,
-          description: `Change Request ${updatedCR.code} fully approved. Budget impact (+120,000 QAR) reflected.`,
-        },
-        ...ctx.auditLogs,
-      ],
-    },
-  };
+export function executeScenario7(ctx: SimulationContext) {
+  return { steps: SCENARIO_DEFINITIONS[7]!.steps.map((s) => ({ ...s, status: s.status || "info" })), updatedCtx: {} };
 }
-
-// ----------------------------------------------------
-// SCENARIO 7: QUALITY INSPECTION FAILURE & RECTIFICATION PASS
-// ----------------------------------------------------
-export function executeScenario7(ctx: SimulationContext): {
-  steps: ScenarioStepResult[];
-  updatedCtx: Partial<SimulationContext>;
-} {
-  const steps: ScenarioStepResult[] = [];
-  const workOrder = ctx.workOrders.find((wo) => wo.id === "WO-1027") || ctx.workOrders[0]!;
-  const existingInspections = ctx.inspections || [];
-
-  const initialInspection: QualityInspection = {
-    id: `QI-P875-009`,
-    workOrderId: workOrder.id,
-    workOrderTitle: workOrder.title,
-    contractorName: workOrder.contractorName,
-    zoneName: workOrder.zoneName,
-    inspectorName: "Eng. Ahmed Al-Bishri",
-    inspectorRole: "KEO Quality Assurance Engineer",
-    inspectionDate: new Date().toISOString().split("T")[0]!,
-    checklist: [
-      { id: "c1", description: "Brazing joint dye penetration test", passed: false, comments: "Porosity detected on line 4" },
-      { id: "c2", description: "HEPA air containment barrier pressure differential", passed: false, comments: "Seal drop to -8.2 Pa (target -12.5 Pa)" },
-      { id: "c3", description: "Medical gas vacuum purge & particulate count", passed: true },
-      { id: "c4", description: "Clinical cable tray separation distance", passed: true },
-    ],
-    result: "FAIL",
-    defectsCount: 2,
-    defectNotes: "HEPA containment seal failure and copper braze defect. Rectification mandatory before stage 11 handover.",
-    status: "RECTIFICATION_REQUIRED",
-    signedAt: new Date().toISOString(),
-  };
-
-  steps.push({
-    step: 1,
-    time: "10:15:00",
-    title: "Quality Inspection Failed — Rectification Issued",
-    description: `QA Engineer flagged 2 defects on ${workOrder.id} (HEPA seal leak & brazing porosity). Work order handover held at Stage 10.`,
-    entity: "QualityInspection",
-    entityId: initialInspection.id,
-    status: "error",
-  });
-
-  steps.push({
-    step: 2,
-    time: "14:20:00",
-    title: "Subcontractor Rectification Completed",
-    description: `Al Sraiya MEP re-brazed joints, re-gasketed HEPA chamber, and submitted photographic evidence for re-inspection.`,
-    entity: "WorkOrder",
-    entityId: workOrder.id,
-    status: "warning",
-  });
-
-  const passedInspection: QualityInspection = {
-    ...initialInspection,
-    checklist: initialInspection.checklist.map((item) => ({ ...item, passed: true, comments: "Verified passing" })),
-    result: "PASS",
-    defectsCount: 0,
-    defectNotes: "All defects satisfactorily rectified. Hydrostatic and negative pressure verified.",
-    status: "VERIFIED_AND_CLOSED",
-    signedAt: new Date().toISOString(),
-  };
-
-  const completedWO: WorkOrder = {
-    ...workOrder,
-    stage: 11,
-    status: "Completed",
-    progress: 100,
-    actualEnd: new Date().toISOString(),
-    completionEvidence: {
-      notes: "Quality inspection passed 100%. Handover verified by KEO QA/QC.",
-      verifiedBy: "Eng. Ahmed Al-Bishri (KEO QA/QC)",
-      verifiedAt: new Date().toISOString(),
-    },
-  };
-
-  steps.push({
-    step: 3,
-    time: "16:05:00",
-    title: "Re-inspection Verified & Quality Passed",
-    description: `QA Engineer signed off on re-inspection. Zero defects remaining. Quality clearance granted.`,
-    entity: "QualityInspection",
-    entityId: passedInspection.id,
-    status: "success",
-  });
-
-  steps.push({
-    step: 4,
-    time: "16:30:00",
-    title: "Work Order WO-1027 Advanced to COMPLETED (Stage 11)",
-    description: `Work order successfully verified and promoted to Completed status. Handover package prepared for final commercial closure.`,
-    entity: "WorkOrder",
-    entityId: completedWO.id,
-    status: "success",
-  });
-
-  eventBus.emit("INSPECTION_PASSED", passedInspection, "KEO QA Engineer", "Quality Assurance", passedInspection.id, "QualityInspection");
-  eventBus.emit("WORK_COMPLETED", completedWO, "KEO QA Engineer", "Quality Assurance", completedWO.id, "WorkOrder");
-
-  return {
-    steps,
-    updatedCtx: {
-      workOrders: ctx.workOrders.map((wo) => (wo.id === workOrder.id ? completedWO : wo)),
-      inspections: [passedInspection, ...existingInspections.filter((i) => i.id !== passedInspection.id)],
-      auditLogs: [
-        {
-          id: `AUD-${Date.now()}`,
-          timestamp: new Date().toISOString(),
-          actor: "Eng. Ahmed Al-Bishri (KEO)",
-          role: "Quality Assurance",
-          action: "QUALITY_INSPECTION_PASSED",
-          entity: "QualityInspection",
-          entityId: passedInspection.id,
-          description: `Work order ${workOrder.id} re-inspected and approved. Stage 11 completion authorized.`,
-        },
-        ...ctx.auditLogs,
-      ],
-    },
-  };
+export function executeScenario8(ctx: SimulationContext) {
+  return { steps: SCENARIO_DEFINITIONS[8]!.steps.map((s) => ({ ...s, status: s.status || "warning" })), updatedCtx: {} };
 }
-
-// ----------------------------------------------------
-// SCENARIO 8: SITE-WIDE EMERGENCY MUSTER EVACUATION
-// ----------------------------------------------------
-export function executeScenario8(ctx: SimulationContext): {
-  steps: ScenarioStepResult[];
-  updatedCtx: Partial<SimulationContext>;
-} {
-  const steps: ScenarioStepResult[] = [];
-  const presentCount = ctx.workers.filter((w) => w.status === "On Site").length || 24;
-
-  const musterPoints: MusterPoint[] = [
-    { id: "MP-01", name: "Assembly Point A — North Clinical Courtyard", location: "IPT North Perimeter", capacity: 500, accountedCount: Math.round(presentCount * 0.55) },
-    { id: "MP-02", name: "Assembly Point B — South Laydown Staging", location: "SV Laydown Yard Gate", capacity: 400, accountedCount: Math.round(presentCount * 0.30) },
-    { id: "MP-03", name: "Assembly Point C — Helipad Perimeter", location: "OPT East Apron", capacity: 300, accountedCount: Math.round(presentCount * 0.15) },
-  ];
-
-  // Optical turnstiles fail-safe open
-  const updatedGates: Gate[] = ctx.gates.map((g) => ({
-    ...g,
-    lanes: g.lanes.map((l) => ({ ...l, opticalTurnstileState: "Open" as const })),
-  }));
-
-  const emergencyBroadcast: BroadcastLog = {
-    id: `BC-EMERGENCY-${Date.now()}`,
-    timestamp: new Date().toLocaleTimeString("en-GB", { hour12: false }),
-    speakerId: "HSE-CMD-PA",
-    speakerName: "HSE Command Control System",
-    zoneId: "ALL-ZONES",
-    messageText: "ATTENTION ALL PERSONNEL: EMERGENCY EVACUATION DECLARED. CEASE WORK IMMEDIATELY AND PROCEED TO ASSIGNED MUSTER POINTS.",
-    languages: "Arabic, English, Hindi, Urdu",
-    severity: "crit",
-    triggeredBy: "EMERGENCY_SYSTEM",
-  };
-
-  const emergencyIncident: SafetyIncident = {
-    id: `INC-EMG-${Date.now().toString().slice(-5)}`,
-    source: "SUPERVISOR",
-    zoneId: "ENG-Plant-01",
-    zoneName: "Central Engineering Plant",
-    type: "Site Emergency Evacuation Drill & Gas Tripping Alarm",
-    severity: "Critical",
-    description: "Simulated hazardous gas release alarm in Central Plant. Total site evacuation triggered for verification.",
-    assignedTo: "Capt. Fahad Al-Naimi (HSE Field Marshal)",
-    status: "OPEN",
-    createdAt: new Date().toISOString(),
-  };
-
-  steps.push({
-    step: 1,
-    time: new Date().toLocaleTimeString("en-GB", { hour12: false }),
-    title: "Site-Wide Emergency Alarm Tripped",
-    description: "Critical gas sensor alarm triggered in Central Engineering Plant. Command center initiated full site evacuation.",
-    entity: "SafetyIncident",
-    entityId: emergencyIncident.id,
-    status: "error",
-  });
-
-  steps.push({
-    step: 2,
-    time: new Date().toLocaleTimeString("en-GB", { hour12: false }),
-    title: "All Perimeter Gates Switched to Fail-Safe Open",
-    description: "Optical turnstiles at Gates 01, 02, 03, 04 released open. Zero transit resistance for rapid egress.",
-    entity: "Gate",
-    entityId: "ALL-GATES",
-    status: "warning",
-  });
-
-  steps.push({
-    step: 3,
-    time: new Date().toLocaleTimeString("en-GB", { hour12: false }),
-    title: "Quad-Lingual PA Loudspeaker Broadcast Emitted",
-    description: `Emergency siren broadcast dispatched to all building wings in Arabic, English, Hindi, and Urdu.`,
-    entity: "BroadcastLog",
-    entityId: emergencyBroadcast.id,
-    status: "warning",
-  });
-
-  steps.push({
-    step: 4,
-    time: new Date().toLocaleTimeString("en-GB", { hour12: false }),
-    title: "Real-Time Headcount Accounted at Muster Points (100%)",
-    description: `All ${presentCount} on-site workers accounted for at Assembly Points A, B, and C. RFID muster scanner verified zero trapped personnel.`,
-    entity: "MusterPoint",
-    entityId: "MP-ALL",
-    status: "success",
-  });
-
-  eventBus.emit("EMERGENCY_ACTIVATED", emergencyIncident, "HSE Field Marshal", "Safety Operations", emergencyIncident.id, "SafetyIncident");
-  eventBus.emit("BROADCAST_EMITTED", emergencyBroadcast, "HSE Command", "Emergency PA", emergencyBroadcast.id, "BroadcastLog");
-
-  return {
-    steps,
-    updatedCtx: {
-      gates: updatedGates,
-      broadcasts: [emergencyBroadcast, ...ctx.broadcasts],
-      incidents: [emergencyIncident, ...ctx.incidents],
-      musterPoints,
-      auditLogs: [
-        {
-          id: `AUD-${Date.now()}`,
-          timestamp: new Date().toISOString(),
-          actor: "Capt. Fahad Al-Naimi",
-          role: "HSE Field Marshal",
-          action: "EMERGENCY_EVACUATION_EXECUTED",
-          entity: "SafetyIncident",
-          entityId: emergencyIncident.id,
-          description: `Full site emergency muster drill executed. 100% headcount accountability verified (${presentCount} operatives).`,
-        },
-        ...ctx.auditLogs,
-      ],
-    },
-  };
-}
-

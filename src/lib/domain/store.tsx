@@ -39,6 +39,7 @@ import type {
   BroadcastLog,
   QualityInspection,
   ChangeRequest,
+  ChangeStatus,
   Timesheet,
   ContractorClaim,
   PaymentRecord,
@@ -91,17 +92,18 @@ import {
 import {
   generateTimesheetFromAttendance,
   createContractorClaim,
+  reviewContractorClaim,
+  approveContractorClaim as approveContractorClaimService,
+  financeApproveContractorClaim,
   createPaymentFromClaim,
+  markClaimPaid,
+  closeClaim as closeClaimService,
 } from "./services/commercial-engine";
 import {
-  executeScenario1,
-  executeScenario2,
-  executeScenario3,
-  executeScenario4,
-  executeScenario5,
-  executeScenario6,
-  executeScenario7,
-  executeScenario8,
+  executeScenario,
+  executeScenarioStep,
+  SCENARIO_DEFINITIONS,
+  type CanonicalOperations,
   type ScenarioStepResult,
   type SimulationContext,
 } from "./simulation";
@@ -230,7 +232,17 @@ interface DomainStoreContextType {
   approveTimesheet: (timesheetId: string, signature: string) => void;
   submitContractorClaim: (claim: Partial<ContractorClaim>) => void;
   approveContractorClaim: (claimId: string, approverRole: string, approverName: string) => void;
+  reviewClaim: (claimId: string, reviewerRole?: string, reviewerName?: string, comment?: string) => void;
+  approveClaim: (claimId: string, approverRole?: string, approverName?: string, approvedAmount?: number, comment?: string) => void;
+  financeApproveClaim: (claimId: string, financeOfficer?: string, comment?: string) => void;
+  closeClaim: (claimId: string) => void;
   disbursePayment: (claimId: string) => void;
+  requestInspection: (workOrderId: string, checklist?: { id: string; description: string; passed: boolean }[]) => QualityInspection;
+  completeInspection: (inspectionId: string, result: "PASS" | "FAIL", defectNotes?: string) => void;
+  verifyWorkCompletion: (workOrderId: string, supervisorName: string) => void;
+  activateEmergency: () => void;
+  accountWorkerAtMuster: (workerId: string, musterPointId: string) => void;
+  resolveEmergency: () => void;
   markNotificationRead: (id: string) => void;
   addAuditLog: (entry: Omit<AuditLogEntry, "id" | "timestamp">) => void;
 
@@ -614,6 +626,25 @@ export function DomainStoreProvider({ children }: { children: ReactNode }) {
         // Duplicate RFID delivery must not create a second attendance record for the same gate event.
         setAttendance((prev) => (prev.some((record) => record.workerId === att.workerId && record.direction === att.direction && record.timestamp === att.timestamp) ? prev : [att, ...prev]));
 
+        const initialCoords = targetZone ? { x: targetZone.geofenceBoundary.x, y: targetZone.geofenceBoundary.y } : { x: 30, y: 30 };
+        if (direction === "IN" && targetZone) {
+          const locEvent: LocationEvent = {
+            id: `LOC-${Date.now()}-${selectedWorker.id}`,
+            workerId: selectedWorker.id,
+            buildingId: targetZone.buildingId,
+            floorId: targetZone.floorId,
+            zoneId: targetZone.id,
+            timestamp: event.timestamp,
+            source: "RFID_PORTAL",
+            coordinates: initialCoords,
+          };
+          setLocationEvents((prev) => [locEvent, ...prev].slice(0, 150));
+          eventBus.emit("LOCATION_UPDATED", locEvent, "Location Engine", "Spatial Tracking", locEvent.id, "LocationEvent");
+          eventBus.emit("ZONE_ENTERED", { workerId: selectedWorker.id, zoneId: targetZone.id }, "Location Engine", "Spatial Tracking", targetZone.id, "Zone");
+        } else if (direction === "OUT" && selectedWorker.currentZoneId) {
+          eventBus.emit("ZONE_EXITED", { workerId: selectedWorker.id, zoneId: selectedWorker.currentZoneId }, "Location Engine", "Spatial Tracking", selectedWorker.currentZoneId, "Zone");
+        }
+
         // Update Worker status
         setWorkers((prev) =>
           prev.map((w) => {
@@ -622,7 +653,9 @@ export function DomainStoreProvider({ children }: { children: ReactNode }) {
               ...w,
               status: direction === "IN" ? "On Site" : "Off Site",
               currentBuildingId: direction === "IN" ? (targetZone?.buildingId || "IPT") : undefined,
+              currentFloorId: direction === "IN" ? (targetZone?.floorId || "IPT-L3") : undefined,
               currentZoneId: direction === "IN" ? targetZone?.id : undefined,
+              currentCoordinates: direction === "IN" ? initialCoords : undefined,
             };
           }),
         );
@@ -1144,6 +1177,116 @@ export function DomainStoreProvider({ children }: { children: ReactNode }) {
     toast.success(`Quality Inspection ${newQi.id} Logged: ${newQi.result}`);
   }, []);
 
+  const requestInspection = useCallback(
+    (workOrderId: string, checklist?: { id: string; description: string; passed: boolean }[]): QualityInspection => {
+      const wo = workOrders.find((w) => w.id === workOrderId);
+      const newQi: QualityInspection = {
+        id: `QI-${Date.now().toString().slice(-6)}`,
+        workOrderId,
+        workOrderTitle: wo?.title || "Medical Infrastructure Works",
+        contractorName: wo?.contractorName || "Al Sraiya MEP Engineering",
+        zoneName: wo?.zoneName || "IPT-L3-East",
+        inspectorName: "Eng. Ahmed Al-Bishri",
+        inspectorRole: "KEO Quality Assurance Engineer",
+        inspectionDate: new Date().toISOString().split("T")[0]!,
+        checklist: checklist || [
+          { id: "c1", description: "Brazing joint penetration & dye test", passed: true },
+          { id: "c2", description: "HEPA air barrier containment seal", passed: true },
+        ],
+        result: "PASS",
+        defectsCount: 0,
+        status: "SCHEDULED",
+        signedAt: new Date().toISOString(),
+      };
+      setInspections((prev) => [newQi, ...prev]);
+      addAuditLog({
+        actor: "Eng. Ahmed Al-Bishri",
+        role: "KEO QA Engineer",
+        action: "INSPECTION_REQUESTED",
+        entity: "QualityInspection",
+        entityId: newQi.id,
+        description: `Quality inspection requested for Work Order ${workOrderId}.`,
+      });
+      toast.info(`Quality Inspection Requested: ${newQi.id}`);
+      return newQi;
+    },
+    [workOrders, addAuditLog],
+  );
+
+  const completeInspection = useCallback(
+    (inspectionId: string, result: "PASS" | "FAIL", defectNotes?: string) => {
+      setInspections((prev) =>
+        prev.map((qi) => {
+          if (qi.id !== inspectionId) return qi;
+          return {
+            ...qi,
+            result,
+            defectsCount: result === "FAIL" ? 1 : 0,
+            defectNotes: defectNotes || (result === "FAIL" ? "Defect identified during inspection." : undefined),
+            status: result === "FAIL" ? "RECTIFICATION_REQUIRED" : "VERIFIED_AND_CLOSED",
+            signedAt: new Date().toISOString(),
+          };
+        }),
+      );
+      addAuditLog({
+        actor: "Eng. Ahmed Al-Bishri",
+        role: "KEO QA Engineer",
+        action: result === "PASS" ? "INSPECTION_PASSED" : "INSPECTION_FAILED",
+        entity: "QualityInspection",
+        entityId: inspectionId,
+        description: `Inspection ${inspectionId} result: ${result}.${defectNotes ? ` Notes: ${defectNotes}` : ""}`,
+      });
+      if (result === "FAIL") {
+        toast.error(`Quality Inspection FAILED: ${inspectionId}`, { description: defectNotes });
+      } else {
+        toast.success(`Quality Inspection PASSED: ${inspectionId}`);
+      }
+    },
+    [addAuditLog],
+  );
+
+  const verifyWorkCompletion = useCallback(
+    (workOrderId: string, supervisorName: string) => {
+      const wo = workOrders.find((w) => w.id === workOrderId);
+      if (!wo) return;
+      const passedInspection = inspections.some(
+        (i) => i.workOrderId === workOrderId && i.result === "PASS" && i.status === "VERIFIED_AND_CLOSED",
+      );
+      if (!passedInspection) {
+        toast.error("Completion verification blocked", {
+          description: "A verified PASS inspection is required before completion verification.",
+        });
+        return;
+      }
+      setWorkOrders((prev) =>
+        prev.map((w) =>
+          w.id === workOrderId
+            ? {
+                ...w,
+                stage: 10,
+                status: "Verification",
+                completionEvidence: {
+                  notes: "Supervisor verification confirmed in field inspection.",
+                  verifiedBy: supervisorName,
+                  verifiedAt: new Date().toISOString(),
+                },
+              }
+            : w,
+        ),
+      );
+      addAuditLog({
+        actor: supervisorName,
+        role: "Contractor Supervisor",
+        action: "WORK_VERIFIED",
+        entity: "WorkOrder",
+        entityId: workOrderId,
+        description: `Supervisor ${supervisorName} verified completion of Work Order ${workOrderId}.`,
+      });
+      toast.success(`Work Order ${workOrderId} Verified by Supervisor`);
+    },
+    [workOrders, inspections, addAuditLog],
+  );
+
   const submitChangeRequest = useCallback((cr: Partial<ChangeRequest>) => {
     const newCr: ChangeRequest = {
       id: `CHANGE-${Date.now().toString().slice(-4)}`,
@@ -1162,9 +1305,11 @@ export function DomainStoreProvider({ children }: { children: ReactNode }) {
       riskImpact: cr.riskImpact || "Low",
       affectedZones: cr.affectedZones || ["IPT-L3-East"],
       affectedWorkersCount: cr.affectedWorkersCount || 4,
-      approvalChain: [
+      approvalChain: cr.approvalChain || [
         { role: "Subcontractor PM", approver: "Eng. Mounir Hadad", status: "APPROVED", timestamp: new Date().toISOString() },
         { role: "Main Contractor Lead", approver: "IMAR-Al Sraiya JV Lead", status: "PENDING" },
+        { role: "Consultant Quantity Surveyor", approver: "Eng. Khalid Al-Sulaiti (KEO)", status: "PENDING" },
+        { role: "Client Representative", approver: "Dr. Mariam Al-Kuwari (HMC)", status: "PENDING" },
       ],
       status: "Submitted",
       submittedAt: new Date().toISOString(),
@@ -1174,31 +1319,105 @@ export function DomainStoreProvider({ children }: { children: ReactNode }) {
     toast.success(`Change Request ${newCr.code} Submitted`);
   }, []);
 
-  const approveChangeRequest = useCallback((changeRequestId: string, approverRole: string, approverName: string) => {
-    const change = changeRequests.find((item) => item.id === changeRequestId);
-    if (!change || change.status === "Approved") return;
-    setChangeRequests((prev) =>
-      prev.map((cr) => {
-        if (cr.id !== changeRequestId) return cr;
+  const approveChangeRequest = useCallback(
+    (changeRequestId: string, approverRole: string, approverName: string) => {
+      const change = changeRequests.find((item) => item.id === changeRequestId);
+      if (!change || change.status === "Approved") return;
+
+      const pendingIndex = change.approvalChain.findIndex((c) => c.status === "PENDING");
+      if (pendingIndex === -1) return;
+
+      const updatedChain = change.approvalChain.map((item, idx) => {
+        if (idx !== pendingIndex) return item;
         return {
-          ...cr,
-          status: "Approved",
-          approvalChain: cr.approvalChain.map((c) => ({
-            ...c,
-            status: "APPROVED" as const,
-            timestamp: new Date().toISOString(),
-          })),
+          ...item,
+          role: approverRole || item.role,
+          approver: approverName || item.approver,
+          status: "APPROVED" as const,
+          timestamp: new Date().toISOString(),
         };
-      }),
-    );
-    setProject((current) => ({ ...current, budget: current.budget + change.costImpact, targetDate: new Date(new Date(current.targetDate).getTime() + change.scheduleImpactDays * 86_400_000).toISOString().slice(0, 10) }));
-    if (change.workOrderId) {
-      setWorkOrders((prev) => prev.map((order) => order.id === change.workOrderId ? { ...order, description: `${order.description} [Approved change ${change.code}]` } : order));
-    }
-    addAuditLog({ actor: approverName, role: approverRole, action: "CHANGE_APPROVED", entity: "ChangeRequest", entityId: changeRequestId, beforeSnapshot: JSON.stringify({ status: change.status }), afterSnapshot: JSON.stringify({ status: "Approved", costImpact: change.costImpact, scheduleImpactDays: change.scheduleImpactDays }), description: `Change ${change.code} approved; project budget and schedule were updated.` });
-    eventBus.emit("CHANGE_APPROVED", { ...change, status: "Approved" }, approverName, approverRole, changeRequestId, "ChangeRequest");
-    toast.success(`Change Request Approved by ${approverRole}`);
-  }, [changeRequests, addAuditLog]);
+      });
+
+      const remainingPending = updatedChain.some((c) => c.status === "PENDING");
+      let nextStatus: ChangeStatus = change.status;
+
+      if (!remainingPending) {
+        nextStatus = "Approved";
+        setProject((current) => ({
+          ...current,
+          budget: current.budget + change.costImpact,
+          targetDate: new Date(new Date(current.targetDate).getTime() + change.scheduleImpactDays * 86_400_000)
+            .toISOString()
+            .slice(0, 10),
+        }));
+        if (change.workOrderId) {
+          setWorkOrders((prev) =>
+            prev.map((order) =>
+              order.id === change.workOrderId
+                ? { ...order, description: `${order.description} [Approved change ${change.code}]` }
+                : order,
+            ),
+          );
+        }
+        addAuditLog({
+          actor: approverName,
+          role: approverRole,
+          action: "CHANGE_APPROVED",
+          entity: "ChangeRequest",
+          entityId: changeRequestId,
+          beforeSnapshot: JSON.stringify({ status: change.status }),
+          afterSnapshot: JSON.stringify({
+            status: "Approved",
+            costImpact: change.costImpact,
+            scheduleImpactDays: change.scheduleImpactDays,
+          }),
+          description: `Change ${change.code} fully approved by ${approverRole}; project budget and schedule updated.`,
+        });
+        eventBus.emit(
+          "CHANGE_APPROVED",
+          { ...change, status: "Approved", approvalChain: updatedChain },
+          approverName,
+          approverRole,
+          changeRequestId,
+          "ChangeRequest",
+        );
+        toast.success(`Change Request ${change.code} fully approved by ${approverRole}!`);
+      } else {
+        const nextTier = updatedChain.find((c) => c.status === "PENDING");
+        if (nextTier?.role.includes("Consultant")) {
+          nextStatus = "Consultant Review";
+        } else if (nextTier?.role.includes("Client") || nextTier?.role.includes("Owner")) {
+          nextStatus = "Client Approval";
+        } else {
+          nextStatus = "Main Contractor Review";
+        }
+        addAuditLog({
+          actor: approverName,
+          role: approverRole,
+          action: "CHANGE_TIER_APPROVED",
+          entity: "ChangeRequest",
+          entityId: changeRequestId,
+          description: `Change ${change.code} tier approved by ${approverRole}. Advanced to ${nextStatus}.`,
+        });
+        eventBus.emit(
+          "CHANGE_TIER_APPROVED",
+          { ...change, status: nextStatus, approvalChain: updatedChain },
+          approverName,
+          approverRole,
+          changeRequestId,
+          "ChangeRequest",
+        );
+        toast.success(`Change Request Tier Approved by ${approverRole}`, {
+          description: `Advanced to ${nextStatus}.`,
+        });
+      }
+
+      setChangeRequests((prev) =>
+        prev.map((cr) => (cr.id === changeRequestId ? { ...cr, status: nextStatus, approvalChain: updatedChain } : cr)),
+      );
+    },
+    [changeRequests, addAuditLog],
+  );
 
   const approveTimesheet = useCallback((timesheetId: string, signature: string) => {
     setTimesheets((prev) =>
@@ -1214,52 +1433,141 @@ export function DomainStoreProvider({ children }: { children: ReactNode }) {
     toast.success(`Timesheet ${timesheetId} Approved`);
   }, []);
 
-  const submitContractorClaim = useCallback((claimData: Partial<ContractorClaim>) => {
-    const newClaim: ContractorClaim = {
-      id: `CLAIM-${Date.now()}`,
-      code: `IPC-SUB-${Date.now().toString().slice(-4)}`,
-      contractorId: claimData.contractorId || "SC-01",
-      contractorName: claimData.contractorName || "Al Sraiya MEP Engineering",
-      workPackageId: claimData.workPackageId || "WP-01",
-      workPackageName: claimData.workPackageName || "MEP Revamp",
-      billingPeriod: "Current Bi-Weekly Shift",
-      totalManpowerCount: claimData.totalManpowerCount || 228,
-      totalManHours: claimData.totalManHours || 41320,
-      calculatedAmount: claimData.calculatedAmount || 2685800,
-      ...(claimData.approvedAmount !== undefined ? { approvedAmount: claimData.approvedAmount } : {}),
-      verifiedProgressPercentage: claimData.verifiedProgressPercentage || 78.5,
-      supportingDocumentCount: 12,
-      status: "Submitted",
-      submittedAt: new Date().toISOString(),
-      approvals: [],
-    };
-    setClaims((prev) => [newClaim, ...prev]);
-    toast.success(`Contractor Claim ${newClaim.code} Submitted`);
+  const submitContractorClaim = useCallback(
+    (claimData: Partial<ContractorClaim>) => {
+      const cid = claimData.contractorId || "SC-01";
+      const cont = contractors.find((c) => c.id === cid) || contractors[0]!;
+      const relevantTimesheets = timesheets.filter((t) => t.contractorId === cid);
+      const derivedHours = relevantTimesheets.reduce((acc, t) => acc + t.totalBillableHours, 0);
+      const derivedCost = relevantTimesheets.reduce((acc, t) => acc + t.totalCost, 0);
+
+      const totalManHours =
+        claimData.totalManHours !== undefined
+          ? claimData.totalManHours
+          : Math.round(derivedHours > 0 ? derivedHours : 8.0);
+      const calculatedAmount =
+        claimData.calculatedAmount !== undefined
+          ? claimData.calculatedAmount
+          : derivedCost > 0
+          ? derivedCost
+          : 520;
+
+      const newClaim: ContractorClaim = {
+        id: `CLAIM-${Date.now()}`,
+        code: `IPC-SUB-${Date.now().toString().slice(-4)}`,
+        contractorId: cid,
+        contractorName: cont.companyName,
+        workPackageId: claimData.workPackageId || "WP-01",
+        workPackageName: claimData.workPackageName || "MEP Revamp",
+        billingPeriod: "Current Operational Shift",
+        totalManpowerCount: cont.actualManpower,
+        totalManHours,
+        calculatedAmount,
+        ...(claimData.approvedAmount !== undefined ? { approvedAmount: claimData.approvedAmount } : {}),
+        verifiedProgressPercentage: claimData.verifiedProgressPercentage || 100,
+        supportingDocumentCount: 8,
+        status: "Submitted",
+        submittedAt: new Date().toISOString(),
+        approvals: [],
+      };
+      setClaims((prev) => [newClaim, ...prev]);
+      addAuditLog({
+        actor: "Commercial Engine",
+        role: "Contractor QS",
+        action: "CLAIM_SUBMITTED",
+        entity: "ContractorClaim",
+        entityId: newClaim.id,
+        description: `Contractor Claim ${newClaim.code} submitted for QAR ${calculatedAmount.toLocaleString()}.`,
+      });
+      eventBus.emit("CLAIM_SUBMITTED", newClaim, "Commercial Engine", "Subcontractor", newClaim.id, "ContractorClaim");
+      toast.success(`Contractor Claim ${newClaim.code} Submitted`);
+    },
+    [contractors, timesheets, addAuditLog],
+  );
+
+  const reviewClaim = useCallback(
+    (
+      claimId: string,
+      reviewerRole = "Main Contractor Lead",
+      reviewerName = "IMAR-Al Sraiya Lead QS",
+      comment = "Verified biometric attendance logs match claimed hours.",
+    ) => {
+      setClaims((prev) =>
+        prev.map((c) => {
+          if (c.id !== claimId) return c;
+          return reviewContractorClaim(c, reviewerRole, reviewerName, comment);
+        }),
+      );
+      addAuditLog({
+        actor: reviewerName,
+        role: reviewerRole,
+        action: "CLAIM_REVIEWED",
+        entity: "ContractorClaim",
+        entityId: claimId,
+        description: `Claim ${claimId} reviewed by ${reviewerRole}: ${comment}`,
+      });
+      toast.success(`Claim ${claimId} Reviewed & Forwarded to Consultant`);
+    },
+    [addAuditLog],
+  );
+
+  const approveClaim = useCallback(
+    (
+      claimId: string,
+      approverRole = "Consultant Quantity Surveyor",
+      approverName = "Eng. Khalid Al-Sulaiti (KEO)",
+      approvedAmount?: number,
+      comment = "Approved against turnstile cross-verification.",
+    ) => {
+      setClaims((prev) =>
+        prev.map((c) => {
+          if (c.id !== claimId) return c;
+          return approveContractorClaimService(c, approverRole, approverName, approvedAmount, comment);
+        }),
+      );
+      addAuditLog({
+        actor: approverName,
+        role: approverRole,
+        action: "CLAIM_APPROVED",
+        entity: "ContractorClaim",
+        entityId: claimId,
+        description: `Claim ${claimId} approved by ${approverRole}. Amount: QAR ${(approvedAmount ?? "Full").toLocaleString()}`,
+      });
+      toast.success(`Claim ${claimId} Approved for Finance Clearance`);
+    },
+    [addAuditLog],
+  );
+
+  const financeApproveClaim = useCallback(
+    (
+      claimId: string,
+      financeOfficer = "HMC Financial Controller",
+      comment = "Budget line item verified. Ready for payment scheduling.",
+    ) => {
+      setClaims((prev) =>
+        prev.map((c) => {
+          if (c.id !== claimId) return c;
+          return financeApproveContractorClaim(c, financeOfficer, comment);
+        }),
+      );
+      addAuditLog({
+        actor: financeOfficer,
+        role: "Finance Controller",
+        action: "CLAIM_FINANCE_APPROVED",
+        entity: "ContractorClaim",
+        entityId: claimId,
+        description: `Claim ${claimId} cleared by Finance Controller: ${comment}`,
+      });
+      toast.success(`Claim ${claimId} Cleared for Bank Disbursement`);
+    },
+    [addAuditLog],
+  );
+
+  const closeClaim = useCallback((claimId: string) => {
+    setClaims((prev) => prev.map((c) => (c.id === claimId ? closeClaimService(c) : c)));
   }, []);
 
-  const approveContractorClaim = useCallback((claimId: string, approverRole: string, approverName: string) => {
-    setClaims((prev) =>
-      prev.map((c) => {
-        if (c.id !== claimId) return c;
-        return {
-          ...c,
-          status: "Approved",
-          approvedAmount: c.calculatedAmount,
-          approvals: [
-            ...c.approvals,
-            {
-              role: approverRole,
-              approver: approverName,
-              status: "APPROVED",
-              timestamp: new Date().toISOString(),
-              comment: "Biometric turnstile cross-verification passed.",
-            },
-          ],
-        };
-      }),
-    );
-    toast.success(`Claim ${claimId} Approved for Payment`);
-  }, []);
+  const approveContractorClaim = approveClaim;
 
   const disbursePayment = useCallback((claimId: string) => {
     const claim = claims.find((c) => c.id === claimId);
@@ -1281,7 +1589,7 @@ export function DomainStoreProvider({ children }: { children: ReactNode }) {
     }
     setPayments((prev) => [payment, ...prev]);
     setClaims((prev) =>
-      prev.map((c) => (c.id === claimId ? { ...c, status: "Paid" } : c)),
+      prev.map((c) => (c.id === claimId ? markClaimPaid(c) : c)),
     );
     eventBus.emit("PAYMENT_RELEASED", payment, "Treasury", "Finance", payment.id, "PaymentRecord");
     addAuditLog({ actor: "Treasury", role: "Finance", action: "PAYMENT_RELEASED", entity: "PaymentRecord", entityId: payment.id, beforeSnapshot: JSON.stringify({ claimStatus: claim.status }), afterSnapshot: JSON.stringify({ paymentStatus: payment.paymentStatus, amount: payment.amount }), description: `Payment released for approved claim ${claim.code}.` });
@@ -1297,90 +1605,96 @@ export function DomainStoreProvider({ children }: { children: ReactNode }) {
     );
   }, []);
 
-  // ----------------------------------------------------
-  // ----------------------------------------------------
-  // RUN END-TO-END SCENARIOS (1 to 8) & STEPPER CONTROLS
-  // ----------------------------------------------------
-  const runScenario = useCallback(
-    (num: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8): ScenarioStepResult[] => {
-      const currentCtx: SimulationContext = {
-        workers,
-        workOrders,
-        zones,
-        gates,
-        cameras,
-        contractors,
-        incidents,
-        broadcasts,
-        timesheets,
-        claims,
-        payments,
-        changeRequests,
-        auditLogs,
-        notifications,
-        headcount,
-        inspections,
-        musterPoints,
-      };
+  // Emergency Muster & Evacuation
+  const activateEmergency = useCallback(() => {
+    setEmergency(true);
+    setGates((prev) =>
+      prev.map((g) => ({
+        ...g,
+        mode: "EVACUATION_FAIL_SAFE",
+        lanes: g.lanes.map((l) => ({ ...l, opticalTurnstileState: "Open" as const })),
+      })),
+    );
+    setAccounted(0);
+    setMusterPoints((prev) => prev.map((mp) => ({ ...mp, accountedCount: 0 })));
+    toast.error("SITE-WIDE EMERGENCY EVACUATION ACTIVE", {
+      description: "All optical turnstiles released open into fail-safe mode. Muster assembly counting.",
+      duration: 9000,
+    });
+    addAuditLog({
+      actor: "Command Control",
+      role: "HSE Field Marshal",
+      action: "EMERGENCY_ACTIVATED",
+      entity: "Project",
+      entityId: "P875",
+      description: "Emergency alarm tripped. All perimeter gates in fail-safe open mode.",
+    });
+    eventBus.emit("EMERGENCY_ACTIVATED", { projectId: "P875" }, "Command Control", "HSE Field Marshal", "P875", "Project");
+  }, [addAuditLog]);
 
-      let result: { steps: ScenarioStepResult[]; updatedCtx: Partial<SimulationContext> };
-
-      switch (num) {
-        case 1:
-          result = executeScenario1(currentCtx);
-          break;
-        case 2:
-          result = executeScenario2(currentCtx);
-          break;
-        case 3:
-          result = executeScenario3(currentCtx);
-          break;
-        case 4:
-          result = executeScenario4(currentCtx);
-          break;
-        case 5:
-          result = executeScenario5(currentCtx);
-          break;
-        case 6:
-          result = executeScenario6(currentCtx);
-          break;
-        case 7:
-          result = executeScenario7(currentCtx);
-          break;
-        case 8:
-          result = executeScenario8(currentCtx);
-          break;
-        default:
-          result = { steps: [], updatedCtx: {} };
-      }
-
-      // Apply state updates
-      if (result.updatedCtx.workers) setWorkers(result.updatedCtx.workers);
-      if (result.updatedCtx.workOrders) setWorkOrders(result.updatedCtx.workOrders);
-      if (result.updatedCtx.timesheets) setTimesheets(result.updatedCtx.timesheets);
-      if (result.updatedCtx.claims) setClaims(result.updatedCtx.claims);
-      if (result.updatedCtx.payments) setPayments(result.updatedCtx.payments);
-      if (result.updatedCtx.incidents) setIncidents(result.updatedCtx.incidents);
-      if (result.updatedCtx.broadcasts) setBroadcasts(result.updatedCtx.broadcasts);
-      if (result.updatedCtx.changeRequests) setChangeRequests(result.updatedCtx.changeRequests);
-      if (result.updatedCtx.auditLogs) setAuditLogs(result.updatedCtx.auditLogs);
-      if (result.updatedCtx.notifications) setNotifications(result.updatedCtx.notifications);
-      if (result.updatedCtx.inspections) setInspections(result.updatedCtx.inspections);
-      if (result.updatedCtx.gates) setGates(result.updatedCtx.gates);
-      if (result.updatedCtx.musterPoints) setMusterPoints(result.updatedCtx.musterPoints);
-
-      setActiveScenarioResult(result.steps);
-      setActiveScenarioNumber(num);
-      setCurrentScenarioStepIndex(result.steps.length);
-      setIsScenarioPaused(false);
-
-      toast.success(`Executed Scenario ${num}`, {
-        description: `Completed ${result.steps.length} operational steps across domain services.`,
+  const accountWorkerAtMuster = useCallback(
+    (workerId: string, musterPointId: string) => {
+      const worker = workers.find((w) => w.id === workerId);
+      const targetMusterId = musterPointId || "MP-01";
+      setMusterPoints((prev) =>
+        prev.map((mp) => {
+          if (mp.id !== targetMusterId && mp.id !== "MP-01") return mp;
+          return { ...mp, accountedCount: mp.accountedCount + 1 };
+        }),
+      );
+      setAccounted((a) => a + 1);
+      addAuditLog({
+        actor: "Muster Captain",
+        role: "HSE Evacuation Marshal",
+        action: "WORKER_MUSTERED",
+        entity: "MusterPoint",
+        entityId: targetMusterId,
+        description: `Worker ${worker?.fullName || workerId} accounted at Muster Point ${targetMusterId}.`,
       });
-
-      return result.steps;
+      eventBus.emit(
+        "WORKER_MUSTERED",
+        { workerId, musterPointId: targetMusterId },
+        "Muster Captain",
+        "HSE Marshal",
+        targetMusterId,
+        "MusterPoint",
+      );
+      toast.success(`Worker Accounted at Assembly Point`, {
+        description: `${worker?.fullName || workerId} (${worker?.contractorName || "Subcontractor"})`,
+      });
     },
-    [
+    [workers, addAuditLog],
+  );
+
+  const resolveEmergency = useCallback(() => {
+    setEmergency(false);
+    setGates((prev) =>
+      prev.map((g) => ({
+        ...g,
+        mode: "STANDARD",
+        lanes: g.lanes.map((l) => ({ ...l, opticalTurnstileState: "Locked" as const })),
+      })),
+    );
+    toast.success("Site Stand-Down Verified — Normal Operations Restored");
+    addAuditLog({
+      actor: "Command Control",
+      role: "HSE Field Marshal",
+      action: "EMERGENCY_STOOD_DOWN",
+      entity: "Project",
+      entityId: "P875",
+      description: "All muster points accounted. Normal turnstile telemetry resumed.",
+    });
+    eventBus.emit("EMERGENCY_STOOD_DOWN", { projectId: "P875" }, "Command Control", "HSE Field Marshal", "P875", "Project");
+  }, [addAuditLog]);
+
+  const startEmergency = activateEmergency;
+  const standDown = resolveEmergency;
+
+  // ----------------------------------------------------
+  // RUN END-TO-END SCENARIOS (1 to 8) & CANONICAL STEPPER
+  // ----------------------------------------------------
+  const getCanonicalOps = useCallback((): CanonicalOperations => ({
+    getState: () => ({
       workers,
       workOrders,
       zones,
@@ -1398,7 +1712,62 @@ export function DomainStoreProvider({ children }: { children: ReactNode }) {
       headcount,
       inspections,
       musterPoints,
-    ],
+      accessAuthorizations,
+      acknowledgements,
+      emergency,
+    }),
+    approveWorkOrder,
+    acknowledgeWorkOrder,
+    assignWorkerToWorkOrder,
+    updateWorkOrderProgress,
+    requestInspection,
+    completeInspection,
+    verifyWorkCompletion,
+    completeWorkOrder,
+    scanRfid,
+    submitManualGateOverride,
+    moveWorker,
+    submitIncident,
+    updateIncidentStatus,
+    emitBroadcast,
+    approveTimesheet,
+    submitContractorClaim,
+    reviewClaim,
+    approveClaim,
+    financeApproveClaim,
+    disbursePayment,
+    submitChangeRequest,
+    approveChangeRequest,
+    activateEmergency,
+    accountWorkerAtMuster,
+    resolveEmergency,
+    addAuditLog,
+  }), [
+    workers, workOrders, zones, gates, cameras, contractors, incidents, broadcasts,
+    timesheets, claims, payments, changeRequests, auditLogs, notifications, headcount,
+    inspections, musterPoints, accessAuthorizations, acknowledgements, emergency,
+    approveWorkOrder, acknowledgeWorkOrder, assignWorkerToWorkOrder, updateWorkOrderProgress,
+    requestInspection, completeInspection, verifyWorkCompletion, completeWorkOrder,
+    scanRfid, submitManualGateOverride, moveWorker, submitIncident, updateIncidentStatus,
+    emitBroadcast, approveTimesheet, submitContractorClaim, reviewClaim, approveClaim,
+    financeApproveClaim, disbursePayment, submitChangeRequest, approveChangeRequest,
+    activateEmergency, accountWorkerAtMuster, resolveEmergency, addAuditLog,
+  ]);
+
+  const runScenario = useCallback(
+    (num: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8): ScenarioStepResult[] => {
+      const ops = getCanonicalOps();
+      const steps = executeScenario(num, ops);
+      setActiveScenarioResult(steps);
+      setActiveScenarioNumber(num);
+      setCurrentScenarioStepIndex(steps.length - 1);
+      setIsScenarioPaused(false);
+      toast.success(`Executed Scenario ${num}`, {
+        description: `Completed ${steps.length} canonical operational steps across domain services.`,
+      });
+      return steps;
+    },
+    [getCanonicalOps],
   );
 
   const clearScenarioResult = useCallback(() => {
@@ -1409,23 +1778,34 @@ export function DomainStoreProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const stepScenario = useCallback(() => {
-    if (!activeScenarioResult || activeScenarioResult.length === 0) {
-      runScenario(1);
+    const ops = getCanonicalOps();
+    const activeNum = activeScenarioNumber || 1;
+    const scenarioDef = SCENARIO_DEFINITIONS[activeNum];
+    if (!scenarioDef) return;
+
+    if (!activeScenarioResult || activeScenarioNumber !== activeNum) {
+      const firstStep = executeScenarioStep(activeNum, 0, ops);
+      setActiveScenarioNumber(activeNum);
+      setCurrentScenarioStepIndex(0);
+      setActiveScenarioResult([firstStep]);
+      toast.info(`Step 1: ${firstStep.title}`, {
+        description: firstStep.description,
+      });
       return;
     }
-    if (currentScenarioStepIndex < activeScenarioResult.length) {
-      const nextIdx = currentScenarioStepIndex + 1;
-      setCurrentScenarioStepIndex(nextIdx);
-      const step = activeScenarioResult[nextIdx - 1];
-      if (step) {
-        toast.info(`Step ${step.step}: ${step.title}`, {
-          description: step.description,
-        });
-      }
+
+    const nextIndex = currentScenarioStepIndex + 1;
+    if (nextIndex < scenarioDef.steps.length) {
+      const stepResult = executeScenarioStep(activeNum, nextIndex, ops);
+      setActiveScenarioResult((prev) => (prev ? [...prev, stepResult] : [stepResult]));
+      setCurrentScenarioStepIndex(nextIndex);
+      toast.info(`Step ${stepResult.step}: ${stepResult.title}`, {
+        description: stepResult.description,
+      });
     } else {
-      toast.success("All steps completed for this scenario.");
+      toast.success(`All ${scenarioDef.steps.length} steps completed for Scenario ${activeNum}.`);
     }
-  }, [activeScenarioResult, currentScenarioStepIndex, runScenario]);
+  }, [activeScenarioNumber, activeScenarioResult, currentScenarioStepIndex, getCanonicalOps]);
 
   const pauseScenario = useCallback(() => {
     setIsScenarioPaused(true);
@@ -1473,36 +1853,6 @@ export function DomainStoreProvider({ children }: { children: ReactNode }) {
       description: "All worker rosters, permits, gates, and financial ledgers restored.",
     });
   }, []);
-
-  // Emergency Muster
-  const startEmergency = useCallback(() => {
-    setEmergency(true);
-    toast.error("SITE-WIDE EMERGENCY EVACUATION ACTIVE", {
-      description: "All optical turnstiles released open. Muster points counting.",
-      duration: 9000,
-    });
-    addAuditLog({
-      actor: "Command Control",
-      role: "HSE Field Marshal",
-      action: "EMERGENCY_ACTIVATED",
-      entity: "Project",
-      entityId: "P875",
-      description: "Emergency alarm tripped. All perimeter gates in fail-safe open mode.",
-    });
-  }, [addAuditLog]);
-
-  const standDown = useCallback(() => {
-    setEmergency(false);
-    toast.success("Site Stand-Down Verified — Normal Operations Restored");
-    addAuditLog({
-      actor: "Command Control",
-      role: "HSE Field Marshal",
-      action: "EMERGENCY_STOOD_DOWN",
-      entity: "Project",
-      entityId: "P875",
-      description: "All muster points accounted. Normal turnstile telemetry resumed.",
-    });
-  }, [addAuditLog]);
 
   // Continuous Telemetry Loop
   useEffect(() => {
@@ -1631,7 +1981,17 @@ export function DomainStoreProvider({ children }: { children: ReactNode }) {
       approveTimesheet,
       submitContractorClaim,
       approveContractorClaim,
+      reviewClaim,
+      approveClaim,
+      financeApproveClaim,
+      closeClaim,
       disbursePayment,
+      requestInspection,
+      completeInspection,
+      verifyWorkCompletion,
+      activateEmergency,
+      accountWorkerAtMuster,
+      resolveEmergency,
       markNotificationRead,
       addAuditLog,
 
@@ -1717,7 +2077,17 @@ export function DomainStoreProvider({ children }: { children: ReactNode }) {
       approveTimesheet,
       submitContractorClaim,
       approveContractorClaim,
+      reviewClaim,
+      approveClaim,
+      financeApproveClaim,
+      closeClaim,
       disbursePayment,
+      requestInspection,
+      completeInspection,
+      verifyWorkCompletion,
+      activateEmergency,
+      accountWorkerAtMuster,
+      resolveEmergency,
       markNotificationRead,
       addAuditLog,
     ],

@@ -64,8 +64,8 @@ export function generateTimesheetFromAttendance(
     totalBillableHours: totalHours,
     hourlyRate,
     totalCost,
-    approvalStatus: "SUPERVISOR_APPROVED",
-    supervisorSignature: `Tariq Al-Masri (Verified ${exitTimeStr} AST)`,
+    approvalStatus: "PENDING_SUPERVISOR",
+    supervisorSignature: undefined,
   };
 }
 
@@ -102,9 +102,94 @@ export function createContractorClaim(
   };
 }
 
-export function createPaymentFromClaim(claim: ContractorClaim): PaymentRecord {
-  if (claim.status !== "Approved" || claim.approvedAmount === undefined) {
-    throw new Error("Payment can only be created for an approved claim with an approved amount.");
+export function reviewContractorClaim(
+  claim: ContractorClaim,
+  reviewerRole: string = "Main Contractor Lead",
+  reviewerName: string = "IMAR-Al Sraiya Lead QS",
+  comment: string = "Verified biometric attendance logs match claimed hours.",
+): ContractorClaim {
+  if (claim.status !== "Submitted" && claim.status !== "Draft" && claim.status !== "Main Contractor Review") {
+    throw new Error(`Cannot review claim in '${claim.status}' state.`);
+  }
+  return {
+    ...claim,
+    status: "Under Review",
+    approvals: [
+      ...claim.approvals,
+      {
+        role: reviewerRole,
+        approver: reviewerName,
+        status: "APPROVED",
+        timestamp: new Date().toISOString(),
+        comment,
+      },
+    ],
+  };
+}
+
+export function approveContractorClaim(
+  claim: ContractorClaim,
+  approverRole: string = "Consultant Quantity Surveyor",
+  approverName: string = "Eng. Khalid Al-Sulaiti (KEO)",
+  approvedAmount?: number,
+  comment: string = "Approved against turnstile cross-verification.",
+): ContractorClaim {
+  if (
+    claim.status !== "Under Review" &&
+    claim.status !== "Submitted" &&
+    claim.status !== "Main Contractor Review" &&
+    claim.status !== "Consultant Review"
+  ) {
+    throw new Error(`Cannot approve claim in '${claim.status}' state.`);
+  }
+  const finalAmount = approvedAmount !== undefined ? approvedAmount : claim.calculatedAmount;
+  return {
+    ...claim,
+    status: "Approved",
+    approvedAmount: finalAmount,
+    approvals: [
+      ...claim.approvals,
+      {
+        role: approverRole,
+        approver: approverName,
+        status: "APPROVED",
+        timestamp: new Date().toISOString(),
+        comment,
+      },
+    ],
+  };
+}
+
+export function financeApproveContractorClaim(
+  claim: ContractorClaim,
+  financeOfficer: string = "HMC Financial Controller",
+  comment: string = "Budget line item verified. Ready for payment scheduling.",
+): ContractorClaim {
+  if (claim.status !== "Approved") {
+    throw new Error(`Finance approval requires 'Approved' status (current: '${claim.status}').`);
+  }
+  return {
+    ...claim,
+    status: "Payment Pending",
+    approvals: [
+      ...claim.approvals,
+      {
+        role: "Finance Controller",
+        approver: financeOfficer,
+        status: "APPROVED",
+        timestamp: new Date().toISOString(),
+        comment,
+      },
+    ],
+  };
+}
+
+export function createPaymentFromClaim(claim: ContractorClaim, authorizedBy?: string): PaymentRecord {
+  if (claim.status !== "Approved" && claim.status !== "Payment Pending") {
+    throw new Error(`Payment can only be created for an approved claim (current: '${claim.status}').`);
+  }
+  if (claim.approvedAmount === undefined || claim.approvedAmount <= 0) {
+    throw new Error("Payment requires a verified approved amount.");
   }
   const invNumber = `INV-${claim.code.replace("IPC-", "")}-${new Date().getFullYear()}`;
   return {
@@ -119,7 +204,21 @@ export function createPaymentFromClaim(claim: ContractorClaim): PaymentRecord {
     paymentStatus: "PROCESSED",
     paymentMethod: "Direct Bank Transfer (QNB Corporate)",
     disbursedDate: new Date().toISOString().split("T")[0],
-    authorizedBy: "Hamad Medical Corporation Treasury Director",
+    authorizedBy: authorizedBy || "Hamad Medical Corporation Treasury Director",
     treasuryBatchRef: `QNB-HMC-EFT-${Math.floor(100000 + Math.random() * 900000)}`,
+  };
+}
+
+export function markClaimPaid(claim: ContractorClaim): ContractorClaim {
+  return {
+    ...claim,
+    status: "Paid",
+  };
+}
+
+export function closeClaim(claim: ContractorClaim): ContractorClaim {
+  return {
+    ...claim,
+    status: "Closed",
   };
 }
